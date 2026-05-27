@@ -1,27 +1,22 @@
-// src/app/page.tsx
-import React from 'react';
-
-export default function LandingPage() {
+export default function Home() {
 return (
-<main className="min-h-screen bg-[#020617] text-white flex flex-col items-center justify-center p-6">
-{/* Hero Section */}
-<div className="text-center space-y-6 max-w-3xl">
-<h1 className="text-6xl font-extrabold tracking-tighter">
-VALCRONS<span className="text-blue-600">.</span>
-</h1>
-<p className="text-xl text-slate-400">
-Industrial expertise connected instantly. Secure, professional, and built for global facilities.
+<main className="flex min-h-screen flex-col items-center justify-center bg-industrial-charcoal p-12">
+{/* Title */}
+<h1 className="text-6xl font-bold text-white mb-6 tracking-tight">VALCRONS</h1>
+
+{/* Description */}
+<p className="text-gray-400 text-xl mb-12 max-w-lg text-center">
+Industrial service connection platform for factories, technicians, and urgent maintenance requests.
 </p>
 
-{/* Call to Action */}
-<div className="flex gap-4 justify-center pt-8">
-<button className="bg-white text-black font-bold px-8 py-4 rounded-full hover:bg-slate-200 transition">
-Request Expert Diagnosis
+{/* Buttons */}
+<div className="flex gap-4">
+<button className="bg-industrial-blue text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition shadow-lg">
+Post a Request
 </button>
-<button className="border border-slate-700 font-bold px-8 py-4 rounded-full hover:bg-slate-800 transition">
-Join as Technician
+<button className="border border-industrial-slate text-white px-8 py-3 rounded-lg font-semibold hover:bg-industrial-slate transition">
+Technician Dashboard
 </button>
-</div>
 </div>
 </main>
 );
