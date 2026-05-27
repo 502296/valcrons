@@ -15,6 +15,7 @@ import {
   Upload,
   ArrowRight,
   Bell,
+  phone,
 } from "lucide-react";
 
 export default function ValcronsLandingPage() {
