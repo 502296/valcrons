@@ -1,16 +1,18 @@
 export default function Home() {
 return (
-<main className="flex min-h-screen flex-col items-center justify-center p-24">
-<h1 className="text-5xl font-bold mb-6">VALCRONS</h1>
-<p className="text-gray-400 mb-10">Industrial service connection platform.</p>
+<main className="min-h-screen bg-[#121212] text-white flex flex-col items-center justify-center p-8">
+<h1 className="text-6xl font-bold mb-6 tracking-tight">VALCRONS</h1>
+<p className="text-gray-400 text-xl mb-12 max-w-xl text-center leading-relaxed">
+Industrial service connection platform for factories, technicians, and urgent maintenance requests.
+</p>
 
 <div className="flex gap-4">
-<button className="bg-[var(--accent-color)] px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition">
+<a href="/dashboard/client" className="bg-[#007AFF] px-8 py-4 rounded-lg font-semibold hover:opacity-90 transition shadow-lg">
 Post a Request
-</button>
-<button className="border border-gray-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition">
+</a>
+<a href="/dashboard/technician" className="border border-[#2A2A2A] px-8 py-4 rounded-lg font-semibold hover:bg-[#2A2A2A] transition">
 Technician Dashboard
-</button>
+</a>
 </div>
 </main>
 );
