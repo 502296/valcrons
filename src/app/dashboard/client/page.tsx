@@ -1,103 +1,67 @@
-// src/app/dashboard/client/page.tsx
 'use client';
 import { useState } from 'react';
 
-// هذا هو كود لوحة البيانات الاحترافي (Dashboard)
-export default function ClientDashboard() {
-const [specialization, setSpecialization] = useState('');
-
-// نموذج لطلبات الصيانة (سيتم استبداله ببيانات حقيقية لاحقاً)
-const requests = [
-{ title: "PLC Failure", location: "Detroit", type: "CRITICAL", status: "Safety Orange", border: "border-l-4 border-l-[#ff8800]" },
-{ title: "Maintenance", location: "Texas", type: "CRITUAL", status: "Blue", border: "border-l-4 border-l-[#0070f3]" },
-{ title: "Consultation", location: "Texas, California", type: "CONSULTATION", status: "Blue", border: "border-l-4 border-l-[#0070f3]" },
-];
-
+export default function ProDashboard() {
 return (
-<div className="min-h-screen bg-[#111111] text-[#e5e7eb]">
-{/* 1. الشريط العلوي (Header) */}
-<nav className="flex justify-between items-center p-6 border-b border-gray-800 bg-[#1a1a1a]">
-<h1 className="text-2xl font-bold text-[#ff8800] tracking-tighter">VALCRONS</h1>
-<div className="flex items-center space-x-6 text-sm">
-<a href="#" className="text-gray-300 hover:text-white">Live Triage</a>
-<a href="#" className="text-gray-300 hover:text-white">Experts</a>
-<a href="#" className="text-gray-300 hover:text-white">Case Studies</a>
-<a href="#" className="text-gray-300 hover:text-white">Resources</a>
-<button className="bg-[#0070f3] text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-600">Contact</button>
+<div className="min-h-screen bg-[#0A0A0A] text-white font-sans selection:bg-blue-500/30">
+{/* هيدر عصري شفاف */}
+<header className="sticky top-0 z-50 backdrop-blur-md bg-[#0A0A0A]/80 border-b border-white/10 p-6 flex justify-between items-center">
+<div className="text-xl font-black tracking-tighter flex items-center gap-2">
+<div className="w-8 h-8 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20"></div>
+VALCRONS
 </div>
-</nav>
-
-{/* 2. منطقة العمل الرئيسية (Main Content Area) */}
-<div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-10">
-{/* -- العمود الأول: قائمة طلبات الصيانة الحية -- */}
-<div className="md:col-span-2 space-y-6">
-<div className="p-4 bg-[#1a1a1a] rounded-xl flex gap-3 border border-gray-800">
-<input
-type="text"
-placeholder="Search Experts..."
-className="bg-[#111111] p-3 rounded-lg border border-gray-700 w-full focus:border-blue-500 outline-none"
-value={specialization}
-onChange={(e) => setSpecialization(e.target.value)}
-/>
+<div className="flex gap-4">
+<button className="px-5 py-2 text-sm font-medium hover:text-blue-400 transition">Analytics</button>
+<button className="px-5 py-2 text-sm font-medium bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition">Dashboard</button>
 </div>
+</header>
 
-{/* عرض الطلبات كـ Cards */}
-{requests.map((req, idx) => (
-<div key={idx} className={`p-6 bg-[#1a1a1a] rounded-xl border border-gray-800 ${req.border}`}>
-<div className="flex justify-between items-start mb-2">
+{/* محتوى الصفحة بتنسيق Grid احترافي */}
+<main className="max-w-7xl mx-auto p-8 grid grid-cols-12 gap-6">
+{/* اللوحة الرئيسية */}
+<section className="col-span-12 lg:col-span-8 space-y-6">
+<div className="flex justify-between items-end">
 <div>
-<p className="text-xs text-gray-500 uppercase tracking-wider">{req.type} REQUEST:</p>
-<h3 className="text-2xl font-bold text-white">{req.title}</h3>
-<p className="text-sm text-gray-400">Factory in {req.location}</p>
+<h2 className="text-4xl font-extrabold tracking-tight">Active Operations</h2>
+<p className="text-gray-400 mt-2">Real-time factory maintenance telemetry.</p>
 </div>
-<span className="text-xs bg-[#0070f3] text-white px-3 py-1 rounded-full">{req.status === "Blue" ? "Electric Blue" : "Safety Orange"}</span>
+<button className="bg-blue-600 hover:bg-blue-500 text-sm font-bold px-6 py-3 rounded-xl transition shadow-[0_0_20px_-5px_rgba(37,99,235,0.6)]">
++ New Request
+</button>
 </div>
-<div className="border-t border-gray-800 mt-4 pt-4 text-sm text-gray-500">
-Status: {req.status}
+
+{/* كرت حالة احترافي */}
+<div className="group bg-gradient-to-br from-[#111111] to-[#1a1a1a] p-8 rounded-3xl border border-white/5 hover:border-blue-500/30 transition-all duration-500 shadow-xl">
+<div className="flex justify-between items-start">
+<div>
+<span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest bg-blue-400/10 px-2 py-1 rounded">PLC Failure</span>
+<h3 className="text-2xl font-bold mt-3">Precision Servo Calibration</h3>
+</div>
+<div className="text-right">
+<p className="text-3xl font-black">94%</p>
+<p className="text-xs text-gray-500">Efficiency Index</p>
+</div>
+</div>
+</div>
+</section>
+
+{/* لوحة جانبية ذكية */}
+<aside className="col-span-12 lg:col-span-4 bg-[#111111] rounded-3xl border border-white/5 p-6 h-fit">
+<h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Neural Matching</h4>
+<div className="space-y-3">
+{[1, 2, 3].map((i) => (
+<div key={i} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-white/5 transition cursor-pointer">
+<div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500"></div>
+<div>
+<p className="text-sm font-bold">Expert {i}</p>
+<p className="text-[10px] text-gray-500">Certified by Valcrons</p>
 </div>
 </div>
 ))}
 </div>
+</aside>
 
-{/* -- العمود الثاني: الأنظمة الجانبية -- */}
-<div className="space-y-6">
-{/* محرك التطابق الذكي (Smart Matching Engine) */}
-<div className="p-6 bg-[#1a1a1a] rounded-xl border border-gray-800">
-<h4 className="text-sm uppercase text-gray-500 tracking-wider mb-6">SMART MATCHING ENGINE</h4>
-<div className="space-y-4">
-<div className="flex items-center gap-3">
-<img src="/expert-1.jpg" alt="Profio Photo" className="w-12 h-12 rounded-full bg-gray-700" />
-<div>
-<p className="font-semibold text-white flex items-center">Profio Photo <span className="ml-1 text-blue-500">✔</span></p>
-<p className="text-xs text-gray-400">Verified expert, Detroit</p>
-</div>
-</div>
-<div className="flex items-center gap-3">
-<div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-[#ff8800]">⚙</div>
-<div>
-<p className="font-semibold text-white flex items-center">Hanlis Expert <span className="ml-1 text-blue-500">✔</span></p>
-<p className="text-xs text-gray-400">Verified expert, Detroit</p>
-</div>
-</div>
-</div>
-<button className="mt-6 w-full text-center text-sm border border-gray-700 p-2 rounded-lg hover:bg-[#2d2d2d]">Learn More ›</button>
-</div>
-
-{/* قسم التشخيص عن بعد (Remote Triage) */}
-<div className="p-6 bg-[#1a1a1a] rounded-xl border border-gray-800">
-<h4 className="text-sm uppercase text-gray-500 tracking-wider mb-6">REMOTE TRIAGE</h4>
-<div className="bg-[#111111] p-4 rounded-xl relative h-64 border border-gray-700 flex items-center justify-center">
-<img src="/engineer-placeholder.jpg" alt="Engineer" className="w-full h-full object-cover rounded-lg" />
-{/* أدوات التحكم الافتراضية */}
-<div className="absolute bottom-4 left-4 right-4 flex justify-center gap-3 bg-[#1a1a1a]/80 p-2 rounded-full">
-<button className="p-2 hover:bg-gray-700 rounded-full text-xs">🎤</button>
-<button className="p-2 hover:bg-gray-700 rounded-full text-xs">📹</button>
-<button className="p-2 bg-red-600 hover:bg-red-700 rounded-full text-xs">📞</button>
-</div>
-</div>
-</div>
-</div>
-</div>
+</main>
 </div>
 );
 }
