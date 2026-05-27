@@ -1,181 +1,211 @@
-import type { ReactNode } from "react";
-
+import React, { ReactNode } from "react";
 import {
-  ArrowRight,
-  LockKeyhole,
-  Radio,
-  Search,
-  Settings,
-  ShieldCheck,
+ArrowRight,
+LockKeyhole,
+Radio,
+Search,
+Settings,
+ShieldCheck,
+Cpu,
+Zap,
+Globe,
+ChevronRight
 } from "lucide-react";
 
-export default function ValcronsLandingPage() {
-  return (
-    <main className="min-h-screen overflow-hidden bg-[#05070b] px-4 py-5 text-slate-200 antialiased">
-      <div className="fixed inset-0 -z-30 bg-[url('/industrial-bg.jpg')] bg-cover bg-center opacity-60" />
-      <div className="fixed inset-0 -z-20 bg-[#05070b]/48" />
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_50%_18%,rgba(37,99,235,0.20),transparent_38%),linear-gradient(180deg,rgba(5,7,11,0.10),rgba(5,7,11,0.85))]" />
+/**
+* VALCRONS - ULTIMATE EDITION
+* Professional Industrial Maintenance Network
+*/
 
-      <div className="mx-auto max-w-[1180px]">
-        <nav className="mb-5 flex items-center justify-between rounded-2xl border border-white/10 bg-black/25 px-5 py-3 backdrop-blur-2xl">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-amber-400/25 bg-amber-400/10">
-              <Settings className="h-4 w-4 text-amber-300" />
-            </div>
+export default function ValcronsUltimateLanding() {
+return (
+<div className="min-h-screen bg-[#030508] font-sans selection:bg-blue-500/30 text-slate-200 antialiased overflow-x-hidden">
 
-            <div>
-              <h1 className="text-base font-black tracking-wide text-white">
-                VALCRONS
-              </h1>
-              <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-slate-500">
-                Industrial Maintenance Network
-              </p>
-            </div>
-          </div>
+{/* --- BACKGROUND ARCHITECTURE --- */}
+<div className="fixed inset-0 -z-50 bg-[#030508]" />
 
-          <div className="hidden items-center gap-7 text-xs font-semibold text-slate-400 md:flex">
-            <a href="/live" className="hover:text-white">Live Triage</a>
-            <a href="/experts" className="hover:text-white">Experts</a>
-            <a href="#" className="hover:text-white">Case Studies</a>
-            <a href="#" className="hover:text-white">Resources</a>
-          </div>
+{/* Industrial Overlay with Gradient Mask */}
+<div
+className="fixed inset-0 -z-40 opacity-[0.15] grayscale mix-blend-overlay"
+style={{
+backgroundImage: `url('https://images.unsplash.com/photo-1513828583688-c52646db42da?q=80&w=2070&auto=format&fit=crop')`,
+backgroundSize: 'cover',
+backgroundPosition: 'center',
+}}
+/>
 
-          <div className="flex items-center gap-3">
-            <button className="hidden text-xs font-semibold text-slate-300 hover:text-white sm:block">
-              Log in
-            </button>
+{/* Global Glowing Mesh */}
+<div className="fixed inset-0 -z-30">
+<div className="absolute top-[-10%] left-[-10%] h-[500px] w-[500px] rounded-full bg-blue-600/10 blur-[120px]" />
+<div className="absolute bottom-[-10%] right-[-10%] h-[500px] w-[500px] rounded-full bg-cyan-500/5 blur-[120px]" />
+</div>
 
-            <a
-              href="/request"
-              className="flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-xs font-black text-white shadow-lg shadow-blue-600/20 hover:bg-blue-500"
-            >
-              Post a Request <ArrowRight className="h-3.5 w-3.5" />
-            </a>
-          </div>
-        </nav>
+<div className="mx-auto max-w-[1400px] px-6">
 
-        <section className="relative overflow-hidden rounded-[30px] border border-white/10 bg-black/22 shadow-[0_28px_90px_rgba(0,0,0,0.50)] backdrop-blur-xl">
-          <div className="absolute inset-0 bg-[url('/industrial-bg.jpg')] bg-cover bg-center opacity-42" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#05070b]/20 via-[#05070b]/58 to-[#05070b]/92" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.18),transparent_44%)]" />
+{/* --- NAVIGATION BAR --- */}
+<nav className="relative z-50 flex items-center justify-between py-10">
+<div className="flex items-center gap-4">
+<div className="relative group">
+<div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 opacity-25 blur transition duration-1000 group-hover:opacity-50"></div>
+<div className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-[#030508] transition-transform group-hover:scale-105">
+<Settings className="h-5 w-5 text-blue-400 group-hover:rotate-90 transition-transform duration-500" />
+</div>
+</div>
+<div>
+<h1 className="text-2xl font-black tracking-tighter text-white">VALCRONS</h1>
+<p className="text-[10px] font-bold uppercase tracking-[0.4em] text-blue-500/70">Industrial Intelligence</p>
+</div>
+</div>
 
-          <div className="relative mx-auto flex min-h-[500px] max-w-4xl flex-col items-center justify-center px-6 py-14 text-center">
-            <div className="mb-5 rounded-full border border-amber-400/20 bg-amber-400/10 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.26em] text-amber-300">
-              Industrial Maintenance Network
-            </div>
+<div className="hidden items-center gap-12 text-[13px] font-semibold uppercase tracking-widest text-slate-500 md:flex">
+{["Network", "Experts", "Intelligence", "Support"].map((item) => (
+<a key={item} href="#" className="transition-all hover:text-white hover:tracking-[0.5em]">{item}</a>
+))}
+</div>
 
-            <h2 className="max-w-3xl text-4xl font-black leading-[0.98] tracking-[-0.045em] text-white sm:text-5xl md:text-6xl">
-              Industrial expertise.
-              <span className="block bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
-                Instantly connected.
-              </span>
-            </h2>
+<div className="flex items-center gap-8">
+<button className="text-sm font-bold text-slate-400 hover:text-white transition-all">Sign In</button>
+<button className="group relative inline-flex items-center justify-center px-8 py-3 font-bold text-white transition-all duration-200 bg-blue-600 rounded-full hover:bg-blue-500 focus:outline-none shadow-[0_0_20px_rgba(37,99,235,0.3)]">
+Request Expert
+<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+</button>
+</div>
+</nav>
 
-            <p className="mt-5 max-w-xl text-sm leading-7 text-slate-300 md:text-base">
-              Connect with verified industrial experts for critical repairs,
-              remote diagnosis, asset support, and technician dispatch.
-            </p>
+{/* --- HERO SECTION --- */}
+<section className="relative pt-24 pb-20">
+<div className="flex flex-col items-center text-center">
 
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <a
-                href="/live"
-                className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-xl shadow-blue-600/25 hover:bg-blue-500"
-              >
-                Start Live Diagnosis
-              </a>
+{/* Status Badge */}
+<div className="inline-flex items-center gap-3 rounded-full border border-white/5 bg-white/5 px-5 py-2 mb-10 backdrop-blur-md">
+<span className="relative flex h-2 w-2">
+<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+<span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+</span>
+<span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">Global Diagnostic Network Active</span>
+</div>
 
-              <a
-                href="/request"
-                className="rounded-xl border border-white/15 bg-white/[0.045] px-5 py-3 text-sm font-black text-white backdrop-blur-xl hover:bg-white/10"
-              >
-                Post a Request
-              </a>
-            </div>
+<h2 className="mx-auto max-w-5xl text-6xl font-black tracking-tight text-white md:text-8xl lg:text-9xl leading-[0.9]">
+Industrial expertise. <br />
+<span className="relative inline-block mt-4">
+<span className="bg-gradient-to-r from-blue-400 via-white to-cyan-400 bg-clip-text text-transparent italic">
+Instantly connected.
+</span>
+</span>
+</h2>
 
-            <div className="mt-8 flex w-full max-w-2xl items-center gap-3 rounded-2xl border border-white/10 bg-black/35 px-4 py-3 backdrop-blur-2xl">
-              <Search className="h-4 w-4 shrink-0 text-slate-500" />
-              <input
-                placeholder="What equipment or issue do you need help with?"
-                className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
-              />
-              <button className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-black text-white hover:bg-blue-500">
-                Search
-              </button>
-            </div>
+<p className="mx-auto mt-12 max-w-2xl text-xl leading-relaxed text-slate-400/80">
+The elite digital layer for global manufacturing. Connect with certified
+SME engineers for mission-critical asset repair and remote triage.
+</p>
 
-            <div className="mt-8 grid w-full gap-3 md:grid-cols-3">
-              <TrustCard
-                icon={<ShieldCheck className="h-4 w-4" />}
-                title="Verified Experts"
-                text="Credentialed industrial professionals."
-              />
-              <TrustCard
-                icon={<Radio className="h-4 w-4" />}
-                title="Real-time Matching"
-                text="Smart routing to the right expert."
-              />
-              <TrustCard
-                icon={<LockKeyhole className="h-4 w-4" />}
-                title="Secure & Direct"
-                text="Connect directly and privately."
-              />
-            </div>
-          </div>
+{/* --- SEARCH ARCHITECTURE --- */}
+<div className="relative mt-16 w-full max-w-3xl group">
+<div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-blue-600/20 to-cyan-500/20 blur-xl transition group-focus-within:opacity-100 opacity-50"></div>
+<div className="relative flex items-center gap-4 rounded-2xl border border-white/10 bg-black/40 p-3 backdrop-blur-2xl focus-within:border-blue-500/50 transition-all">
+<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/5">
+<Search className="h-5 w-5 text-blue-400" />
+</div>
+<input
+placeholder="Enter equipment model or technical fault code..."
+className="w-full bg-transparent text-lg text-white outline-none placeholder:text-slate-600"
+/>
+<button className="hidden sm:block rounded-xl bg-white px-8 py-3.5 text-sm font-black text-black transition-all hover:bg-blue-400 hover:text-white active:scale-95">
+ANALYZE
+</button>
+</div>
+</div>
 
-          <div className="relative border-t border-white/10 bg-black/18 px-6 py-6 backdrop-blur-2xl">
-            <p className="mb-5 text-center text-[10px] font-black uppercase tracking-[0.30em] text-slate-500">
-              How it works
-            </p>
+{/* Quick Stats */}
+<div className="mt-12 flex gap-10 text-[11px] font-bold uppercase tracking-widest text-slate-500">
+<div className="flex items-center gap-2"><Globe className="h-3 w-3 text-blue-500"/> 140+ Countries</div>
+<div className="flex items-center gap-2"><Zap className="h-3 w-3 text-blue-500"/> 60s Response</div>
+<div className="flex items-center gap-2"><Cpu className="h-3 w-3 text-blue-500"/> AI matching</div>
+</div>
+</div>
+</section>
 
-            <div className="mx-auto grid max-w-4xl gap-3 md:grid-cols-4">
-              <Step number="01" title="Post Your Issue" text="Describe the problem." />
-              <Step number="02" title="Get Matched" text="Find the best expert." />
-              <Step number="03" title="Connect Instantly" text="Start live support." />
-              <Step number="04" title="Solve & Continue" text="Return to production." />
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
-  );
+{/* --- FEATURE GRID --- */}
+<section className="grid gap-6 pb-32 md:grid-cols-3">
+<FeatureCard
+icon={<ShieldCheck className="h-6 w-6" />}
+title="ISO-Certified Experts"
+description="Every engineer is vetted against strict industrial safety and technical standards."
+badge="Security"
+/>
+<FeatureCard
+icon={<Radio className="h-6 w-6" />}
+title="Live Triage Protocol"
+description="Real-time augmented reality support for immediate on-site equipment diagnosis."
+badge="Real-time"
+/>
+<FeatureCard
+icon={<LockKeyhole className="h-6 w-6" />}
+title="Quantum Encryption"
+description="Proprietary data tunnels ensuring your industrial blueprints remain confidential."
+badge="Military Grade"
+/>
+</section>
+
+{/* --- PROCESS STEPS --- */}
+<section className="border-t border-white/5 pt-20 pb-40">
+<div className="mb-16 text-center">
+<h3 className="text-sm font-black uppercase tracking-[0.5em] text-blue-500">Execution Flow</h3>
+</div>
+<div className="grid gap-4 md:grid-cols-4">
+<ProcessStep step="01" title="Post Incident" desc="Log equipment failure" />
+<ProcessStep step="02" title="Match SME" desc="AI-driven routing" />
+<ProcessStep step="03" title="Live Support" desc="Fix via AR/Video" />
+<ProcessStep step="04" title="Resumption" desc="Back to production" isLast />
+</div>
+</section>
+
+</div>
+</div>
+);
 }
 
-function TrustCard({
-  icon,
-  title,
-  text,
-}: {
-  icon: ReactNode;
-  title: string;
-  text: string;
+// --- SUB-COMPONENTS ---
+
+function FeatureCard({ icon, title, description, badge }: {
+icon: ReactNode;
+title: string;
+description: string;
+badge: string;
 }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-left backdrop-blur-2xl">
-      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-blue-300">
-        {icon}
-      </div>
-      <h3 className="text-sm font-black text-white">{title}</h3>
-      <p className="mt-1.5 text-xs leading-5 text-slate-400">{text}</p>
-    </div>
-  );
+return (
+<div className="group relative overflow-hidden rounded-[32px] border border-white/5 bg-gradient-to-b from-white/[0.03] to-transparent p-10 transition-all hover:border-blue-500/40 hover:bg-white/[0.05]">
+<div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-blue-400 transition-all group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-[0_0_30px_rgba(37,99,235,0.4)]">
+{icon}
+</div>
+<span className="mb-4 inline-block text-[10px] font-bold uppercase tracking-widest text-blue-500/60">{badge}</span>
+<h4 className="text-2xl font-bold text-white">{title}</h4>
+<p className="mt-4 text-sm leading-relaxed text-slate-500 group-hover:text-slate-300 transition-colors">{description}</p>
+
+{/* Decorative arrow */}
+<div className="mt-8 flex items-center gap-2 text-xs font-bold text-white opacity-0 transition-all group-hover:opacity-100">
+LEARN MORE <ChevronRight className="h-3 w-3" />
+</div>
+</div>
+);
 }
 
-function Step({
-  number,
-  title,
-  text,
-}: {
-  number: string;
-  title: string;
-  text: string;
+function ProcessStep({ step, title, desc, isLast = false }: {
+step: string;
+title: string;
+desc: string;
+isLast?: boolean
 }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 text-center backdrop-blur-xl">
-      <div className="mx-auto mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/10 text-xs font-black text-blue-300">
-        {number}
-      </div>
-      <h3 className="text-xs font-black text-white">{title}</h3>
-      <p className="mt-1.5 text-[11px] leading-5 text-slate-500">{text}</p>
-    </div>
-  );
+return (
+<div className="relative flex flex-col items-center p-8 rounded-3xl transition-all hover:bg-white/[0.02]">
+<div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full border border-blue-500/20 bg-blue-500/5 text-xs font-black text-blue-400">
+{step}
+</div>
+<h5 className="text-sm font-black text-white">{title}</h5>
+<p className="mt-2 text-[12px] text-slate-500">{desc}</p>
+{!isLast && (
+<div className="hidden md:block absolute top-14 left-[70%] w-full h-[1px] bg-gradient-to-r from-blue-500/20 to-transparent" />
+)}
+</div>
+);
 }
