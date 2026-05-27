@@ -1,21 +1,17 @@
+// tailwind.config.ts
 import type { Config } from "tailwindcss";
 
 const config: Config = {
 content: [
-"./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-"./src/components/**/*.{js,ts,jsx,tsx,mdx}",
 "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
 ],
 theme: {
 extend: {
 colors: {
-industrial: {
-charcoal: "#121212",
-blue: "#007AFF",
-orange: "#FF9500",
-slate: "#2A2A2A",
-copper: "#B87333", // لون النحاس الفخم الذي رأيناه في الشعار والأزرار
-},
+'industrial-charcoal': '#1a1a1a', // لون الخلفية الرئيسي
+'industrial-slate': '#2d2d2d', // لون البطاقات
+'industrial-blue': '#0070f3', // لون الأزرار والتفاعل
+'industrial-text': '#e5e7eb', // لون النص
 },
 },
 },
