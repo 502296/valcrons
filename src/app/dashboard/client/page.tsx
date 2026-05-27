@@ -1,10 +1,6 @@
-// src/app/dashboard/client/page.tsx
 'use client';
-
-import React, { useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient('YOUR_SUPABASE_URL', 'YOUR_SUPABASE_ANON_KEY');
+import { useState } from 'react';
+import { supabase } from '@/lib/supabase'; // سنستخدم ملف الإعدادات الموحد
 
 export default function ClientDashboard() {
 const [specialization, setSpecialization] = useState('');
@@ -19,26 +15,30 @@ else setExperts(data || []);
 };
 
 return (
-<div className="min-h-screen bg-[#020617] text-white p-8">
-<h1 className="text-3xl font-bold mb-8">Find Expert Support</h1>
+<div className="min-h-screen bg-industrial-charcoal text-white p-12">
+<h1 className="text-4xl font-bold mb-8">Find Expert Support</h1>
 
-<div className="flex gap-4 mb-8">
+<div className="flex gap-4 mb-10">
 <input
+className="bg-industrial-slate p-3 rounded border border-gray-700 w-full focus:border-industrial-blue outline-none"
 placeholder="Enter Machine Specialization (e.g. CNC)"
-className="bg-slate-900 border border-slate-700 p-3 rounded-lg flex-1"
+value={specialization}
 onChange={(e) => setSpecialization(e.target.value)}
 />
-<button onClick={handleMatch} className="bg-blue-600 px-6 py-3 rounded-lg font-bold">
-Search Experts
+<button
+onClick={handleMatch}
+className="bg-industrial-blue px-6 py-3 rounded font-bold hover:opacity-90 transition"
+>
+Search
 </button>
 </div>
 
-<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-{experts.map((expert) => (
-<div key={expert.id} className="bg-slate-900 p-6 rounded-2xl border border-slate-700">
-<h3 className="font-bold text-lg">{expert.full_name}</h3>
-<p className="text-slate-400 text-sm mb-4">{expert.specialization}</p>
-<button className="text-blue-400 font-semibold underline">Connect via Video</button>
+{/* منطقة عرض النتائج */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+{experts.map((expert, idx) => (
+<div key={idx} className="p-6 bg-industrial-slate rounded-lg border border-gray-700">
+<h3 className="text-xl font-bold">{expert.name}</h3>
+<p className="text-gray-400">{expert.specialization}</p>
 </div>
 ))}
 </div>
