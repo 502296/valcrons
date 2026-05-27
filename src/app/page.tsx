@@ -1,9 +1,10 @@
+import type { ReactNode } from "react";
+
 import {
   Settings,
   Search,
   MapPin,
   ShieldCheck,
-  Clock,
   FileText,
   Users,
   Radio,
@@ -30,7 +31,9 @@ export default function ValcronsLandingPage() {
               <Settings className="h-5 w-5 text-amber-300" />
             </div>
             <div>
-              <h1 className="text-lg font-bold tracking-wide text-white">VALCRONS</h1>
+              <h1 className="text-lg font-bold tracking-wide text-white">
+                VALCRONS
+              </h1>
               <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500">
                 Industrial Response Network
               </p>
@@ -55,7 +58,9 @@ export default function ValcronsLandingPage() {
         <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/30 backdrop-blur-xl">
           <div className="mb-7 flex items-center justify-between">
             <div>
-              <p className="mb-2 text-sm font-medium text-blue-400">Welcome back, Acme Manufacturing</p>
+              <p className="mb-2 text-sm font-medium text-blue-400">
+                Welcome back, Acme Manufacturing
+              </p>
               <h2 className="max-w-2xl text-4xl font-bold tracking-tight text-white md:text-5xl">
                 Find verified industrial experts before downtime becomes expensive.
               </h2>
@@ -141,7 +146,9 @@ function RequestItem({ title, city, level }: { title: string; city: string; leve
           <p className="text-xs text-slate-500">{city}</p>
         </div>
       </div>
-      <span className={`rounded-full border px-2 py-1 text-[10px] ${color}`}>{level}</span>
+      <span className={`rounded-full border px-2 py-1 text-[10px] ${color}`}>
+        {level}
+      </span>
     </div>
   );
 }
@@ -152,16 +159,25 @@ function PostRequestCard() {
       <div className="mb-8 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {[1, 2, 3, 4].map((step) => (
-            <div key={step} className={`h-8 w-8 rounded-full text-center text-sm leading-8 ${step === 1 ? "bg-blue-600 text-white" : "bg-white/10 text-slate-500"}`}>
+            <div
+              key={step}
+              className={`h-8 w-8 rounded-full text-center text-sm leading-8 ${
+                step === 1 ? "bg-blue-600 text-white" : "bg-white/10 text-slate-500"
+              }`}
+            >
               {step}
             </div>
           ))}
         </div>
-        <span className="text-xs text-slate-500">Issue Details → Equipment → Location → Review</span>
+        <span className="text-xs text-slate-500">
+          Issue Details → Equipment → Location → Review
+        </span>
       </div>
 
       <h3 className="text-2xl font-bold text-white">Post a Request</h3>
-      <p className="mt-2 text-sm text-slate-400">Tell us about the issue so we can match you with the right expert.</p>
+      <p className="mt-2 text-sm text-slate-400">
+        Tell us about the issue so we can match you with the right expert.
+      </p>
 
       <div className="mt-6 space-y-5">
         <InputLabel label="What type of issue are you experiencing?" />
@@ -181,7 +197,7 @@ function PostRequestCard() {
         />
 
         <InputLabel label="How urgent is this?" />
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <Urgency icon={<AlertTriangle className="h-4 w-4" />} text="Critical" />
           <Urgency icon={<Radio className="h-4 w-4" />} text="High" />
           <Urgency icon={<Activity className="h-4 w-4" />} text="Medium" />
@@ -191,7 +207,9 @@ function PostRequestCard() {
         <div className="rounded-2xl border border-dashed border-white/15 bg-[#080d15] p-8 text-center">
           <Upload className="mx-auto mb-3 h-6 w-6 text-slate-500" />
           <p className="text-sm text-slate-400">Click to upload or drag and drop</p>
-          <p className="mt-1 text-xs text-slate-600">PNG, JPG, MP4 up to 300MB</p>
+          <p className="mt-1 text-xs text-slate-600">
+            PNG, JPG, MP4 up to 300MB
+          </p>
         </div>
 
         <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-500">
@@ -206,7 +224,7 @@ function InputLabel({ label }: { label: string }) {
   return <label className="block text-sm font-medium text-slate-300">{label}</label>;
 }
 
-function Urgency({ icon, text }: { icon: React.ReactNode; text: string }) {
+function Urgency({ icon, text }: { icon: ReactNode; text: string }) {
   return (
     <button className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-slate-300 hover:border-blue-500/40 hover:bg-blue-500/10">
       {icon}
@@ -223,7 +241,9 @@ function LiveSessionCard() {
           <h3 className="text-xl font-bold text-white">Live Diagnosis Session</h3>
           <p className="text-xs text-slate-500">Session ID: 8LQ-9481</p>
         </div>
-        <span className="rounded-full bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">● LIVE</span>
+        <span className="rounded-full bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">
+          ● LIVE
+        </span>
       </div>
 
       <div className="grid gap-4 md:grid-cols-[1fr_0.55fr]">
@@ -258,9 +278,21 @@ function LiveSessionCard() {
   );
 }
 
-function SessionButton({ icon, text, danger }: { icon: React.ReactNode; text: string; danger?: boolean }) {
+function SessionButton({
+  icon,
+  text,
+  danger,
+}: {
+  icon: ReactNode;
+  text: string;
+  danger?: boolean;
+}) {
   return (
-    <button className={`flex flex-col items-center gap-2 rounded-xl border border-white/10 py-3 ${danger ? "bg-red-500/10 text-red-400" : "bg-white/[0.03]"}`}>
+    <button
+      className={`flex flex-col items-center gap-2 rounded-xl border border-white/10 py-3 ${
+        danger ? "bg-red-500/10 text-red-400" : "bg-white/[0.03]"
+      }`}
+    >
       <span className="h-4 w-4">{icon}</span>
       {text}
     </button>
@@ -280,8 +312,11 @@ function ExpertsCard() {
       <div className="mb-5 flex items-center justify-between">
         <div>
           <h3 className="text-xl font-bold text-white">Verified Industrial Experts</h3>
-          <p className="text-sm text-slate-500">Find the right expert for your equipment and issue.</p>
+          <p className="text-sm text-slate-500">
+            Find the right expert for your equipment and issue.
+          </p>
         </div>
+
         <div className="hidden items-center gap-2 rounded-xl border border-white/10 bg-[#080d15] px-4 py-2 md:flex">
           <Search className="h-4 w-4 text-slate-500" />
           <span className="text-sm text-slate-500">Search experts...</span>
