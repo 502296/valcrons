@@ -383,7 +383,7 @@ Review facility-submitted diagnostic requests and respond only when your experti
     className={isLoadingRequests ? "animate-spin" : ""}
   />
 
-  {isLoadingRequests ? "Updating Queue" : "Refresh Queue"}
+  Refresh Queue
 </button>
 </div>
 
