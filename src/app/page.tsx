@@ -838,6 +838,7 @@ return (
 {view === "plantForm" && <motion.div key="plantForm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><PlantFormPage /></motion.div>}
 {view === "expertForm" && <motion.div key="expertForm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><ExpertFormPage /></motion.div>}
 {view === "requests" && <motion.div key="requests" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><RequestsPage /></motion.div>}
+{view === "requestDetails" && <motion.div key="requestDetails" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><RequestDetailsPage /></motion.div>}
 {view === "platform" && <motion.div key="platform" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}><PlatformView /></motion.div>}
 </AnimatePresence>
 );
