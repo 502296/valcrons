@@ -366,20 +366,16 @@ loadRequests();
 return (
 <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
 <Header />
-
 <section className="max-w-6xl mx-auto">
 <BackButton />
-
 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-12">
 <div>
 <span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
 Diagnostic Request Queue
 </span>
-
 <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5">
 Active Industrial Requests.
 </h1>
-
 <p className="text-gray-400 max-w-2xl leading-relaxed">
 Review facility-submitted diagnostic requests and respond only when your expertise matches the issue.
 </p>
@@ -388,60 +384,46 @@ Review facility-submitted diagnostic requests and respond only when your experti
 <button
 onClick={loadRequests}
 disabled={isLoadingRequests}
-className={`${secondaryButton} px-6 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-60`}
+className="bg-white/[0.05] border border-white/10 hover:bg-white/[0.1] hover:border-white/30 text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-60"
 >
 <RefreshCw
 size={15}
-className={isLoadingRequests ? "animate-spin opacity-70" : ""}
+className={isLoadingRequests ? "animate-spin" : ""}
 />
 Refresh Queue
 </button>
 </div>
 
 {requests.length === 0 ? (
-<div className={`${cardClass} p-10 text-gray-500`}>
-No active industrial requests yet.
-</div>
+<div className={`${cardClass} p-10 text-gray-500`}>No active industrial requests yet.</div>
 ) : (
 <div className="grid gap-5">
 {requests.map((request) => (
 <div
 key={request.id}
-className={`${cardClass} p-6 md:p-7 hover:border-white/20 transition-colors`}
+className={`${cardClass} p-6 md:p-7 border border-white/10 hover:border-[#2563eb]/50 transition-all duration-300 hover:shadow-[0_0_30px_-10px_rgba(37,99,235,0.2)]`}
 >
 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
 <div>
 <div className="flex flex-wrap items-center gap-3 mb-4">
-<span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#93c5fd]">
+<span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#93c5fd] bg-[#2563eb]/5 px-2 py-1 rounded-md">
 {request.facility_type || "Industrial Facility"}
 </span>
-
 <span className="px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-[11px] text-gray-400">
 {request.status || "pending"}
 </span>
-
-<span className="px-3 py-1 rounded-full bg-amber-500/5 border border-amber-500/10 text-[11px] text-amber-200/80">
-{request.urgency || "Review Required"}
-</span>
 </div>
-
-<h3 className="text-2xl font-bold tracking-tight mb-3">
+<h3 className="text-2xl font-bold tracking-tight mb-3 text-gray-100">
 {request.issue_type || "Industrial Diagnostic Request"}
 </h3>
-
 <p className="text-sm text-gray-400 leading-relaxed max-w-3xl">
 {request.problem_description || "No description provided."}
 </p>
 </div>
-
 <div className="min-w-[190px] text-sm text-gray-500 md:text-right space-y-2">
 <p className="flex md:justify-end items-center gap-2">
 <MapPin size={14} />
 {request.location || "Location not listed"}
-</p>
-<p className="flex md:justify-end items-center gap-2 text-[12px]">
-<Clock3 size={14} />
-Pending Review
 </p>
 </div>
 </div>
@@ -452,12 +434,11 @@ onClick={() => {
 setSelectedRequest(request);
 setView("requestDetails");
 }}
-className={`${primaryButton} px-5 py-3 rounded-2xl font-bold text-sm`}
+className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-5 py-3 rounded-2xl font-bold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
 >
 Review Request
 </button>
-
-<button className={`${secondaryButton} px-5 py-3 rounded-2xl font-bold text-sm`}>
+<button className="bg-white/[0.03] border border-white/10 hover:bg-white/[0.1] text-white px-5 py-3 rounded-2xl font-bold text-sm transition-all duration-300">
 Save for Later
 </button>
 </div>
@@ -466,12 +447,10 @@ Save for Later
 </div>
 )}
 </section>
-
 <div className="mt-32"><Footer /></div>
 </div>
 );
 };
-
 const PlantFormPage = () => (
 <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
 <Header />
