@@ -5,34 +5,42 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
 Zap, Video, ShieldCheck, UserCircle2,
 ArrowRight, Globe, Mail, Menu, LayoutDashboard,
-Settings, HelpCircle, Lock, Shield, FileText,
-Building2, Plus, X
+Settings, HelpCircle, Lock, Shield, FileText
 } from 'lucide-react';
 
 export default function ValcronsFinal() {
-const [view, setView] = useState<'landing' | 'platform'>('landing');
+const [view, setView] = useState<'landing' | 'platform' | 'legal'>('landing');
 const [activeTab, setActiveTab] = useState('factories');
 const [isSidebarOpen, setSidebarOpen] = useState(true);
-const [isModalOpen, setIsModalOpen] = useState(false);
 
-// --- مكونات واجهة الهبوط (Landing Page Components) ---
+// المكون العلوي: الهيدر
 const Header = () => (
 <nav className="fixed top-0 w-full z-[100] border-b border-white/5 bg-[#050505]/80 backdrop-blur-xl">
 <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
 <div className="flex items-center gap-8">
 <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('landing')}>
-<div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><Zap size={18} fill="white" /></div>
+<div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+<Zap size={18} fill="white" />
+</div>
 <span className="text-lg font-bold tracking-tighter uppercase italic">Valcrons</span>
+</div>
+<div className="hidden md:flex items-center gap-6 text-[12px] text-gray-400 font-medium">
+<button onClick={() => setView('platform')} className="hover:text-white transition-colors">Platform</button>
+<button className="hover:text-white transition-colors">Experts</button>
+<button onClick={() => setView('legal')} className="hover:text-white transition-colors">Safety & Legal</button>
 </div>
 </div>
 <div className="flex items-center gap-4">
 <button className="text-[12px] text-gray-400 hover:text-white font-medium">Log in</button>
-<button onClick={() => setView('platform')} className="bg-white text-black px-4 py-1.5 rounded-full text-[12px] font-bold hover:bg-gray-200 transition-all">Get Started</button>
+<button className="bg-white text-black px-4 py-1.5 rounded-full text-[12px] font-bold hover:bg-gray-200 transition-all">
+Get Started
+</button>
 </div>
 </div>
 </nav>
 );
 
+// المكون السفلي: الفوتر مع الإيميل والسياسات
 const Footer = () => (
 <footer className="border-t border-white/5 bg-[#050505] py-16 px-6">
 <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12 text-[12px]">
@@ -41,24 +49,109 @@ const Footer = () => (
 <Zap size={16} className="text-blue-600" />
 <span className="font-bold uppercase tracking-tighter">Valcrons</span>
 </div>
-<p className="text-gray-500 leading-relaxed">The global intelligence network connecting industry leaders.</p>
+<p className="text-gray-500 leading-relaxed">
+The global intelligence network connecting industry leaders with technical mastery.
+</p>
 </div>
 <div>
-<h4 className="font-bold text-white mb-4 italic underline decoration-blue-600 underline-offset-4 text-[11px]">Contact</h4>
-<p className="text-blue-400 font-mono">contact@valcrons.com</p>
+<h4 className="font-bold text-white mb-4 italic underline decoration-blue-600 underline-offset-4">Legal Framework</h4>
+<ul className="space-y-3 text-gray-500">
+<li className="flex items-center gap-2 hover:text-blue-400 cursor-pointer"><Shield size={14}/> Privacy Policy</li>
+<li className="flex items-center gap-2 hover:text-blue-400 cursor-pointer"><FileText size={14}/> Terms of Service</li>
+<li className="flex items-center gap-2 hover:text-blue-400 cursor-pointer"><Lock size={14}/> Service Level Agreement</li>
+</ul>
 </div>
-<div className="col-span-2 text-right">
+<div>
+<h4 className="font-bold text-white mb-4 italic underline decoration-blue-600 underline-offset-4">Contact Engineering</h4>
+<ul className="space-y-3 text-gray-500">
+<li className="flex items-center gap-2 text-blue-400 font-mono">
+<Mail size={14} /> contact@valcrons.com
+</li>
+<li className="hover:text-white cursor-pointer transition-colors">Global Support Center</li>
+</ul>
+</div>
+<div>
+<h4 className="font-bold text-white mb-4 italic underline decoration-blue-600 underline-offset-4">Platform Status</h4>
 <p className="text-[10px] text-gray-600 uppercase tracking-widest leading-loose">
 Valcrons is a B2B connection engine. We do not facilitate direct payments or mechanical liability.
 </p>
 </div>
 </div>
+<div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 text-center text-[10px] text-gray-700 tracking-[0.3em] uppercase">
+© 2026 Valcrons System — All Rights Reserved.
+</div>
 </footer>
 );
 
-// --- واجهة المنصة (The Platform View) ---
-const PlatformView = () => (
-<div className="flex h-screen bg-[#050505] text-white overflow-hidden">
+return (
+<div className="min-h-screen bg-[#050505] text-white selection:bg-blue-500/30">
+<AnimatePresence mode="wait">
+{view === 'landing' && (
+<motion.div
+key="landing"
+initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+className="pt-32 pb-20 px-6"
+>
+<Header />
+<div className="max-w-4xl mx-auto text-center relative">
+<div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
+<motion.span
+initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+className="inline-block px-3 py-1 rounded-full border border-white/5 bg-white/5 text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-10"
+>
+Silicon Valley Standard • Industrial Diagnostics
+</motion.span>
+
+<h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-[1.05]">
+Industrial Expertise, <br />
+<span className="text-transparent bg-clip-text bg-gradient-to-b from-gray-200 to-gray-500">Instantly Connected.</span>
+</h1>
+
+<p className="text-base text-gray-500 mb-12 max-w-xl mx-auto leading-relaxed font-medium">
+The global engine for high-precision mechanical triage. Connect with verified industrial experts in 3 seconds.
+</p>
+
+<div className="flex flex-col sm:flex-row gap-4 justify-center mb-32">
+<button
+onClick={() => setView('platform')}
+className="bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold text-[13px] hover:bg-blue-500 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-blue-600/20"
+>
+Launch Dashboard <ArrowRight size={16} />
+</button>
+<button className="bg-white/5 border border-white/10 text-white px-10 py-4 rounded-2xl font-bold text-[13px] hover:bg-white/10 transition-all">
+Contact Engineering
+</button>
+</div>
+
+{/* Feature Section */}
+<div className="grid md:grid-cols-3 gap-12 text-left border-t border-white/5 pt-20">
+<div className="space-y-4">
+<div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500"><Video size={18}/></div>
+<h3 className="font-bold text-sm tracking-tight">Encrypted Triage</h3>
+<p className="text-[12px] text-gray-500 leading-relaxed">Secure, zero-latency WebRTC infrastructure for real-time visual guidance.</p>
+</div>
+<div className="space-y-4">
+<div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500"><ShieldCheck size={18}/></div>
+<h3 className="font-bold text-sm tracking-tight">Verified Engineers</h3>
+<p className="text-[12px] text-gray-500 leading-relaxed">Rigorous multi-step certification for PLC, Hydraulic, and Robotic experts.</p>
+</div>
+<div className="space-y-4">
+<div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500"><Globe size={18}/></div>
+<h3 className="font-bold text-sm tracking-tight">Global Grid</h3>
+<p className="text-[12px] text-gray-500 leading-relaxed">Distributed network ensuring connectivity across continents for Industry 4.0.</p>
+</div>
+</div>
+</div>
+<div className="mt-40"><Footer /></div>
+</motion.div>
+)}
+
+{view === 'platform' && (
+<motion.div
+key="platform"
+initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+className="flex h-screen bg-[#050505]"
+>
 {/* Sidebar */}
 <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} border-r border-white/5 bg-[#080808] flex flex-col transition-all duration-300`}>
 <div className="p-6 h-20 flex items-center justify-between">
@@ -70,6 +163,7 @@ const PlatformView = () => (
 { id: 'factories', label: 'Factories', icon: <LayoutDashboard size={18}/> },
 { id: 'experts', label: 'Expert Network', icon: <UserCircle2 size={18}/> },
 { id: 'settings', label: 'Settings', icon: <Settings size={18}/> },
+{ id: 'help', label: 'Support', icon: <HelpCircle size={18}/> },
 ].map((item) => (
 <button
 key={item.id}
@@ -88,107 +182,38 @@ className={`w-full flex items-center gap-3 p-3 rounded-xl text-[12px] font-semib
 </div>
 </aside>
 
-{/* Main Content */}
+{/* Platform Content */}
 <main className="flex-1 overflow-y-auto">
 <header className="h-20 border-b border-white/5 flex items-center justify-between px-10 bg-[#050505]/50 backdrop-blur-md sticky top-0 z-50">
 <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-gray-500">{activeTab}</h2>
 <div className="flex items-center gap-4">
-{activeTab === 'factories' && (
-<button
-onClick={() => setIsModalOpen(true)}
-className="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-4 py-2 rounded-lg transition-all flex items-center gap-2"
->
-<Plus size={14} /> Post New Request
-</button>
-)}
+<div className="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[9px] font-bold border border-emerald-500/20 flex items-center gap-2 tracking-widest">
+<div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> LIVE SERVER: US-EAST-01
+</div>
 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 border border-white/10" />
 </div>
 </header>
-
-<div className="p-10 max-w-5xl mx-auto">
-<div className="grid gap-6">
-<h3 className="text-xl font-bold mb-4">{activeTab === 'factories' ? "Marketplace Requests" : "Your Assigned Tasks"}</h3>
-
-{[1, 2, 3].map((i) => (
-<motion.div
-key={i}
-initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-className="group bg-[#080808] border border-white/5 p-6 rounded-[2rem] hover:border-blue-500/30 transition-all flex items-center justify-between"
->
-<div className="flex items-center gap-6">
-<div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-blue-500"><Building2 size={24} /></div>
-<div>
-<h4 className="font-bold text-sm">CNC Machine Failure - Axis Calibration</h4>
-<p className="text-[12px] text-gray-500 mt-1">Location: Ohio, US • Budget: $200 - $500</p>
-<div className="flex gap-2 mt-3">
-<span className="text-[9px] bg-white/5 px-2 py-1 rounded text-gray-400">Siemens PLC</span>
-<span className="text-[9px] bg-white/5 px-2 py-1 rounded text-gray-400 font-bold text-red-400">Critical</span>
+<div className="p-12 max-w-6xl">
+<div className="grid lg:grid-cols-2 gap-12 items-start">
+<div className="aspect-video bg-[#0a0a0a] rounded-[2.5rem] border border-white/5 flex items-center justify-center text-gray-700 font-mono text-[10px] shadow-inner">
+[ Waiting for expert connection... ]
 </div>
-</div>
-</div>
-<button className="opacity-0 group-hover:opacity-100 bg-white text-black px-6 py-2 rounded-xl text-[11px] font-bold transition-all transform translate-x-4 group-hover:translate-x-0 shadow-xl">
-Apply Now
-</button>
-</motion.div>
-))}
-</div>
-</div>
-
-{/* Modal for Post Request */}
-<AnimatePresence>
-{isModalOpen && (
-<div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
-<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-<motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-[#0f0f0f] border border-white/10 w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl">
-<div className="flex justify-between items-center mb-6">
-<h2 className="text-xl font-bold italic">Post Mechanical Request</h2>
-<button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-white"><X size={20}/></button>
-</div>
-<div className="space-y-4">
-<div>
-<label className="text-[10px] text-gray-500 uppercase font-bold mb-2 block tracking-widest">Failure Description</label>
-<input type="text" placeholder="e.g. Hydraulic leak in main press" className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:outline-none focus:border-blue-500 transition-all" />
-</div>
-<div className="grid grid-cols-2 gap-4">
-<div>
-<label className="text-[10px] text-gray-500 uppercase font-bold mb-2 block tracking-widest">Machine Type</label>
-<input type="text" placeholder="PLC / CNC" className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:outline-none focus:border-blue-500" />
-</div>
-<div>
-<label className="text-[10px] text-gray-500 uppercase font-bold mb-2 block tracking-widest">Urgency</label>
-<select className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:outline-none focus:border-blue-500 appearance-none text-gray-400">
-<option>Low</option><option>Medium</option><option>Critical</option>
-</select>
-</div>
-</div>
-<button onClick={() => setIsModalOpen(false)} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-sm mt-4 hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all">
-Broadcast to Network
+<div className="space-y-8">
+<h1 className="text-3xl font-bold tracking-tight">Active Diagnostics</h1>
+<p className="text-sm text-gray-500 leading-relaxed italic">"Initialize your session by selecting a verified expert from the global network."</p>
+<div className="p-8 bg-blue-600/[0.03] border border-blue-500/10 rounded-[2rem]">
+<h4 className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-4">Safety Protocol</h4>
+<p className="text-[12px] text-gray-500 leading-relaxed mb-6">
+By initializing, you confirm that physical power-lockout (LOTO) is in place. Valcrons is a diagnostic tool, not an operator.
+</p>
+<button className="w-full bg-white text-black py-3 rounded-xl text-[12px] font-bold hover:bg-gray-200 transition-all">
+Accept & Initialize
 </button>
 </div>
-</motion.div>
 </div>
-)}
-</AnimatePresence>
+</div>
+</div>
 </main>
-</div>
-);
-
-return (
-<div className="min-h-screen bg-[#050505] text-white">
-<AnimatePresence mode="wait">
-{view === 'landing' ? (
-<motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-<Header />
-<div className="pt-40 pb-20 px-6 max-w-4xl mx-auto text-center">
-<h1 className="text-6xl md:text-8xl font-bold tracking-tight mb-8">Valcrons Grid.</h1>
-<p className="text-gray-500 text-lg mb-12 max-w-xl mx-auto font-medium">The world's first encrypted neural network for industrial diagnostics.</p>
-<button onClick={() => setView('platform')} className="bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold text-[13px] hover:bg-blue-500 shadow-2xl shadow-blue-600/20">Launch Platform</button>
-</div>
-<Footer />
-</motion.div>
-) : (
-<motion.div key="platform" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-<PlatformView />
 </motion.div>
 )}
 </AnimatePresence>
