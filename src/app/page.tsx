@@ -5,13 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
 Zap, Video, ShieldCheck, PenTool, Mic, UserCircle2,
 ArrowRight, Play, Globe, Shield, Lock, Info,
-Menu, X, LayoutDashboard, Settings, HelpCircle, Mail
+Menu, X, LayoutDashboard, Settings, HelpCircle, Mail, Plus, Briefcase
 } from 'lucide-react';
 
 export default function ValcronsPro() {
 const [view, setView] = useState<'landing' | 'platform'>('landing');
 const [activeTab, setActiveTab] = useState('factories');
 const [isSidebarOpen, setSidebarOpen] = useState(true);
+const [isPostModalOpen, setIsPostModalOpen] = useState(false); // لإضافة طلب شركة
 
 // 1. المكون الفرعي: الهيدر الاحترافي (Header)
 const Header = () => (
@@ -145,21 +146,21 @@ Contact Engineering
 
 // 4. واجهة المنصة مع الشريط الجانبي (Platform with Sidebar)
 const PlatformView = () => (
-<div className="flex h-screen bg-[#050505] text-white">
+<div className="flex h-screen bg-[#050505] text-white overflow-hidden">
 {/* Sidebar */}
 <motion.aside
 initial={{ x: -200 }} animate={{ x: 0 }}
-className={`${isSidebarOpen ? 'w-64' : 'w-20'} border-r border-white/5 bg-[#080808] flex flex-col transition-all duration-300`}
+className={`${isSidebarOpen ? 'w-64' : 'w-20'} border-r border-white/5 bg-[#080808] flex flex-col transition-all duration-300 z-50`}
 >
 <div className="p-6 h-20 flex items-center justify-between">
-{isSidebarOpen && <span className="font-bold text-sm uppercase tracking-tighter">Valcrons Hub</span>}
+{isSidebarOpen && <span className="font-bold text-sm uppercase tracking-tighter text-blue-500">Valcrons Hub</span>}
 <button onClick={() => setSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-white/5 rounded-lg text-gray-500"><Menu size={18}/></button>
 </div>
 
 <div className="flex-1 px-4 space-y-2">
 {[
-{ id: 'factories', label: 'Factories', icon: <LayoutDashboard size={18}/> },
-{ id: 'experts', label: 'Experts', icon: <UserCircle2 size={18}/> },
+{ id: 'factories', label: 'Factories (Jobs)', icon: <LayoutDashboard size={18}/> },
+{ id: 'experts', label: 'Expert Network', icon: <UserCircle2 size={18}/> },
 { id: 'settings', label: 'Settings', icon: <Settings size={18}/> },
 { id: 'help', label: 'Help', icon: <HelpCircle size={18}/> },
 ].map((item) => (
@@ -182,10 +183,21 @@ className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm font-medium tr
 </motion.aside>
 
 {/* Main Content Area */}
-<main className="flex-1 overflow-y-auto">
-<header className="h-20 border-b border-white/5 flex items-center justify-between px-10 bg-[#050505]/50 backdrop-blur-md sticky top-0 z-50">
+<main className="flex-1 overflow-y-auto relative">
+<header className="h-20 border-b border-white/5 flex items-center justify-between px-10 bg-[#050505]/50 backdrop-blur-md sticky top-0 z-40">
 <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">{activeTab}</h2>
+
 <div className="flex items-center gap-4">
+{/* زر الشركات: لرفع طلب جديد */}
+{activeTab === 'factories' && (
+<button
+onClick={() => setIsPostModalOpen(true)}
+className="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-4 py-2 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-blue-600/20"
+>
+<Plus size={14} /> Post New Job
+</button>
+)}
+
 <div className="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[10px] font-bold border border-emerald-500/20 flex items-center gap-2">
 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Server 01
 </div>
@@ -193,9 +205,42 @@ className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm font-medium tr
 </div>
 </header>
 
-<div className="p-10 max-w-6xl">
+<div className="p-10 max-w-6xl mx-auto">
+{activeTab === 'factories' ? (
+/* عرض فرص العمل للفنيين */
+<div className="space-y-6">
+<div className="flex justify-between items-center mb-8">
+<div>
+<h1 className="text-2xl font-bold tracking-tight">Marketplace Requests</h1>
+<p className="text-sm text-gray-500 mt-1">Real-time mechanical failure reports from global factories.</p>
+</div>
+</div>
+
+{[1, 2, 3].map((i) => (
+<motion.div
+key={i}
+initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+className="group bg-[#080808] border border-white/5 p-6 rounded-[2rem] hover:border-blue-500/30 transition-all flex items-center justify-between"
+>
+<div className="flex items-center gap-6">
+<div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+<Briefcase size={22} />
+</div>
+<div>
+<h4 className="font-bold text-sm">Industrial Robot Calibration - Unit #82</h4>
+<p className="text-[12px] text-gray-500 mt-1 italic">Louisville, KY • Posted 2h ago</p>
+</div>
+</div>
+{/* زر التقديم للفني */}
+<button className="bg-white text-black px-6 py-2 rounded-xl text-[11px] font-bold hover:bg-blue-500 hover:text-white transition-all shadow-xl">
+Apply to Diagnose
+</button>
+</motion.div>
+))}
+</div>
+) : (
+/* واجهة التشخيص الأصلية التي تحبها */
 <div className="grid md:grid-cols-2 gap-10">
-{/* التايملاين أو الكاميرا تذهب هنا */}
 <div className="aspect-video bg-[#111] rounded-[2rem] border border-white/5 flex items-center justify-center text-gray-600 font-mono text-xs">
 [ Initializing Video Triage Environment... ]
 </div>
@@ -210,7 +255,53 @@ By starting, you agree to our Terms of Service. Valcrons is not responsible for 
 </div>
 </div>
 </div>
+)}
 </div>
+
+{/* Modal الخاص بالشركات لرفع طلب جديد */}
+<AnimatePresence>
+{isPostModalOpen && (
+<div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+<motion.div
+initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+onClick={() => setIsPostModalOpen(false)}
+className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+/>
+<motion.div
+initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+className="relative bg-[#0f0f0f] border border-white/10 w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl"
+>
+<div className="flex justify-between items-center mb-6">
+<h2 className="text-xl font-bold italic">Post Mechanical Request</h2>
+<button onClick={() => setIsPostModalOpen(false)} className="text-gray-500 hover:text-white transition-colors"><X size={20}/></button>
+</div>
+<div className="space-y-4">
+<div>
+<label className="text-[10px] text-gray-500 uppercase font-bold mb-2 block tracking-widest italic">Machine Description</label>
+<input type="text" placeholder="e.g. Hydraulic leak in main press unit" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500" />
+</div>
+<div className="grid grid-cols-2 gap-4">
+<div>
+<label className="text-[10px] text-gray-500 uppercase font-bold mb-2 block tracking-widest italic">Urgency</label>
+<select className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 appearance-none text-gray-400">
+<option>Low</option>
+<option>Medium</option>
+<option>Critical</option>
+</select>
+</div>
+<div>
+<label className="text-[10px] text-gray-500 uppercase font-bold mb-2 block tracking-widest italic">Est. Budget</label>
+<input type="text" placeholder="$0.00" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500" />
+</div>
+</div>
+<button onClick={() => setIsPostModalOpen(false)} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-sm mt-4 hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all">
+Broadcast to Experts
+</button>
+</div>
+</motion.div>
+</div>
+)}
+</AnimatePresence>
 </main>
 </div>
 );
