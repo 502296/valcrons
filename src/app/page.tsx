@@ -441,10 +441,15 @@ Pending Review
 </div>
 
 <div className="mt-6 flex flex-col sm:flex-row gap-3">
-<button className="bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold text-sm hover:bg-blue-500 transition-all">
-Review Request
+<button
+  onClick={() => {
+    setSelectedRequest(request);
+    setView("requestDetails");
+  }}
+  className="bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold text-sm hover:bg-blue-500 transition-all"
+>
+  Review Request
 </button>
-
 <button className="bg-white/5 border border-white/10 text-white px-5 py-3 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all">
 Save for Later
 </button>
