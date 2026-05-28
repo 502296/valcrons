@@ -27,7 +27,7 @@ status: string | null;
 
 export default function ValcronsPro() {
 const [view, setView] = useState<
-"landing" | "platform" | "plants" | "experts" | "plantForm" | "expertForm" | "requests"
+"landing" | "platform" | "plants" | "experts" | "plantForm" | "expertForm" | "requests" | "requestDetails"
 >("landing");
 
 const [activeTab, setActiveTab] = useState("factories");
