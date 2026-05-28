@@ -1,10 +1,19 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Video, ShieldCheck, Globe, ArrowRight, Search } from 'lucide-react';
 
 export default function ValcronsLanding() {
+// إضافة حالة البحث التفاعلية
+const [isSearching, setIsSearching] = useState(false);
+
+const handleSearch = () => {
+setIsSearching(true);
+// محاكاة عملية البحث لمدة 3 ثوانٍ ثم العودة للحالة الطبيعية
+setTimeout(() => setIsSearching(false), 3000);
+};
+
 const fadeIn = {
 initial: { opacity: 0, y: 20 },
 animate: { opacity: 1, y: 0 },
@@ -47,18 +56,30 @@ Industrial Expertise, <br />
 The global engine for mechanical diagnostics. Connect with verified industrial experts in 3 seconds via encrypted video triage.
 </p>
 
-{/* Search Bar - Fixed Syntax */}
-<div className="relative max-w-2xl mx-auto mb-32">
-<div className="absolute inset-y-0 left-6 flex items-center text-gray-500">
+{/* Search Bar - التحديث هنا ليصبح تفاعلياً */}
+<div className="relative max-w-2xl mx-auto mb-32 group">
+<div className="absolute inset-y-0 left-6 flex items-center text-gray-500 group-focus-within:text-[#007AFF] transition-colors">
 <Search size={20} />
 </div>
 <input
 type="text"
 placeholder="What machine needs repair? (e.g. CNC, Hydraulic Press)"
-className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-6 pl-16 pr-40 focus:outline-none focus:ring-2 focus:ring-[#007AFF]/50 transition-all text-lg backdrop-blur-sm"
+className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-6 pl-16 pr-44 focus:outline-none focus:ring-2 focus:ring-[#007AFF]/50 transition-all text-lg backdrop-blur-sm"
+disabled={isSearching}
 />
-<button className="absolute right-3 top-3 bottom-3 bg-[#007AFF] px-8 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-[#0066EE] transition-colors">
-Match <ArrowRight size={18} />
+<button
+onClick={handleSearch}
+disabled={isSearching}
+className="absolute right-3 top-3 bottom-3 bg-[#007AFF] px-8 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-[#0066EE] transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+>
+{isSearching ? (
+<div className="flex items-center gap-2">
+<div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+<span>Searching...</span>
+</div>
+) : (
+<>Match <ArrowRight size={18} /></>
+)}
 </button>
 </div>
 </motion.div>
