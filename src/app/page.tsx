@@ -1,162 +1,128 @@
-import React, { ReactNode } from "react";
 import {
-Search,
-Settings,
-ShieldCheck,
-Radio,
-LockKeyhole,
-ChevronRight
+  ArrowRight,
+  Search,
+  ShieldCheck,
+  Radio,
+  LockKeyhole,
+  Settings,
 } from "lucide-react";
 
-/**
-* VALCRONS - EXACT IMAGE REPLICA EDITION
-* Focus: Dark UI, Clear Buttons, Wide Layout
-*/
+export default function Home() {
+  return (
+    <main className="min-h-screen bg-[#05070b] text-white overflow-hidden">
+      <div className="fixed inset-0 -z-30 bg-[url('/industrial-bg.jpg')] bg-cover bg-center opacity-55" />
+      <div className="fixed inset-0 -z-20 bg-[#05070b]/55" />
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_50%_18%,rgba(0,122,255,0.18),transparent_38%)]" />
 
-export default function ValcronsLandingPage() {
-return (
-<div className="min-h-screen bg-[#05070a] font-sans text-slate-300 antialiased selection:bg-blue-500/30">
+      <div className="mx-auto max-w-[1120px] px-5 py-5">
+        <nav className="mb-8 flex items-center justify-between rounded-2xl border border-white/10 bg-black/25 px-5 py-3 backdrop-blur-2xl">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#FF9500]/30 bg-[#FF9500]/10">
+              <Settings className="h-4 w-4 text-[#FF9500]" />
+            </div>
 
-{/* Background - Exact as Image */}
-<div className="fixed inset-0 -z-50">
-<div
-className="absolute inset-0 opacity-40 grayscale"
-style={{
-backgroundImage: `url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80')`,
-backgroundSize: 'cover',
-backgroundPosition: 'center',
-}}
-/>
-<div className="absolute inset-0 bg-gradient-to-b from-[#05070a]/80 via-[#05070a] to-[#05070a]" />
-</div>
+            <div>
+              <h1 className="text-base font-black tracking-wide">VALCRONS</h1>
+              <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-slate-500">
+                Industrial Maintenance Network
+              </p>
+            </div>
+          </div>
 
-<div className="mx-auto max-w-screen-2xl px-6 md:px-12">
+          <div className="hidden items-center gap-7 text-xs font-semibold text-slate-400 md:flex">
+            <a href="/live" className="hover:text-white">Live Triage</a>
+            <a href="/experts" className="hover:text-white">Experts</a>
+            <a href="#" className="hover:text-white">Case Studies</a>
+            <a href="#" className="hover:text-white">Resources</a>
+          </div>
 
-{/* --- Header / Navigation --- */}
-<nav className="flex items-center justify-between py-8">
-<div className="flex items-center gap-3">
-<div className="flex h-10 w-10 items-center justify-center rounded-lg border border-amber-500/20 bg-amber-500/10">
-<Settings className="h-5 w-5 text-amber-500" />
-</div>
-<h1 className="text-xl font-bold tracking-wider text-white">VALCRONS</h1>
-</div>
+          <a
+            href="/request"
+            className="flex items-center gap-1 rounded-lg bg-[#007AFF] px-4 py-2 text-xs font-bold text-white hover:bg-blue-500"
+          >
+            Post a Request <ArrowRight className="h-3.5 w-3.5" />
+          </a>
+        </nav>
 
-<div className="hidden items-center gap-10 text-sm font-medium text-slate-400 md:flex">
-{["Live Triage", "Experts", "Case Studies", "Resources"].map((link) => (
-<a key={link} href="#" className="hover:text-white transition-colors">{link}</a>
-))}
-</div>
+        <section className="relative overflow-hidden rounded-[30px] border border-white/10 bg-black/25 shadow-[0_30px_90px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/45 to-black/80" />
 
-<div className="flex items-center gap-4">
-<button className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20">
-Post a Request
-</button>
-<button className="rounded-lg border border-white/10 bg-white/5 px-6 py-2.5 text-sm font-bold text-white hover:bg-white/10 transition-all">
-Log in
-</button>
-</div>
-</nav>
+          <div className="relative mx-auto flex min-h-[520px] max-w-3xl flex-col items-center justify-center px-6 py-16 text-center">
+            <p className="mb-5 text-[10px] font-black uppercase tracking-[0.32em] text-[#FF9500]">
+              Industrial Maintenance Network
+            </p>
 
-{/* --- Hero Section --- */}
-<section className="relative flex flex-col items-center pt-24 pb-16 text-center">
-<p className="mb-6 text-xs font-bold uppercase tracking-[0.4em] text-amber-500/80">
-Industrial Maintenance Network
-</p>
+            <h2 className="text-4xl font-black leading-[0.98] tracking-[-0.045em] sm:text-5xl md:text-[58px]">
+              Industrial expertise.
+              <span className="block text-[#007AFF]">
+                Instantly connected.
+              </span>
+            </h2>
 
-<h2 className="max-w-5xl text-5xl font-extrabold tracking-tight text-white md:text-8xl leading-[1.1]">
-INDUSTRIAL EXPERTISE. <br />
-<span className="text-blue-500">INSTANTLY CONNECTED.</span>
-</h2>
+            <p className="mt-6 max-w-xl text-sm leading-7 text-slate-300 md:text-base">
+              Connect factories with verified industrial experts for critical
+              repairs, remote diagnosis, asset support, and technician dispatch.
+            </p>
 
-<p className="mt-8 max-w-2xl text-base leading-relaxed text-slate-400 md:text-lg">
-Connect with verified industrial experts for critical repairs, remote diagnosis,
-asset support, and technician dispatch.
-</p>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <a
+                href="/live"
+                className="rounded-xl bg-[#007AFF] px-5 py-3 text-sm font-bold text-white hover:bg-blue-500"
+              >
+                Start Live Diagnosis
+              </a>
 
-{/* Hero Buttons - Like Image */}
-<div className="mt-10 flex flex-wrap justify-center gap-4">
-<button className="rounded-xl bg-blue-600 px-10 py-4 text-sm font-black text-white hover:bg-blue-500 shadow-xl shadow-blue-600/20">
-Start Live Diagnosis
-</button>
-<button className="rounded-xl border border-white/10 bg-white/5 px-10 py-4 text-sm font-black text-white hover:bg-white/10 backdrop-blur-md">
-Post a Request
-</button>
-</div>
+              <a
+                href="/request"
+                className="rounded-xl border border-white/15 bg-white/[0.04] px-5 py-3 text-sm font-bold text-white backdrop-blur-xl hover:bg-white/10"
+              >
+                Post a Request
+              </a>
+            </div>
 
-{/* Search Bar - Precise Style */}
-<div className="mt-16 w-full max-w-4xl">
-<div className="flex items-center gap-4 rounded-2xl border border-white/5 bg-[#12151c]/80 p-2 backdrop-blur-xl focus-within:border-blue-500/50 transition-all">
-<Search className="ml-4 h-5 w-5 text-slate-500" />
-<input
-placeholder="What equipment or issue do you need help with?"
-className="w-full bg-transparent py-4 text-sm text-white outline-none placeholder:text-slate-600"
-/>
-<button className="rounded-xl bg-blue-600 px-10 py-3 text-sm font-bold text-white hover:bg-blue-500">
-Search
-</button>
-</div>
-</div>
-</section>
+            <div className="mt-8 flex w-full max-w-2xl items-center gap-3 rounded-2xl border border-white/10 bg-black/35 px-4 py-3 backdrop-blur-2xl">
+              <Search className="h-4 w-4 text-slate-500" />
+              <input
+                placeholder="What equipment or issue do you need help with?"
+                className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
+              />
+              <button className="rounded-xl bg-[#007AFF] px-4 py-2 text-xs font-bold text-white hover:bg-blue-500">
+                Search
+              </button>
+            </div>
 
-{/* --- Feature Grid --- */}
-<section className="grid gap-8 py-16 md:grid-cols-3">
-<TrustBadge
-icon={<ShieldCheck className="h-5 w-5 text-amber-500" />}
-title="Verified Experts"
-desc="Credentialed & experienced industrial professionals."
-/>
-<TrustBadge
-icon={<Radio className="h-5 w-5 text-amber-500" />}
-title="Real-time Matching"
-desc="Smart algorithm connects you with the right expert."
-/>
-<TrustBadge
-icon={<LockKeyhole className="h-5 w-5 text-amber-500" />}
-title="Secure & Direct"
-desc="You connect directly with experts. We stay out of it."
-/>
-</section>
-
-{/* --- How It Works --- */}
-<section className="border-t border-white/5 py-20 text-center">
-<p className="mb-12 text-xs font-bold uppercase tracking-[0.4em] text-slate-500">How it works</p>
-<div className="grid gap-6 md:grid-cols-4">
-<Step number="01" title="Post Your Issue" desc="Describe your problem in minutes." />
-<Step number="02" title="Get Matched" desc="We connect you with the best available experts." />
-<Step number="03" title="Connect Instantly" desc="Start a live video session and get expert help." />
-<Step number="04" title="Solve & Continue" desc="You and the expert handle the solution together." />
-</div>
-</section>
-
-</div>
-</div>
-);
+            <div className="mt-8 grid w-full gap-3 md:grid-cols-3">
+              <InfoCard
+                icon={<ShieldCheck className="h-4 w-4" />}
+                title="Verified Experts"
+                text="Credentialed industrial professionals."
+              />
+              <InfoCard
+                icon={<Radio className="h-4 w-4" />}
+                title="Real-time Matching"
+                text="Smart routing to the right expert."
+              />
+              <InfoCard
+                icon={<LockKeyhole className="h-4 w-4" />}
+                title="Secure & Direct"
+                text="Connect directly and privately."
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
 }
 
-// --- Components ---
-
-function TrustBadge({ icon, title, desc }: { icon: ReactNode; title: string; desc: string }) {
-return (
-<div className="flex items-start gap-4 p-4">
-<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/5 border border-white/10">
-{icon}
-</div>
-<div className="text-left">
-<h4 className="text-sm font-bold text-white">{title}</h4>
-<p className="mt-1 text-xs leading-relaxed text-slate-500">{desc}</p>
-</div>
-</div>
-);
-}
-
-function Step({ number, title, desc }: { number: string; title: string; desc: string }) {
-return (
-<div className="relative group text-center px-4">
-<div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-xs font-black text-slate-400 group-hover:border-blue-500/50 group-hover:text-blue-400 transition-all">
-{number}
-</div>
-<h5 className="text-sm font-bold text-white">{title}</h5>
-<p className="mt-3 text-xs leading-relaxed text-slate-500">{desc}</p>
-</div>
-);
+function InfoCard({ icon, title, text }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 text-left backdrop-blur-2xl">
+      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-[#007AFF]">
+        {icon}
+      </div>
+      <h3 className="text-sm font-black">{title}</h3>
+      <p className="mt-1.5 text-xs leading-5 text-slate-400">{text}</p>
+    </div>
+  );
 }
