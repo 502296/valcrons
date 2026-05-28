@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { motion, AnimatePresence } from "framer-motion";
 import {
 Zap, Video, ShieldCheck, UserCircle2, ArrowRight, Globe, Menu,
 LayoutDashboard, Settings, HelpCircle, Mail, Wrench, Radio, Lock,
-BadgeCheck, Factory,
+BadgeCheck, Factory, Clock3, MapPin, RefreshCw, ArrowLeft,
 } from "lucide-react";
 
 const supabase = createClient(
@@ -14,14 +14,27 @@ const supabase = createClient(
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdldGh5aGp6cXlibG92dG9vZGh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0OTA4MzksImV4cCI6MjA5NTA2NjgzOX0.18v7Gi18FrvSXUz_Ot6cSor8MIGbm0-WCAJ6f7ILONU"
 );
 
+type FacilityRequest = {
+id: number;
+created_at: string;
+facility_type: string | null;
+urgency: string | null;
+issue_type: string | null;
+location: string | null;
+problem_description: string | null;
+status: string | null;
+};
+
 export default function ValcronsPro() {
 const [view, setView] = useState<
-"landing" | "platform" | "plants" | "experts" | "plantForm" | "expertForm"
+"landing" | "platform" | "plants" | "experts" | "plantForm" | "expertForm" | "requests"
 >("landing");
 
 const [activeTab, setActiveTab] = useState("factories");
 const [isSidebarOpen, setSidebarOpen] = useState(true);
 const [isSubmitting, setIsSubmitting] = useState(false);
+const [requests, setRequests] = useState<FacilityRequest[]>([]);
+const [isLoadingRequests, setIsLoadingRequests] = useState(false);
 
 const inputClass =
 "w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-gray-600 outline-none focus:border-blue-500/50 transition-all";
@@ -29,14 +42,42 @@ const inputClass =
 const labelClass =
 "text-xs font-bold text-gray-400 uppercase tracking-[0.14em]";
 
+const BackButton = ({ to = "landing" }: { to?: typeof view }) => (
+<button
+onClick={() => setView(to)}
+className="mb-8 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors"
+>
+<ArrowLeft size={16} />
+Back
+</button>
+);
+
+const loadRequests = async () => {
+setIsLoadingRequests(true);
+
+const { data, error } = await supabase
+.from("facility_requests")
+.select("id, created_at, facility_type, urgency, issue_type, location, problem_description, status")
+.order("created_at", { ascending: false });
+
+setIsLoadingRequests(false);
+
+if (error) {
+console.error(error);
+alert("Could not load requests.");
+return;
+}
+
+setRequests(data || []);
+};
+
 const submitFacilityRequest = async (e: React.FormEvent<HTMLFormElement>) => {
 e.preventDefault();
 setIsSubmitting(true);
 
 const formData = new FormData(e.currentTarget);
 
-const { error } = await supabase.from("facility_requests").insert([
-{
+const { error } = await supabase.from("facility_requests").insert([{
 company_name: formData.get("company_name"),
 contact_person: formData.get("contact_person"),
 work_email: formData.get("work_email"),
@@ -46,8 +87,8 @@ urgency: formData.get("urgency"),
 issue_type: formData.get("issue_type"),
 location: formData.get("location"),
 problem_description: formData.get("problem_description"),
-},
-]);
+status: "pending",
+}]);
 
 setIsSubmitting(false);
 
@@ -67,8 +108,7 @@ setIsSubmitting(true);
 
 const formData = new FormData(e.currentTarget);
 
-const { error } = await supabase.from("expert_applications").insert([
-{
+const { error } = await supabase.from("expert_applications").insert([{
 full_name: formData.get("full_name"),
 email: formData.get("email"),
 phone_number: formData.get("phone_number"),
@@ -78,8 +118,7 @@ years_experience: formData.get("years_experience"),
 availability: formData.get("availability"),
 certifications: formData.get("certifications"),
 technical_background: formData.get("technical_background"),
-},
-]);
+}]);
 
 setIsSubmitting(false);
 
@@ -108,6 +147,7 @@ const Header = () => (
 <button onClick={() => setView("platform")} className="hover:text-white transition-colors">Platform</button>
 <button onClick={() => setView("experts")} className="hover:text-white transition-colors">Experts</button>
 <button onClick={() => setView("plants")} className="hover:text-white transition-colors">Facilities</button>
+<button onClick={() => setView("requests")} className="hover:text-white transition-colors">Requests</button>
 <a href="#" className="hover:text-white transition-colors">Safety</a>
 </div>
 </div>
@@ -225,6 +265,8 @@ const PlantsPage = () => (
 <Header />
 
 <section className="max-w-6xl mx-auto">
+<BackButton />
+
 <span className="inline-block px-4 py-1 rounded-full border border-blue-500/20 bg-blue-500/5 text-blue-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-8">
 For Plants & Facilities
 </span>
@@ -266,6 +308,8 @@ const ExpertsPage = () => (
 <Header />
 
 <section className="max-w-6xl mx-auto">
+<BackButton />
+
 <span className="inline-block px-4 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-8">
 For Experts & Technicians
 </span>
@@ -302,11 +346,121 @@ Apply as an Expert <ArrowRight size={18} />
 </div>
 );
 
+const RequestsPage = () => {
+useEffect(() => {
+loadRequests();
+}, []);
+
+return (
+<div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
+<Header />
+
+<section className="max-w-6xl mx-auto">
+<BackButton />
+
+<div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-12">
+<div>
+<span className="inline-block px-4 py-1 rounded-full border border-blue-500/20 bg-blue-500/5 text-blue-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
+Diagnostic Request Queue
+</span>
+
+<h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5">
+Active Industrial Requests.
+</h1>
+
+<p className="text-gray-400 max-w-2xl leading-relaxed">
+Review facility-submitted diagnostic requests and respond only when your expertise matches the issue.
+</p>
+</div>
+
+<button
+onClick={loadRequests}
+className="bg-white/5 border border-white/10 text-white px-6 py-3 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+>
+<RefreshCw size={15} />
+Refresh Queue
+</button>
+</div>
+
+{isLoadingRequests ? (
+<div className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-10 text-gray-500">
+Loading active requests...
+</div>
+) : requests.length === 0 ? (
+<div className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-10 text-gray-500">
+No active industrial requests yet.
+</div>
+) : (
+<div className="grid gap-5">
+{requests.map((request) => (
+<div
+key={request.id}
+className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-6 md:p-7 hover:border-blue-500/30 transition-all"
+>
+<div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
+<div>
+<div className="flex flex-wrap items-center gap-3 mb-4">
+<span className="text-[11px] font-bold uppercase tracking-[0.16em] text-blue-400">
+{request.facility_type || "Industrial Facility"}
+</span>
+
+<span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] text-gray-400">
+{request.status || "pending"}
+</span>
+
+<span className="px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-[11px] text-orange-300">
+{request.urgency || "Review Required"}
+</span>
+</div>
+
+<h3 className="text-2xl font-bold tracking-tight mb-3">
+{request.issue_type || "Industrial Diagnostic Request"}
+</h3>
+
+<p className="text-sm text-gray-400 leading-relaxed max-w-3xl">
+{request.problem_description || "No description provided."}
+</p>
+</div>
+
+<div className="min-w-[190px] text-sm text-gray-500 md:text-right space-y-2">
+<p className="flex md:justify-end items-center gap-2">
+<MapPin size={14} />
+{request.location || "Location not listed"}
+</p>
+<p className="flex md:justify-end items-center gap-2 text-[12px]">
+<Clock3 size={14} />
+Pending Review
+</p>
+</div>
+</div>
+
+<div className="mt-6 flex flex-col sm:flex-row gap-3">
+<button className="bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold text-sm hover:bg-blue-500 transition-all">
+Review Request
+</button>
+
+<button className="bg-white/5 border border-white/10 text-white px-5 py-3 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all">
+Save for Later
+</button>
+</div>
+</div>
+))}
+</div>
+)}
+</section>
+
+<div className="mt-32"><Footer /></div>
+</div>
+);
+};
+
 const PlantFormPage = () => (
 <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
 <Header />
 
 <section className="max-w-5xl mx-auto">
+<BackButton to="plants" />
+
 <div className="mb-10">
 <span className="inline-block px-4 py-1 rounded-full border border-blue-500/20 bg-blue-500/5 text-blue-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
 Facility Request
@@ -402,6 +556,8 @@ const ExpertFormPage = () => (
 <Header />
 
 <section className="max-w-5xl mx-auto">
+<BackButton to="experts" />
+
 <div className="mb-10">
 <span className="inline-block px-4 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
 Expert Application
@@ -541,6 +697,8 @@ Live Server 01
 </header>
 
 <div className="p-10 max-w-6xl">
+<BackButton />
+
 <div className="grid md:grid-cols-2 gap-10">
 <div className="aspect-video bg-[#111] rounded-[2rem] border border-white/5 flex items-center justify-center text-gray-600 font-mono text-xs">
 [ Initializing Video Triage Environment... ]
@@ -572,6 +730,7 @@ return (
 {view === "experts" && <motion.div key="experts" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><ExpertsPage /></motion.div>}
 {view === "plantForm" && <motion.div key="plantForm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><PlantFormPage /></motion.div>}
 {view === "expertForm" && <motion.div key="expertForm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><ExpertFormPage /></motion.div>}
+{view === "requests" && <motion.div key="requests" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><RequestsPage /></motion.div>}
 {view === "platform" && <motion.div key="platform" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}><PlatformView /></motion.div>}
 </AnimatePresence>
 );
