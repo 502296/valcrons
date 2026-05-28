@@ -400,7 +400,7 @@ No active industrial requests yet.
 {requests.map((request) => (
 <div
 key={request.id}
-className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-6 md:p-7 hover:border-blue-500/30 transition-all"
+className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-6 md:p-7 hover:border-white/20 transition-colors"
 >
 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
 <div>
