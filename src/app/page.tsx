@@ -115,7 +115,15 @@ export default function Home() {
   );
 }
 
-function InfoCard({ icon, title, text }) {
+function InfoCard({
+  icon,
+  title,
+  text,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  text: string;
+}) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 text-left backdrop-blur-2xl">
       <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-[#007AFF]">
