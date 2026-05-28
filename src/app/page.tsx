@@ -31,6 +31,7 @@ const [view, setView] = useState<
 >("landing");
 
 const [activeTab, setActiveTab] = useState("factories");
+const [selectedRequest, setSelectedRequest] = useState<FacilityRequest | null>(null);
 const [isSidebarOpen, setSidebarOpen] = useState(true);
 const [isSubmitting, setIsSubmitting] = useState(false);
 const [requests, setRequests] = useState<FacilityRequest[]>([]);
