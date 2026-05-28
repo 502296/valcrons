@@ -374,15 +374,20 @@ Review facility-submitted diagnostic requests and respond only when your experti
 </div>
 
 <button
-onClick={loadRequests}
-className="bg-white/5 border border-white/10 text-white px-6 py-3 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+  onClick={loadRequests}
+  disabled={isLoadingRequests}
+  className="bg-white/5 border border-white/10 text-white px-6 py-3 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
 >
-<RefreshCw size={15} />
-Refresh Queue
+  <RefreshCw
+    size={15}
+    className={isLoadingRequests ? "animate-spin" : ""}
+  />
+
+  {isLoadingRequests ? "Updating Queue" : "Refresh Queue"}
 </button>
 </div>
 
-{isLoadingRequests ? (
+{isLoadingRequests && requests.length === 0 ? (
 <div className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-10 text-gray-500">
 Loading active requests...
 </div>
