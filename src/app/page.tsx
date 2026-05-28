@@ -64,9 +64,8 @@ const { data, error } = await supabase
 setIsLoadingRequests(false);
 
 if (error) {
-console.error(error);
-alert("Could not load requests.");
-return;
+  console.error("Request queue load error:", error);
+  return;
 }
 
 setRequests(data || []);
