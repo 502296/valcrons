@@ -37,8 +37,17 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 const [requests, setRequests] = useState<FacilityRequest[]>([]);
 const [isLoadingRequests, setIsLoadingRequests] = useState(false);
 
+const primaryButton =
+"bg-[#2563eb]/80 hover:bg-[#2563eb] text-white transition-colors";
+
+const secondaryButton =
+"bg-white/[0.04] border border-white/10 hover:bg-white/[0.07] text-white transition-colors";
+
+const cardClass =
+"border border-white/10 bg-white/[0.025] rounded-[2rem]";
+
 const inputClass =
-"w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-gray-600 outline-none focus:border-blue-500/50 transition-all";
+"w-full bg-white/[0.035] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-gray-600 outline-none focus:border-white/20 transition-colors";
 
 const labelClass =
 "text-xs font-bold text-gray-400 uppercase tracking-[0.14em]";
@@ -64,8 +73,8 @@ const { data, error } = await supabase
 setIsLoadingRequests(false);
 
 if (error) {
-  console.error("Request queue load error:", error);
-  return;
+console.error("Request queue load error:", error);
+return;
 }
 
 setRequests(data || []);
@@ -137,7 +146,7 @@ const Header = () => (
 <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
 <div className="flex items-center gap-8">
 <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView("landing")}>
-<div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+<div className="w-8 h-8 bg-[#2563eb]/80 rounded-lg flex items-center justify-center">
 <Zap size={18} fill="white" />
 </div>
 <span className="text-lg font-bold tracking-tighter uppercase italic">Valcrons</span>
@@ -154,7 +163,10 @@ const Header = () => (
 
 <div className="flex items-center gap-4">
 <button className="text-[13px] text-gray-400 hover:text-white font-medium">Log in</button>
-<button onClick={() => setView("plantForm")} className="bg-white text-black px-4 py-1.5 rounded-full text-[13px] font-bold hover:bg-gray-200 transition-all">
+<button
+onClick={() => setView("plantForm")}
+className="bg-white text-black px-4 py-1.5 rounded-full text-[13px] font-bold hover:bg-gray-200 transition-colors"
+>
 Get Started
 </button>
 </div>
@@ -167,7 +179,7 @@ const Footer = () => (
 <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12 text-[13px]">
 <div>
 <div className="flex items-center gap-2 mb-4">
-<Zap size={16} className="text-blue-600" />
+<Zap size={16} className="text-[#60a5fa]" />
 <span className="font-bold uppercase tracking-tighter">Valcrons</span>
 </div>
 <p className="text-gray-500 leading-relaxed">
@@ -189,7 +201,7 @@ The industrial intelligence network connecting facilities with verified technica
 <ul className="space-y-2 text-gray-500">
 <li className="flex items-center gap-2">
 <Mail size={14} />
-<span className="text-blue-400">support@valcrons.com</span>
+<span className="text-[#93c5fd]">support@valcrons.com</span>
 </li>
 <li>Help Center</li>
 </ul>
@@ -210,9 +222,9 @@ const LandingPage = () => (
 <Header />
 
 <div className="max-w-5xl mx-auto text-center relative">
-<div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
+<div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
 
-<motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="inline-block px-4 py-1 rounded-full border border-blue-500/20 bg-blue-500/5 text-blue-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-8">
+<motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-8">
 Industrial Diagnostics Network
 </motion.span>
 
@@ -226,30 +238,30 @@ Secure real-time diagnostics, emergency maintenance coordination, and verified i
 </p>
 
 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-32">
-<button onClick={() => setView("plants")} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-blue-500 transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-600/20">
+<button onClick={() => setView("plants")} className={`${primaryButton} px-8 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3`}>
 For Plants & Facilities <ArrowRight size={18} />
 </button>
 
-<button onClick={() => setView("experts")} className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all flex items-center justify-center gap-3">
+<button onClick={() => setView("experts")} className={`${secondaryButton} px-8 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3`}>
 For Experts & Technicians <ArrowRight size={18} />
 </button>
 </div>
 
 <div className="grid md:grid-cols-3 gap-8 text-left border-t border-white/5 pt-20">
 <div className="space-y-4">
-<div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500"><Video size={20} /></div>
+<div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-[#93c5fd]"><Video size={20} /></div>
 <h3 className="font-bold">Live Diagnostic Sessions</h3>
 <p className="text-sm text-gray-500 leading-relaxed">Connect facility teams with technical specialists for secure real-time video triage.</p>
 </div>
 
 <div className="space-y-4">
-<div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500"><ShieldCheck size={20} /></div>
+<div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-emerald-300/80"><ShieldCheck size={20} /></div>
 <h3 className="font-bold">Verified Industrial Experts</h3>
 <p className="text-sm text-gray-500 leading-relaxed">Built for PLC, automation, electrical, mechanical, and maintenance professionals.</p>
 </div>
 
 <div className="space-y-4">
-<div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"><Globe size={20} /></div>
+<div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-amber-200/80"><Globe size={20} /></div>
 <h3 className="font-bold">Multi-Site Operations</h3>
 <p className="text-sm text-gray-500 leading-relaxed">Designed for facilities, factories, and distributed industrial operations.</p>
 </div>
@@ -267,7 +279,7 @@ const PlantsPage = () => (
 <section className="max-w-6xl mx-auto">
 <BackButton />
 
-<span className="inline-block px-4 py-1 rounded-full border border-blue-500/20 bg-blue-500/5 text-blue-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-8">
+<span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-8">
 For Plants & Facilities
 </span>
 
@@ -280,7 +292,7 @@ Keep Production Moving <br />
 Valcrons helps factories, facilities, and maintenance leaders connect with verified industrial experts for urgent diagnostics, remote guidance, and technical escalation.
 </p>
 
-<button onClick={() => setView("plantForm")} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-blue-500 transition-all flex items-center gap-3 shadow-xl shadow-blue-600/20">
+<button onClick={() => setView("plantForm")} className={`${primaryButton} px-8 py-4 rounded-2xl font-bold text-sm flex items-center gap-3`}>
 Request Industrial Support <ArrowRight size={18} />
 </button>
 
@@ -290,8 +302,8 @@ Request Industrial Support <ArrowRight size={18} />
 { icon: <Radio size={22} />, title: "Remote Video Triage", text: "Start a secure diagnostic session with an expert before sending anyone on-site." },
 { icon: <Lock size={22} />, title: "Secure Coordination", text: "Built for professional industrial communication, safety notes, and controlled access." },
 ].map((item) => (
-<div key={item.title} className="border border-white/5 bg-white/[0.03] rounded-3xl p-7">
-<div className="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-5">{item.icon}</div>
+<div key={item.title} className={`${cardClass} p-7`}>
+<div className="w-11 h-11 rounded-xl bg-white/[0.04] text-[#93c5fd] flex items-center justify-center mb-5">{item.icon}</div>
 <h3 className="font-bold mb-3">{item.title}</h3>
 <p className="text-sm text-gray-500 leading-relaxed">{item.text}</p>
 </div>
@@ -310,7 +322,7 @@ const ExpertsPage = () => (
 <section className="max-w-6xl mx-auto">
 <BackButton />
 
-<span className="inline-block px-4 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-8">
+<span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-emerald-300/80 text-[11px] font-bold uppercase tracking-[0.2em] mb-8">
 For Experts & Technicians
 </span>
 
@@ -323,7 +335,7 @@ Join the Network for <br />
 Valcrons is built for experienced technicians, automation specialists, electricians, mechanics, controls engineers, and industrial troubleshooters who solve real production problems.
 </p>
 
-<button onClick={() => setView("expertForm")} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-emerald-500 transition-all flex items-center gap-3 shadow-xl shadow-emerald-600/20">
+<button onClick={() => setView("expertForm")} className="bg-emerald-500/70 hover:bg-emerald-500/80 text-white transition-colors px-8 py-4 rounded-2xl font-bold text-sm flex items-center gap-3">
 Apply as an Expert <ArrowRight size={18} />
 </button>
 
@@ -333,8 +345,8 @@ Apply as an Expert <ArrowRight size={18} />
 { icon: <Wrench size={22} />, title: "High-Value Industrial Work", text: "Connect with facilities that need real technical expertise, not general handyman service." },
 { icon: <UserCircle2 size={22} />, title: "Remote & On-Site Potential", text: "Support diagnostics remotely first, then escalate to on-site service when needed." },
 ].map((item) => (
-<div key={item.title} className="border border-white/5 bg-white/[0.03] rounded-3xl p-7">
-<div className="w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-5">{item.icon}</div>
+<div key={item.title} className={`${cardClass} p-7`}>
+<div className="w-11 h-11 rounded-xl bg-white/[0.04] text-emerald-300/80 flex items-center justify-center mb-5">{item.icon}</div>
 <h3 className="font-bold mb-3">{item.title}</h3>
 <p className="text-sm text-gray-500 leading-relaxed">{item.text}</p>
 </div>
@@ -360,7 +372,7 @@ return (
 
 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-12">
 <div>
-<span className="inline-block px-4 py-1 rounded-full border border-blue-500/20 bg-blue-500/5 text-blue-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
+<span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
 Diagnostic Request Queue
 </span>
 
@@ -374,25 +386,20 @@ Review facility-submitted diagnostic requests and respond only when your experti
 </div>
 
 <button
-  onClick={loadRequests}
-  disabled={isLoadingRequests}
-  className="bg-white/5 border border-white/10 text-white px-6 py-3 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+onClick={loadRequests}
+disabled={isLoadingRequests}
+className={`${secondaryButton} px-6 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-60`}
 >
-  <RefreshCw
-    size={15}
-    className={isLoadingRequests ? "animate-spin" : ""}
-  />
-
-  Refresh Queue
+<RefreshCw
+size={15}
+className={isLoadingRequests ? "animate-spin opacity-70" : ""}
+/>
+Refresh Queue
 </button>
 </div>
 
-{isLoadingRequests && requests.length === 0 ? (
-<div className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-10 text-gray-500">
-Loading active requests...
-</div>
-) : requests.length === 0 ? (
-<div className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-10 text-gray-500">
+{requests.length === 0 ? (
+<div className={`${cardClass} p-10 text-gray-500`}>
 No active industrial requests yet.
 </div>
 ) : (
@@ -400,20 +407,20 @@ No active industrial requests yet.
 {requests.map((request) => (
 <div
 key={request.id}
-className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-6 md:p-7 hover:border-white/20 transition-colors"
+className={`${cardClass} p-6 md:p-7 hover:border-white/20 transition-colors`}
 >
 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
 <div>
 <div className="flex flex-wrap items-center gap-3 mb-4">
-<span className="text-[11px] font-bold uppercase tracking-[0.16em] text-blue-400">
+<span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#93c5fd]">
 {request.facility_type || "Industrial Facility"}
 </span>
 
-<span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] text-gray-400">
+<span className="px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-[11px] text-gray-400">
 {request.status || "pending"}
 </span>
 
-<span className="px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-[11px] text-orange-300">
+<span className="px-3 py-1 rounded-full bg-amber-500/5 border border-amber-500/10 text-[11px] text-amber-200/80">
 {request.urgency || "Review Required"}
 </span>
 </div>
@@ -441,15 +448,16 @@ Pending Review
 
 <div className="mt-6 flex flex-col sm:flex-row gap-3">
 <button
-  onClick={() => {
-    setSelectedRequest(request);
-    setView("requestDetails");
-  }}
-  className="bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold text-sm hover:bg-blue-500 transition-all"
+onClick={() => {
+setSelectedRequest(request);
+setView("requestDetails");
+}}
+className={`${primaryButton} px-5 py-3 rounded-2xl font-bold text-sm`}
 >
-  Review Request
+Review Request
 </button>
-<button className="bg-white/5 border border-white/10 text-white px-5 py-3 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all">
+
+<button className={`${secondaryButton} px-5 py-3 rounded-2xl font-bold text-sm`}>
 Save for Later
 </button>
 </div>
@@ -472,7 +480,7 @@ const PlantFormPage = () => (
 <BackButton to="plants" />
 
 <div className="mb-10">
-<span className="inline-block px-4 py-1 rounded-full border border-blue-500/20 bg-blue-500/5 text-blue-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
+<span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
 Facility Request
 </span>
 
@@ -485,7 +493,7 @@ Tell us about your facility and the issue. Valcrons will use this information to
 </p>
 </div>
 
-<form onSubmit={submitFacilityRequest} className="grid md:grid-cols-2 gap-5 border border-white/10 bg-white/[0.03] rounded-[2rem] p-6 md:p-8">
+<form onSubmit={submitFacilityRequest} className={`grid md:grid-cols-2 gap-5 ${cardClass} p-6 md:p-8`}>
 <div className="space-y-2">
 <label className={labelClass}>Company Name</label>
 <input name="company_name" className={inputClass} placeholder="Example: Blue River Manufacturing" required />
@@ -546,11 +554,11 @@ Tell us about your facility and the issue. Valcrons will use this information to
 </div>
 
 <div className="md:col-span-2 flex flex-col sm:flex-row gap-4 pt-4">
-<button type="submit" disabled={isSubmitting} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-blue-500 transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-600/20 disabled:opacity-60">
+<button type="submit" disabled={isSubmitting} className={`${primaryButton} px-8 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 disabled:opacity-60`}>
 {isSubmitting ? "Submitting..." : "Submit Facility Request"} <ArrowRight size={18} />
 </button>
 
-<button type="button" onClick={() => setView("plants")} className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all">
+<button type="button" onClick={() => setView("plants")} className={`${secondaryButton} px-8 py-4 rounded-2xl font-bold text-sm`}>
 Back
 </button>
 </div>
@@ -569,7 +577,7 @@ const ExpertFormPage = () => (
 <BackButton to="experts" />
 
 <div className="mb-10">
-<span className="inline-block px-4 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
+<span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-emerald-300/80 text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
 Expert Application
 </span>
 
@@ -582,7 +590,7 @@ Tell us about your technical background, specialties, and availability.
 </p>
 </div>
 
-<form onSubmit={submitExpertApplication} className="grid md:grid-cols-2 gap-5 border border-white/10 bg-white/[0.03] rounded-[2rem] p-6 md:p-8">
+<form onSubmit={submitExpertApplication} className={`grid md:grid-cols-2 gap-5 ${cardClass} p-6 md:p-8`}>
 <div className="space-y-2">
 <label className={labelClass}>Full Name</label>
 <input name="full_name" className={inputClass} placeholder="Full name" required />
@@ -649,11 +657,11 @@ Tell us about your technical background, specialties, and availability.
 </div>
 
 <div className="md:col-span-2 flex flex-col sm:flex-row gap-4 pt-4">
-<button type="submit" disabled={isSubmitting} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-emerald-500 transition-all flex items-center justify-center gap-3 shadow-xl shadow-emerald-600/20 disabled:opacity-60">
+<button type="submit" disabled={isSubmitting} className="bg-emerald-500/70 hover:bg-emerald-500/80 text-white transition-colors px-8 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 disabled:opacity-60">
 {isSubmitting ? "Submitting..." : "Submit Expert Application"} <ArrowRight size={18} />
 </button>
 
-<button type="button" onClick={() => setView("experts")} className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all">
+<button type="button" onClick={() => setView("experts")} className={`${secondaryButton} px-8 py-4 rounded-2xl font-bold text-sm`}>
 Back
 </button>
 </div>
@@ -679,7 +687,7 @@ const PlatformView = () => (
 { id: "settings", label: "Settings", icon: <Settings size={18} /> },
 { id: "help", label: "Help", icon: <HelpCircle size={18} /> },
 ].map((item) => (
-<button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm font-medium transition-all ${activeTab === item.id ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10" : "text-gray-500 hover:bg-white/5"}`}>
+<button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm font-medium transition-colors ${activeTab === item.id ? "bg-[#2563eb]/80 text-white" : "text-gray-500 hover:bg-white/5"}`}>
 {item.icon}
 {isSidebarOpen && item.label}
 </button>
@@ -698,8 +706,8 @@ const PlatformView = () => (
 <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">{activeTab}</h2>
 
 <div className="flex items-center gap-4">
-<div className="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[10px] font-bold border border-emerald-500/20 flex items-center gap-2">
-<div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+<div className="bg-emerald-500/5 text-emerald-300/80 px-3 py-1 rounded-full text-[10px] font-bold border border-emerald-500/10 flex items-center gap-2">
+<div className="w-1.5 h-1.5 rounded-full bg-emerald-300/80 animate-pulse" />
 Live Server 01
 </div>
 <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10" />
@@ -720,8 +728,8 @@ Live Server 01
 "Select a factory or an expert from the sidebar to begin the encrypted session."
 </p>
 
-<div className="p-6 bg-blue-600/5 border border-blue-500/10 rounded-2xl">
-<h4 className="text-xs font-bold text-blue-400 uppercase mb-2">Safety Note</h4>
+<div className="p-6 bg-white/[0.025] border border-white/10 rounded-2xl">
+<h4 className="text-xs font-bold text-[#93c5fd] uppercase mb-2">Safety Note</h4>
 <p className="text-[12px] text-gray-400 leading-relaxed">
 By starting, you agree to our Terms of Service. Valcrons is not responsible for physical machine operation.
 </p>
@@ -734,101 +742,101 @@ By starting, you agree to our Terms of Service. Valcrons is not responsible for 
 );
 
 const RequestDetailsPage = () => {
-  if (!selectedRequest) return null;
+if (!selectedRequest) return null;
 
-  return (
-    <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
-      <Header />
+return (
+<div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
+<Header />
 
-      <section className="max-w-5xl mx-auto">
-        <BackButton to="requests" />
+<section className="max-w-5xl mx-auto">
+<BackButton to="requests" />
 
-        <div className="mb-10">
-          <span className="inline-block px-4 py-1 rounded-full border border-blue-500/20 bg-blue-500/5 text-blue-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
-            Diagnostic Request
-          </span>
+<div className="mb-10">
+<span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
+Diagnostic Request
+</span>
 
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
-            {selectedRequest.issue_type || "Industrial Request"}
-          </h1>
+<h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
+{selectedRequest.issue_type || "Industrial Request"}
+</h1>
 
-          <p className="text-gray-400 text-lg leading-relaxed max-w-3xl">
-            {selectedRequest.problem_description}
-          </p>
-        </div>
+<p className="text-gray-400 text-lg leading-relaxed max-w-3xl">
+{selectedRequest.problem_description}
+</p>
+</div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-7">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
-              Facility Type
-            </p>
+<div className="grid md:grid-cols-2 gap-6">
+<div className={`${cardClass} p-7`}>
+<p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
+Facility Type
+</p>
 
-            <h3 className="text-xl font-bold">
-              {selectedRequest.facility_type || "Industrial Facility"}
-            </h3>
-          </div>
+<h3 className="text-xl font-bold">
+{selectedRequest.facility_type || "Industrial Facility"}
+</h3>
+</div>
 
-          <div className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-7">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
-              Urgency
-            </p>
+<div className={`${cardClass} p-7`}>
+<p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
+Urgency
+</p>
 
-            <h3 className="text-xl font-bold text-orange-400">
-              {selectedRequest.urgency || "Pending Review"}
-            </h3>
-          </div>
+<h3 className="text-xl font-bold text-amber-200/80">
+{selectedRequest.urgency || "Pending Review"}
+</h3>
+</div>
 
-          <div className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-7">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
-              Location
-            </p>
+<div className={`${cardClass} p-7`}>
+<p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
+Location
+</p>
 
-            <h3 className="text-xl font-bold">
-              {selectedRequest.location || "Unknown"}
-            </h3>
-          </div>
+<h3 className="text-xl font-bold">
+{selectedRequest.location || "Unknown"}
+</h3>
+</div>
 
-          <div className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-7">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
-              Status
-            </p>
+<div className={`${cardClass} p-7`}>
+<p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
+Status
+</p>
 
-            <h3 className="text-xl font-bold text-emerald-400">
-              {selectedRequest.status || "Pending"}
-            </h3>
-          </div>
-        </div>
+<h3 className="text-xl font-bold text-emerald-300/80">
+{selectedRequest.status || "Pending"}
+</h3>
+</div>
+</div>
 
-        <div className="mt-10 border border-white/10 bg-white/[0.03] rounded-[2rem] p-8">
-          <h2 className="text-2xl font-bold mb-5">
-            Technical Summary
-          </h2>
+<div className={`mt-10 ${cardClass} p-8`}>
+<h2 className="text-2xl font-bold mb-5">
+Technical Summary
+</h2>
 
-          <p className="text-gray-400 leading-relaxed text-[15px]">
-            This request has been submitted to the Valcrons industrial queue
-            and is awaiting expert review. Respond only if your expertise
-            directly matches the operational issue and facility environment.
-          </p>
+<p className="text-gray-400 leading-relaxed text-[15px]">
+This request has been submitted to the Valcrons industrial queue
+and is awaiting expert review. Respond only if your expertise
+directly matches the operational issue and facility environment.
+</p>
 
-          <div className="flex flex-col sm:flex-row gap-4 mt-8">
-            <button className="bg-blue-600 hover:bg-blue-500 transition-all text-white px-7 py-4 rounded-2xl font-bold text-sm">
-              Accept Diagnostic Case
-            </button>
+<div className="flex flex-col sm:flex-row gap-4 mt-8">
+<button className={`${primaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}>
+Accept Diagnostic Case
+</button>
 
-            <button className="bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white px-7 py-4 rounded-2xl font-bold text-sm">
-              Save for Later
-            </button>
-          </div>
-        </div>
-      </section>
+<button className={`${secondaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}>
+Save for Later
+</button>
+</div>
+</div>
+</section>
 
-      <div className="mt-32">
-        <Footer />
-      </div>
-    </div>
-  );
+<div className="mt-32">
+<Footer />
+</div>
+</div>
+);
 };
-  
+
 return (
 <AnimatePresence mode="sync">
 {view === "landing" && <motion.div key="landing" exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}><LandingPage /></motion.div>}
