@@ -830,7 +830,7 @@ const RequestDetailsPage = () => {
 };
   
 return (
-<AnimatePresence mode="wait">
+<AnimatePresence mode="sync">
 {view === "landing" && <motion.div key="landing" exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}><LandingPage /></motion.div>}
 {view === "plants" && <motion.div key="plants" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><PlantsPage /></motion.div>}
 {view === "experts" && <motion.div key="experts" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><ExpertsPage /></motion.div>}
