@@ -734,6 +734,102 @@ By starting, you agree to our Terms of Service. Valcrons is not responsible for 
 </div>
 );
 
+const RequestDetailsPage = () => {
+  if (!selectedRequest) return null;
+
+  return (
+    <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
+      <Header />
+
+      <section className="max-w-5xl mx-auto">
+        <BackButton to="requests" />
+
+        <div className="mb-10">
+          <span className="inline-block px-4 py-1 rounded-full border border-blue-500/20 bg-blue-500/5 text-blue-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
+            Diagnostic Request
+          </span>
+
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
+            {selectedRequest.issue_type || "Industrial Request"}
+          </h1>
+
+          <p className="text-gray-400 text-lg leading-relaxed max-w-3xl">
+            {selectedRequest.problem_description}
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-7">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
+              Facility Type
+            </p>
+
+            <h3 className="text-xl font-bold">
+              {selectedRequest.facility_type || "Industrial Facility"}
+            </h3>
+          </div>
+
+          <div className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-7">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
+              Urgency
+            </p>
+
+            <h3 className="text-xl font-bold text-orange-400">
+              {selectedRequest.urgency || "Pending Review"}
+            </h3>
+          </div>
+
+          <div className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-7">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
+              Location
+            </p>
+
+            <h3 className="text-xl font-bold">
+              {selectedRequest.location || "Unknown"}
+            </h3>
+          </div>
+
+          <div className="border border-white/10 bg-white/[0.03] rounded-[2rem] p-7">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
+              Status
+            </p>
+
+            <h3 className="text-xl font-bold text-emerald-400">
+              {selectedRequest.status || "Pending"}
+            </h3>
+          </div>
+        </div>
+
+        <div className="mt-10 border border-white/10 bg-white/[0.03] rounded-[2rem] p-8">
+          <h2 className="text-2xl font-bold mb-5">
+            Technical Summary
+          </h2>
+
+          <p className="text-gray-400 leading-relaxed text-[15px]">
+            This request has been submitted to the Valcrons industrial queue
+            and is awaiting expert review. Respond only if your expertise
+            directly matches the operational issue and facility environment.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 mt-8">
+            <button className="bg-blue-600 hover:bg-blue-500 transition-all text-white px-7 py-4 rounded-2xl font-bold text-sm">
+              Accept Diagnostic Case
+            </button>
+
+            <button className="bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white px-7 py-4 rounded-2xl font-bold text-sm">
+              Save for Later
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div className="mt-32">
+        <Footer />
+      </div>
+    </div>
+  );
+};
+  
 return (
 <AnimatePresence mode="wait">
 {view === "landing" && <motion.div key="landing" exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}><LandingPage /></motion.div>}
