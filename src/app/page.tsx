@@ -1,29 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-Zap,
-Video,
-ShieldCheck,
-UserCircle2,
-ArrowRight,
-Globe,
-Menu,
-LayoutDashboard,
-Settings,
-HelpCircle,
-Mail,
-Wrench,
-Radio,
-Lock,
-BadgeCheck,
-Factory,
-Building2,
-ClipboardList,
-MapPin,
-Phone,
+Zap, Video, ShieldCheck, UserCircle2, ArrowRight, Globe, Menu,
+LayoutDashboard, Settings, HelpCircle, Mail, Wrench, Radio, Lock,
+BadgeCheck, Factory,
 } from "lucide-react";
+
+const supabase = createClient(
+"https://gethyhjzqyblovtoodhw.supabase.co",
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdldGh5aGp6cXlibG92dG9vZGh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0OTA4MzksImV4cCI6MjA5NTA2NjgzOX0.18v7Gi18FrvSXUz_Ot6cSor8MIGbm0-WCAJ6f7ILONU"
+);
 
 export default function ValcronsPro() {
 const [view, setView] = useState<
@@ -32,52 +21,100 @@ const [view, setView] = useState<
 
 const [activeTab, setActiveTab] = useState("factories");
 const [isSidebarOpen, setSidebarOpen] = useState(true);
+const [isSubmitting, setIsSubmitting] = useState(false);
 
 const inputClass =
 "w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-gray-600 outline-none focus:border-blue-500/50 transition-all";
 
-const labelClass = "text-xs font-bold text-gray-400 uppercase tracking-[0.14em]";
+const labelClass =
+"text-xs font-bold text-gray-400 uppercase tracking-[0.14em]";
+
+const submitFacilityRequest = async (e: React.FormEvent<HTMLFormElement>) => {
+e.preventDefault();
+setIsSubmitting(true);
+
+const formData = new FormData(e.currentTarget);
+
+const { error } = await supabase.from("facility_requests").insert([
+{
+company_name: formData.get("company_name"),
+contact_person: formData.get("contact_person"),
+work_email: formData.get("work_email"),
+phone_number: formData.get("phone_number"),
+facility_type: formData.get("facility_type"),
+urgency: formData.get("urgency"),
+issue_type: formData.get("issue_type"),
+location: formData.get("location"),
+problem_description: formData.get("problem_description"),
+},
+]);
+
+setIsSubmitting(false);
+
+if (error) {
+console.error(error);
+alert("Something went wrong. Please try again.");
+return;
+}
+
+alert("Facility request submitted successfully.");
+e.currentTarget.reset();
+};
+
+const submitExpertApplication = async (e: React.FormEvent<HTMLFormElement>) => {
+e.preventDefault();
+setIsSubmitting(true);
+
+const formData = new FormData(e.currentTarget);
+
+const { error } = await supabase.from("expert_applications").insert([
+{
+full_name: formData.get("full_name"),
+email: formData.get("email"),
+phone_number: formData.get("phone_number"),
+location: formData.get("location"),
+primary_specialty: formData.get("primary_specialty"),
+years_experience: formData.get("years_experience"),
+availability: formData.get("availability"),
+certifications: formData.get("certifications"),
+technical_background: formData.get("technical_background"),
+},
+]);
+
+setIsSubmitting(false);
+
+if (error) {
+console.error(error);
+alert("Something went wrong. Please try again.");
+return;
+}
+
+alert("Expert application submitted successfully.");
+e.currentTarget.reset();
+};
 
 const Header = () => (
 <nav className="fixed top-0 w-full z-[100] border-b border-white/5 bg-[#050505]/80 backdrop-blur-xl">
 <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
 <div className="flex items-center gap-8">
-<div
-className="flex items-center gap-2 cursor-pointer"
-onClick={() => setView("landing")}
->
+<div className="flex items-center gap-2 cursor-pointer" onClick={() => setView("landing")}>
 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
 <Zap size={18} fill="white" />
 </div>
-<span className="text-lg font-bold tracking-tighter uppercase italic">
-Valcrons
-</span>
+<span className="text-lg font-bold tracking-tighter uppercase italic">Valcrons</span>
 </div>
 
 <div className="hidden md:flex items-center gap-6 text-[13px] text-gray-400 font-medium">
-<button onClick={() => setView("platform")} className="hover:text-white transition-colors">
-Platform
-</button>
-<button onClick={() => setView("experts")} className="hover:text-white transition-colors">
-Experts
-</button>
-<button onClick={() => setView("plants")} className="hover:text-white transition-colors">
-Facilities
-</button>
-<a href="#" className="hover:text-white transition-colors">
-Safety
-</a>
+<button onClick={() => setView("platform")} className="hover:text-white transition-colors">Platform</button>
+<button onClick={() => setView("experts")} className="hover:text-white transition-colors">Experts</button>
+<button onClick={() => setView("plants")} className="hover:text-white transition-colors">Facilities</button>
+<a href="#" className="hover:text-white transition-colors">Safety</a>
 </div>
 </div>
 
 <div className="flex items-center gap-4">
-<button className="text-[13px] text-gray-400 hover:text-white font-medium">
-Log in
-</button>
-<button
-onClick={() => setView("plantForm")}
-className="bg-white text-black px-4 py-1.5 rounded-full text-[13px] font-bold hover:bg-gray-200 transition-all"
->
+<button className="text-[13px] text-gray-400 hover:text-white font-medium">Log in</button>
+<button onClick={() => setView("plantForm")} className="bg-white text-black px-4 py-1.5 rounded-full text-[13px] font-bold hover:bg-gray-200 transition-all">
 Get Started
 </button>
 </div>
@@ -135,11 +172,7 @@ const LandingPage = () => (
 <div className="max-w-5xl mx-auto text-center relative">
 <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
 
-<motion.span
-initial={{ opacity: 0 }}
-animate={{ opacity: 1 }}
-className="inline-block px-4 py-1 rounded-full border border-blue-500/20 bg-blue-500/5 text-blue-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-8"
->
+<motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="inline-block px-4 py-1 rounded-full border border-blue-500/20 bg-blue-500/5 text-blue-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-8">
 Industrial Diagnostics Network
 </motion.span>
 
@@ -153,57 +186,37 @@ Secure real-time diagnostics, emergency maintenance coordination, and verified i
 </p>
 
 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-32">
-<button
-onClick={() => setView("plants")}
-className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-blue-500 transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-600/20"
->
+<button onClick={() => setView("plants")} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-blue-500 transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-600/20">
 For Plants & Facilities <ArrowRight size={18} />
 </button>
 
-<button
-onClick={() => setView("experts")}
-className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all flex items-center justify-center gap-3"
->
+<button onClick={() => setView("experts")} className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all flex items-center justify-center gap-3">
 For Experts & Technicians <ArrowRight size={18} />
 </button>
 </div>
 
 <div className="grid md:grid-cols-3 gap-8 text-left border-t border-white/5 pt-20">
 <div className="space-y-4">
-<div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-<Video size={20} />
-</div>
+<div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500"><Video size={20} /></div>
 <h3 className="font-bold">Live Diagnostic Sessions</h3>
-<p className="text-sm text-gray-500 leading-relaxed">
-Connect facility teams with technical specialists for secure real-time video triage.
-</p>
+<p className="text-sm text-gray-500 leading-relaxed">Connect facility teams with technical specialists for secure real-time video triage.</p>
 </div>
 
 <div className="space-y-4">
-<div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-<ShieldCheck size={20} />
-</div>
+<div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500"><ShieldCheck size={20} /></div>
 <h3 className="font-bold">Verified Industrial Experts</h3>
-<p className="text-sm text-gray-500 leading-relaxed">
-Built for PLC, automation, electrical, mechanical, and maintenance professionals.
-</p>
+<p className="text-sm text-gray-500 leading-relaxed">Built for PLC, automation, electrical, mechanical, and maintenance professionals.</p>
 </div>
 
 <div className="space-y-4">
-<div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
-<Globe size={20} />
-</div>
+<div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"><Globe size={20} /></div>
 <h3 className="font-bold">Multi-Site Operations</h3>
-<p className="text-sm text-gray-500 leading-relaxed">
-Designed for facilities, factories, and distributed industrial operations.
-</p>
+<p className="text-sm text-gray-500 leading-relaxed">Designed for facilities, factories, and distributed industrial operations.</p>
 </div>
 </div>
 </div>
 
-<div className="mt-40">
-<Footer />
-</div>
+<div className="mt-40"><Footer /></div>
 </div>
 );
 
@@ -225,35 +238,18 @@ Keep Production Moving <br />
 Valcrons helps factories, facilities, and maintenance leaders connect with verified industrial experts for urgent diagnostics, remote guidance, and technical escalation.
 </p>
 
-<button
-onClick={() => setView("plantForm")}
-className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-blue-500 transition-all flex items-center gap-3 shadow-xl shadow-blue-600/20"
->
+<button onClick={() => setView("plantForm")} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-blue-500 transition-all flex items-center gap-3 shadow-xl shadow-blue-600/20">
 Request Industrial Support <ArrowRight size={18} />
 </button>
 
 <div className="grid md:grid-cols-3 gap-6 mt-20">
 {[
-{
-icon: <Factory size={22} />,
-title: "Emergency Support",
-text: "Request fast technical support when a line, machine, or system needs immediate attention.",
-},
-{
-icon: <Radio size={22} />,
-title: "Remote Video Triage",
-text: "Start a secure diagnostic session with an expert before sending anyone on-site.",
-},
-{
-icon: <Lock size={22} />,
-title: "Secure Coordination",
-text: "Built for professional industrial communication, safety notes, and controlled access.",
-},
+{ icon: <Factory size={22} />, title: "Emergency Support", text: "Request fast technical support when a line, machine, or system needs immediate attention." },
+{ icon: <Radio size={22} />, title: "Remote Video Triage", text: "Start a secure diagnostic session with an expert before sending anyone on-site." },
+{ icon: <Lock size={22} />, title: "Secure Coordination", text: "Built for professional industrial communication, safety notes, and controlled access." },
 ].map((item) => (
 <div key={item.title} className="border border-white/5 bg-white/[0.03] rounded-3xl p-7">
-<div className="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-5">
-{item.icon}
-</div>
+<div className="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-5">{item.icon}</div>
 <h3 className="font-bold mb-3">{item.title}</h3>
 <p className="text-sm text-gray-500 leading-relaxed">{item.text}</p>
 </div>
@@ -261,9 +257,7 @@ text: "Built for professional industrial communication, safety notes, and contro
 </div>
 </section>
 
-<div className="mt-32">
-<Footer />
-</div>
+<div className="mt-32"><Footer /></div>
 </div>
 );
 
@@ -285,35 +279,18 @@ Join the Network for <br />
 Valcrons is built for experienced technicians, automation specialists, electricians, mechanics, controls engineers, and industrial troubleshooters who solve real production problems.
 </p>
 
-<button
-onClick={() => setView("expertForm")}
-className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-emerald-500 transition-all flex items-center gap-3 shadow-xl shadow-emerald-600/20"
->
+<button onClick={() => setView("expertForm")} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-emerald-500 transition-all flex items-center gap-3 shadow-xl shadow-emerald-600/20">
 Apply as an Expert <ArrowRight size={18} />
 </button>
 
 <div className="grid md:grid-cols-3 gap-6 mt-20">
 {[
-{
-icon: <BadgeCheck size={22} />,
-title: "Verified Expert Profile",
-text: "Build professional trust through skill verification and industrial specialization.",
-},
-{
-icon: <Wrench size={22} />,
-title: "High-Value Industrial Work",
-text: "Connect with facilities that need real technical expertise, not general handyman service.",
-},
-{
-icon: <UserCircle2 size={22} />,
-title: "Remote & On-Site Potential",
-text: "Support diagnostics remotely first, then escalate to on-site service when needed.",
-},
+{ icon: <BadgeCheck size={22} />, title: "Verified Expert Profile", text: "Build professional trust through skill verification and industrial specialization." },
+{ icon: <Wrench size={22} />, title: "High-Value Industrial Work", text: "Connect with facilities that need real technical expertise, not general handyman service." },
+{ icon: <UserCircle2 size={22} />, title: "Remote & On-Site Potential", text: "Support diagnostics remotely first, then escalate to on-site service when needed." },
 ].map((item) => (
 <div key={item.title} className="border border-white/5 bg-white/[0.03] rounded-3xl p-7">
-<div className="w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-5">
-{item.icon}
-</div>
+<div className="w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-5">{item.icon}</div>
 <h3 className="font-bold mb-3">{item.title}</h3>
 <p className="text-sm text-gray-500 leading-relaxed">{item.text}</p>
 </div>
@@ -321,9 +298,7 @@ text: "Support diagnostics remotely first, then escalate to on-site service when
 </div>
 </section>
 
-<div className="mt-32">
-<Footer />
-</div>
+<div className="mt-32"><Footer /></div>
 </div>
 );
 
@@ -346,30 +321,30 @@ Tell us about your facility and the issue. Valcrons will use this information to
 </p>
 </div>
 
-<form className="grid md:grid-cols-2 gap-5 border border-white/10 bg-white/[0.03] rounded-[2rem] p-6 md:p-8">
+<form onSubmit={submitFacilityRequest} className="grid md:grid-cols-2 gap-5 border border-white/10 bg-white/[0.03] rounded-[2rem] p-6 md:p-8">
 <div className="space-y-2">
 <label className={labelClass}>Company Name</label>
-<input className={inputClass} placeholder="Example: Blue River Manufacturing" />
+<input name="company_name" className={inputClass} placeholder="Example: Blue River Manufacturing" required />
 </div>
 
 <div className="space-y-2">
 <label className={labelClass}>Contact Person</label>
-<input className={inputClass} placeholder="Full name" />
+<input name="contact_person" className={inputClass} placeholder="Full name" required />
 </div>
 
 <div className="space-y-2">
 <label className={labelClass}>Work Email</label>
-<input className={inputClass} placeholder="name@company.com" type="email" />
+<input name="work_email" className={inputClass} placeholder="name@company.com" type="email" required />
 </div>
 
 <div className="space-y-2">
 <label className={labelClass}>Phone Number</label>
-<input className={inputClass} placeholder="(000) 000-0000" />
+<input name="phone_number" className={inputClass} placeholder="(000) 000-0000" />
 </div>
 
 <div className="space-y-2">
 <label className={labelClass}>Facility Type</label>
-<select className={inputClass} defaultValue="">
+<select name="facility_type" className={inputClass} defaultValue="" required>
 <option value="" disabled>Choose facility type</option>
 <option>Manufacturing Plant</option>
 <option>Warehouse / Distribution</option>
@@ -382,7 +357,7 @@ Tell us about your facility and the issue. Valcrons will use this information to
 
 <div className="space-y-2">
 <label className={labelClass}>Urgency</label>
-<select className={inputClass} defaultValue="">
+<select name="urgency" className={inputClass} defaultValue="" required>
 <option value="" disabled>Choose urgency</option>
 <option>Emergency — production stopped</option>
 <option>High — major issue</option>
@@ -393,44 +368,32 @@ Tell us about your facility and the issue. Valcrons will use this information to
 
 <div className="space-y-2">
 <label className={labelClass}>Issue Type</label>
-<input className={inputClass} placeholder="PLC, motor, conveyor, electrical, hydraulic..." />
+<input name="issue_type" className={inputClass} placeholder="PLC, motor, conveyor, electrical, hydraulic..." />
 </div>
 
 <div className="space-y-2">
 <label className={labelClass}>Location</label>
-<input className={inputClass} placeholder="City, State" />
+<input name="location" className={inputClass} placeholder="City, State" />
 </div>
 
 <div className="md:col-span-2 space-y-2">
 <label className={labelClass}>Describe the Problem</label>
-<textarea
-className={`${inputClass} min-h-[140px] resize-none`}
-placeholder="Briefly describe what failed, what changed, and whether production is currently stopped."
-/>
+<textarea name="problem_description" className={`${inputClass} min-h-[140px] resize-none`} placeholder="Briefly describe what failed, what changed, and whether production is currently stopped." required />
 </div>
 
 <div className="md:col-span-2 flex flex-col sm:flex-row gap-4 pt-4">
-<button
-type="button"
-className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-blue-500 transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-600/20"
->
-Submit Facility Request <ArrowRight size={18} />
+<button type="submit" disabled={isSubmitting} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-blue-500 transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-600/20 disabled:opacity-60">
+{isSubmitting ? "Submitting..." : "Submit Facility Request"} <ArrowRight size={18} />
 </button>
 
-<button
-type="button"
-onClick={() => setView("plants")}
-className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all"
->
+<button type="button" onClick={() => setView("plants")} className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all">
 Back
 </button>
 </div>
 </form>
 </section>
 
-<div className="mt-32">
-<Footer />
-</div>
+<div className="mt-32"><Footer /></div>
 </div>
 );
 
@@ -449,34 +412,34 @@ Apply to Join Valcrons.
 </h1>
 
 <p className="text-gray-400 max-w-2xl leading-relaxed">
-Tell us about your technical background, specialties, and availability. This helps us understand where you fit in the industrial expert network.
+Tell us about your technical background, specialties, and availability.
 </p>
 </div>
 
-<form className="grid md:grid-cols-2 gap-5 border border-white/10 bg-white/[0.03] rounded-[2rem] p-6 md:p-8">
+<form onSubmit={submitExpertApplication} className="grid md:grid-cols-2 gap-5 border border-white/10 bg-white/[0.03] rounded-[2rem] p-6 md:p-8">
 <div className="space-y-2">
 <label className={labelClass}>Full Name</label>
-<input className={inputClass} placeholder="Full name" />
+<input name="full_name" className={inputClass} placeholder="Full name" required />
 </div>
 
 <div className="space-y-2">
 <label className={labelClass}>Email</label>
-<input className={inputClass} placeholder="name@email.com" type="email" />
+<input name="email" className={inputClass} placeholder="name@email.com" type="email" required />
 </div>
 
 <div className="space-y-2">
 <label className={labelClass}>Phone Number</label>
-<input className={inputClass} placeholder="(000) 000-0000" />
+<input name="phone_number" className={inputClass} placeholder="(000) 000-0000" />
 </div>
 
 <div className="space-y-2">
 <label className={labelClass}>Location</label>
-<input className={inputClass} placeholder="City, State" />
+<input name="location" className={inputClass} placeholder="City, State" />
 </div>
 
 <div className="space-y-2">
 <label className={labelClass}>Primary Specialty</label>
-<select className={inputClass} defaultValue="">
+<select name="primary_specialty" className={inputClass} defaultValue="" required>
 <option value="" disabled>Choose specialty</option>
 <option>PLC / Automation</option>
 <option>Industrial Electrical</option>
@@ -489,7 +452,7 @@ Tell us about your technical background, specialties, and availability. This hel
 
 <div className="space-y-2">
 <label className={labelClass}>Years of Experience</label>
-<select className={inputClass} defaultValue="">
+<select name="years_experience" className={inputClass} defaultValue="" required>
 <option value="" disabled>Choose experience</option>
 <option>1–3 years</option>
 <option>4–7 years</option>
@@ -500,7 +463,7 @@ Tell us about your technical background, specialties, and availability. This hel
 
 <div className="space-y-2">
 <label className={labelClass}>Availability</label>
-<select className={inputClass} defaultValue="">
+<select name="availability" className={inputClass} defaultValue="">
 <option value="" disabled>Choose availability</option>
 <option>Remote diagnostics only</option>
 <option>On-site only</option>
@@ -511,61 +474,36 @@ Tell us about your technical background, specialties, and availability. This hel
 
 <div className="space-y-2">
 <label className={labelClass}>Certifications</label>
-<input className={inputClass} placeholder="OSHA, PLC, electrical license, etc." />
+<input name="certifications" className={inputClass} placeholder="OSHA, PLC, electrical license, etc." />
 </div>
 
 <div className="md:col-span-2 space-y-2">
 <label className={labelClass}>Technical Background</label>
-<textarea
-className={`${inputClass} min-h-[140px] resize-none`}
-placeholder="Briefly describe the systems, machines, industries, and problems you are strongest at solving."
-/>
+<textarea name="technical_background" className={`${inputClass} min-h-[140px] resize-none`} placeholder="Briefly describe the systems, machines, industries, and problems you are strongest at solving." required />
 </div>
 
 <div className="md:col-span-2 flex flex-col sm:flex-row gap-4 pt-4">
-<button
-type="button"
-className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-emerald-500 transition-all flex items-center justify-center gap-3 shadow-xl shadow-emerald-600/20"
->
-Submit Expert Application <ArrowRight size={18} />
+<button type="submit" disabled={isSubmitting} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-emerald-500 transition-all flex items-center justify-center gap-3 shadow-xl shadow-emerald-600/20 disabled:opacity-60">
+{isSubmitting ? "Submitting..." : "Submit Expert Application"} <ArrowRight size={18} />
 </button>
 
-<button
-type="button"
-onClick={() => setView("experts")}
-className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all"
->
+<button type="button" onClick={() => setView("experts")} className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-white/10 transition-all">
 Back
 </button>
 </div>
 </form>
 </section>
 
-<div className="mt-32">
-<Footer />
-</div>
+<div className="mt-32"><Footer /></div>
 </div>
 );
 
 const PlatformView = () => (
 <div className="flex h-screen bg-[#050505] text-white">
-<motion.aside
-initial={{ x: -200 }}
-animate={{ x: 0 }}
-className={`${isSidebarOpen ? "w-64" : "w-20"} border-r border-white/5 bg-[#080808] flex flex-col transition-all duration-300`}
->
+<motion.aside initial={{ x: -200 }} animate={{ x: 0 }} className={`${isSidebarOpen ? "w-64" : "w-20"} border-r border-white/5 bg-[#080808] flex flex-col transition-all duration-300`}>
 <div className="p-6 h-20 flex items-center justify-between">
-{isSidebarOpen && (
-<span className="font-bold text-sm uppercase tracking-tighter">
-Valcrons Hub
-</span>
-)}
-<button
-onClick={() => setSidebarOpen(!isSidebarOpen)}
-className="p-2 hover:bg-white/5 rounded-lg text-gray-500"
->
-<Menu size={18} />
-</button>
+{isSidebarOpen && <span className="font-bold text-sm uppercase tracking-tighter">Valcrons Hub</span>}
+<button onClick={() => setSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-white/5 rounded-lg text-gray-500"><Menu size={18} /></button>
 </div>
 
 <div className="flex-1 px-4 space-y-2">
@@ -575,15 +513,7 @@ className="p-2 hover:bg-white/5 rounded-lg text-gray-500"
 { id: "settings", label: "Settings", icon: <Settings size={18} /> },
 { id: "help", label: "Help", icon: <HelpCircle size={18} /> },
 ].map((item) => (
-<button
-key={item.id}
-onClick={() => setActiveTab(item.id)}
-className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm font-medium transition-all ${
-activeTab === item.id
-? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
-: "text-gray-500 hover:bg-white/5"
-}`}
->
+<button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm font-medium transition-all ${activeTab === item.id ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10" : "text-gray-500 hover:bg-white/5"}`}>
 {item.icon}
 {isSidebarOpen && item.label}
 </button>
@@ -591,10 +521,7 @@ activeTab === item.id
 </div>
 
 <div className="p-6 border-t border-white/5">
-<button
-onClick={() => setView("landing")}
-className="w-full text-xs text-gray-600 hover:text-white transition-colors flex items-center gap-2"
->
+<button onClick={() => setView("landing")} className="w-full text-xs text-gray-600 hover:text-white transition-colors flex items-center gap-2">
 <ArrowRight size={12} className="rotate-180" /> Exit Platform
 </button>
 </div>
@@ -602,9 +529,7 @@ className="w-full text-xs text-gray-600 hover:text-white transition-colors flex 
 
 <main className="flex-1 overflow-y-auto">
 <header className="h-20 border-b border-white/5 flex items-center justify-between px-10 bg-[#050505]/50 backdrop-blur-md sticky top-0 z-50">
-<h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">
-{activeTab}
-</h2>
+<h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">{activeTab}</h2>
 
 <div className="flex items-center gap-4">
 <div className="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[10px] font-bold border border-emerald-500/20 flex items-center gap-2">
@@ -622,17 +547,13 @@ Live Server 01
 </div>
 
 <div className="space-y-6">
-<h1 className="text-2xl font-bold tracking-tight">
-Active Diagnostics
-</h1>
+<h1 className="text-2xl font-bold tracking-tight">Active Diagnostics</h1>
 <p className="text-sm text-gray-500 leading-relaxed italic">
 "Select a factory or an expert from the sidebar to begin the encrypted session."
 </p>
 
 <div className="p-6 bg-blue-600/5 border border-blue-500/10 rounded-2xl">
-<h4 className="text-xs font-bold text-blue-400 uppercase mb-2">
-Safety Note
-</h4>
+<h4 className="text-xs font-bold text-blue-400 uppercase mb-2">Safety Note</h4>
 <p className="text-[12px] text-gray-400 leading-relaxed">
 By starting, you agree to our Terms of Service. Valcrons is not responsible for physical machine operation.
 </p>
@@ -646,41 +567,12 @@ By starting, you agree to our Terms of Service. Valcrons is not responsible for 
 
 return (
 <AnimatePresence mode="wait">
-{view === "landing" && (
-<motion.div key="landing" exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
-<LandingPage />
-</motion.div>
-)}
-
-{view === "plants" && (
-<motion.div key="plants" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-<PlantsPage />
-</motion.div>
-)}
-
-{view === "experts" && (
-<motion.div key="experts" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-<ExpertsPage />
-</motion.div>
-)}
-
-{view === "plantForm" && (
-<motion.div key="plantForm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-<PlantFormPage />
-</motion.div>
-)}
-
-{view === "expertForm" && (
-<motion.div key="expertForm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-<ExpertFormPage />
-</motion.div>
-)}
-
-{view === "platform" && (
-<motion.div key="platform" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-<PlatformView />
-</motion.div>
-)}
+{view === "landing" && <motion.div key="landing" exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}><LandingPage /></motion.div>}
+{view === "plants" && <motion.div key="plants" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><PlantsPage /></motion.div>}
+{view === "experts" && <motion.div key="experts" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><ExpertsPage /></motion.div>}
+{view === "plantForm" && <motion.div key="plantForm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><PlantFormPage /></motion.div>}
+{view === "expertForm" && <motion.div key="expertForm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><ExpertFormPage /></motion.div>}
+{view === "platform" && <motion.div key="platform" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}><PlatformView /></motion.div>}
 </AnimatePresence>
 );
 }
