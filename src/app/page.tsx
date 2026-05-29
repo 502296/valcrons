@@ -66,6 +66,8 @@ export default function ValcronsPro() {
   const [requests, setRequests] = useState<FacilityRequest[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
 
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  
   const primaryButton =
     "bg-[#2563eb]/80 hover:bg-[#2563eb] text-white transition-colors";
 
