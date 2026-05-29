@@ -148,6 +148,10 @@ const updateRequestStatus = async (status: "accepted" | "saved") => {
     return;
   }
 
+  if (!currentUser) {
+  alert("Please log in before accepting or saving a diagnostic case.");
+  return;
+}
   const now = new Date().toISOString();
 
   const { data: existingRequest, error: fetchError } = await supabase
