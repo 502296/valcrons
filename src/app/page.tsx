@@ -67,6 +67,36 @@ export default function ValcronsPro() {
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
 
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+
+  useEffect(() => {
+  const loadUser = async () => {
+    const { data } = await supabase.auth.getUser();
+
+    if (data.user) {
+      setCurrentUser({
+        id: data.user.id,
+        email: data.user.email ?? null,
+      });
+    }
+  };
+
+  loadUser();
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    if (session?.user) {
+      setCurrentUser({
+        id: session.user.id,
+        email: session.user.email ?? null,
+      });
+    } else {
+      setCurrentUser(null);
+    }
+  });
+
+  return () => subscription.unsubscribe();
+}, []);
   
   const primaryButton =
     "bg-[#2563eb]/80 hover:bg-[#2563eb] text-white transition-colors";
