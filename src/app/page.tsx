@@ -168,18 +168,22 @@ const updateRequestStatus = async (status: "accepted" | "saved") => {
   }
 
   const updateData =
-    status === "accepted"
-      ? {
-          status: "accepted",
-          accepted_by: "Ali Kathem",
-          accepted_at: now,
-          saved_at: null,
-        }
-      : {
-          status: "saved",
-          saved_at: now,
-        };
+   status === "accepted"
+  ? {
+      status: "accepted",
+      accepted_by: currentUser.email || currentUser.id,
+      accepted_by_user_id: currentUser.id,
+      accepted_at: now,
+      saved_at: null,
+      saved_by_user_id: null,
+    }
 
+    : {
+status: "saved",
+saved_at: now,
+saved_by_user_id: currentUser.id,
+};
+  
   const { data, error } = await supabase
     .from("facility_requests")
     .update(updateData)
