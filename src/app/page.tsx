@@ -227,8 +227,6 @@ const LandingPage = () => (
     backgroundRepeat: "no-repeat",
   }}
 >
-  <div className="absolute inset-0 bg-[#050505]/85" />
-  <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/65 via-[#050505]/80 to-[#050505]" />
 <Header />
 
 <div className="relative z-10 max-w-5xl mx-auto text-center">
