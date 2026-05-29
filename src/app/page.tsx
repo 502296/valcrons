@@ -41,6 +41,11 @@ type FacilityRequest = {
   status: string | null;
 };
 
+type CurrentUser = {
+  id: string;
+  email: string | null;
+};
+
 export default function ValcronsPro() {
   const [view, setView] = useState<
     | "landing"
