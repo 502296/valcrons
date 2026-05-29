@@ -368,11 +368,6 @@ Apply as an Expert <ArrowRight size={18} />
 </div>
 );
 
-const RequestsPage = () => {
-useEffect(() => {
-loadRequests();
-}, []);
-
 return (
 <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
 <Header />
