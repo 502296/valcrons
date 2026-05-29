@@ -1113,21 +1113,35 @@ const updateRequestStatus = async (status: "accepted" | "saved") => {
               directly matches the operational issue and facility environment.
             </p>
 
-           <div className="flex flex-col sm:flex-row gap-4 mt-8">
-  <button
-    onClick={() => updateRequestStatus("accepted")}
-    className={`${primaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
-  >
-    Accept Diagnostic Case
-  </button>
+          {selectedRequest.status === "pending" || !selectedRequest.status ? (
+  <div className="flex flex-col sm:flex-row gap-4 mt-8">
+    <button
+      onClick={() => updateRequestStatus("accepted")}
+      className={`${primaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
+    >
+      Accept Diagnostic Case
+    </button>
 
-  <button
-    onClick={() => updateRequestStatus("saved")}
-    className={`${secondaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
-  >
-    Save for Later
-  </button>
-</div>
+    <button
+      onClick={() => updateRequestStatus("saved")}
+      className={`${secondaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
+    >
+      Save for Later
+    </button>
+  </div>
+) : (
+  <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.035] p-5">
+    <p className="text-sm font-bold text-white">
+      {selectedRequest.status === "accepted"
+        ? "This diagnostic case has been accepted."
+        : "This diagnostic case has been saved for later."}
+    </p>
+
+    <p className="mt-2 text-sm text-gray-500">
+      It is no longer available for public action in the request queue.
+    </p>
+  </div>
+)}
           </div>
         </section>
 
