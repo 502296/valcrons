@@ -145,19 +145,7 @@ const updateRequestStatus = async (status: "accepted" | "saved") => {
       : "Request saved for later."
   );
 };
-  setSelectedRequest({
-    ...selectedRequest,
-    ...updateData,
-  });
-
-  await loadRequests();
-
-  alert(
-    status === "accepted"
-      ? "Diagnostic case accepted."
-      : "Request saved for later."
-  );
-};
+ 
   const submitFacilityRequest = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
