@@ -387,8 +387,7 @@ Review facility-submitted diagnostic requests and respond only when your experti
 </div>
 
 <button
-onClick={loadRequests}
-disabled={isLoadingRequests}
+onClick={() => loadRequests()}
 className="bg-white/[0.05] border border-white/10 hover:bg-white/[0.1] hover:border-white/30 text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-60"
 >
 <RefreshCw
