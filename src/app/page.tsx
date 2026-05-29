@@ -105,6 +105,30 @@ export default function ValcronsPro() {
     setRequests(data || []);
   };
 
+  const updateRequestStatus = async (status: "accepted" | "saved") => {
+  if (!selectedRequest) return;
+
+  const { error } = await supabase
+    .from("facility_requests")
+    .update({ status })
+    .eq("id", selectedRequest.id);
+
+  if (error) {
+    console.error("Status update error:", error);
+    alert("Could not update request status.");
+    return;
+  }
+
+  setSelectedRequest({ ...selectedRequest, status });
+  await loadRequests();
+
+  alert(
+    status === "accepted"
+      ? "Diagnostic case accepted."
+      : "Request saved for later."
+  );
+};
+
   const submitFacilityRequest = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
