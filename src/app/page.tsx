@@ -108,25 +108,27 @@ export default function ValcronsPro() {
 const updateRequestStatus = async (status: "accepted" | "saved") => {
   if (!selectedRequest) return;
 
-  console.log("SELECTED REQUEST:", selectedRequest);
+  const now = new Date().toISOString();
 
   const updateData =
     status === "accepted"
       ? {
-          status,
+          status: "accepted",
           accepted_by: "Ali Kathem",
-          accepted_at: new Date().toISOString(),
+          accepted_at: now,
           saved_at: null,
         }
       : {
-          status,
-          saved_at: new Date().toISOString(),
+          status: "saved",
+          saved_at: now,
         };
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("facility_requests")
     .update(updateData)
-    .eq("id", selectedRequest.id);
+    .eq("id", selectedRequest.id)
+    .select()
+    .single();
 
   if (error) {
     console.error("Status update error:", error);
@@ -134,6 +136,15 @@ const updateRequestStatus = async (status: "accepted" | "saved") => {
     return;
   }
 
+  setSelectedRequest(data);
+  await loadRequests();
+
+  alert(
+    status === "accepted"
+      ? "Diagnostic case accepted."
+      : "Request saved for later."
+  );
+};
   setSelectedRequest({
     ...selectedRequest,
     ...updateData,
