@@ -106,9 +106,25 @@ export default function ValcronsPro() {
   };
 
 const updateRequestStatus = async (status: "accepted" | "saved") => {
-  if (!selectedRequest) return;
+  if (!selectedRequest?.id) {
+    alert("No request selected.");
+    return;
+  }
 
   const now = new Date().toISOString();
+
+  const { data: existingRequest, error: fetchError } = await supabase
+    .from("facility_requests")
+    .select("id")
+    .eq("id", selectedRequest.id)
+    .maybeSingle();
+
+  if (fetchError || !existingRequest) {
+    await loadRequests();
+    setView("requests");
+    alert("This request no longer exists in the live database. The queue has been refreshed.");
+    return;
+  }
 
   const updateData =
     status === "accepted"
@@ -126,11 +142,13 @@ const updateRequestStatus = async (status: "accepted" | "saved") => {
   const { data, error } = await supabase
     .from("facility_requests")
     .update(updateData)
-    .eq("id", selectedRequest.id)
-    .select()
-    .single();
+    .eq("id", existingRequest.id)
+    .select(
+      "id, created_at, facility_type, urgency, issue_type, location, problem_description, status"
+    )
+    .maybeSingle();
 
-  if (error) {
+  if (error || !data) {
     console.error("Status update error:", error);
     alert("Could not update request status.");
     return;
@@ -145,7 +163,6 @@ const updateRequestStatus = async (status: "accepted" | "saved") => {
       : "Request saved for later."
   );
 };
- 
   const submitFacilityRequest = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
