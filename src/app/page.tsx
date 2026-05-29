@@ -218,10 +218,20 @@ Valcrons is a connection and diagnostic coordination platform. We do not operate
 );
 
 const LandingPage = () => (
-<div className="min-h-screen bg-[#050505] pt-32 pb-20 px-6 overflow-hidden text-white">
+<div
+  className="relative min-h-screen bg-[#050505] pt-32 pb-20 px-6 overflow-hidden text-white"
+  style={{
+    backgroundImage: "url('/industrial-bg.jpg')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  }}
+>
+  <div className="absolute inset-0 bg-[#050505]/85" />
+  <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/65 via-[#050505]/80 to-[#050505]" />
 <Header />
 
-<div className="max-w-5xl mx-auto text-center relative">
+<div className="relative z-10 max-w-5xl mx-auto text-center">
 <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
 
 <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-8">
