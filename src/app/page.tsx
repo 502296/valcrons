@@ -108,6 +108,8 @@ export default function ValcronsPro() {
 const updateRequestStatus = async (status: "accepted" | "saved") => {
   if (!selectedRequest) return;
 
+  console.log("SELECTED REQUEST:", selectedRequest);
+
   const updateData =
     status === "accepted"
       ? {
