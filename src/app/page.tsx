@@ -1079,25 +1079,21 @@ export default function ValcronsPro() {
               directly matches the operational issue and facility environment.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mt-8">
-              <button
-            onClick={() => updateRequestStatus("accepted")}
-            className={`${primaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
-          >
-            Accept Diagnostic Case
-          </button>
-                Accept Diagnostic Case
-              </button>
+           <div className="flex flex-col sm:flex-row gap-4 mt-8">
+  <button
+    onClick={() => updateRequestStatus("accepted")}
+    className={`${primaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
+  >
+    Accept Diagnostic Case
+  </button>
 
-              <button
-            onClick={() => updateRequestStatus("saved")}
-            className={`${secondaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
-          >
-            Save for Later
-          </button>
-                Save for Later
-              </button>
-            </div>
+  <button
+    onClick={() => updateRequestStatus("saved")}
+    className={`${secondaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
+  >
+    Save for Later
+  </button>
+</div>
           </div>
         </section>
 
