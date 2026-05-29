@@ -821,15 +821,55 @@ Save for Later
 };
 
 return (
-<AnimatePresence mode="sync">
-{view === "landing" && <motion.div key="landing" exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}><LandingPage /></motion.div>}
-{view === "plants" && <motion.div key="plants" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><PlantsPage /></motion.div>}
-{view === "experts" && <motion.div key="experts" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><ExpertsPage /></motion.div>}
-{view === "plantForm" && <motion.div key="plantForm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><PlantFormPage /></motion.div>}
-{view === "expertForm" && <motion.div key="expertForm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><ExpertFormPage /></motion.div>}
-{view === "requests" && <motion.div key="requests" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><RequestsPage /></motion.div>}
-{view === "requestDetails" && <motion.div key="requestDetails" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}><RequestDetailsPage /></motion.div>}
-{view === "platform" && <motion.div key="platform" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}><PlatformView /></motion.div>}
-</AnimatePresence>
+  <AnimatePresence mode="sync">
+    {view === "landing" && (
+      <motion.div key="landing" exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+        <LandingPage />
+      </motion.div>
+    )}
+
+    {view === "plants" && (
+      <motion.div key="plants" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+        <PlantsPage />
+      </motion.div>
+    )}
+
+    {view === "experts" && (
+      <motion.div key="experts" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+        <ExpertsPage />
+      </motion.div>
+    )}
+
+    {view === "plantForm" && (
+      <motion.div key="plantForm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+        <PlantFormPage />
+      </motion.div>
+    )}
+
+    {view === "expertForm" && (
+      <motion.div key="expertForm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+        <ExpertFormPage />
+      </motion.div>
+    )}
+
+    {view === "requests" && (
+      <motion.div key="requests" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+        <RequestsPage />
+      </motion.div>
+    )}
+
+    {view === "requestDetails" && (
+      <motion.div key="requestDetails" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+        <RequestDetailsPage />
+      </motion.div>
+    )}
+
+    {view === "platform" && (
+      <motion.div key="platform" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+        <PlatformView />
+      </motion.div>
+    )}
+  </AnimatePresence>
 );
+}
 }
