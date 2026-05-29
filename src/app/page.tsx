@@ -1080,11 +1080,21 @@ export default function ValcronsPro() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
-              <button className={`${primaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}>
+              <button
+            onClick={() => updateRequestStatus("accepted")}
+            className={`${primaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
+          >
+            Accept Diagnostic Case
+          </button>
                 Accept Diagnostic Case
               </button>
 
-              <button className={`${secondaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}>
+              <button
+            onClick={() => updateRequestStatus("saved")}
+            className={`${secondaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
+          >
+            Save for Later
+          </button>
                 Save for Later
               </button>
             </div>
