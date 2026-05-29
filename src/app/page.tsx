@@ -105,12 +105,25 @@ export default function ValcronsPro() {
     setRequests(data || []);
   };
 
-  const updateRequestStatus = async (status: "accepted" | "saved") => {
+const updateRequestStatus = async (status: "accepted" | "saved") => {
   if (!selectedRequest) return;
+
+  const updateData =
+    status === "accepted"
+      ? {
+          status,
+          accepted_by: "Ali Kathem",
+          accepted_at: new Date().toISOString(),
+          saved_at: null,
+        }
+      : {
+          status,
+          saved_at: new Date().toISOString(),
+        };
 
   const { error } = await supabase
     .from("facility_requests")
-    .update({ status })
+    .update(updateData)
     .eq("id", selectedRequest.id);
 
   if (error) {
@@ -119,7 +132,11 @@ export default function ValcronsPro() {
     return;
   }
 
-  setSelectedRequest({ ...selectedRequest, status });
+  setSelectedRequest({
+    ...selectedRequest,
+    ...updateData,
+  });
+
   await loadRequests();
 
   alert(
@@ -128,7 +145,6 @@ export default function ValcronsPro() {
       : "Request saved for later."
   );
 };
-
   const submitFacilityRequest = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
