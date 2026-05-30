@@ -1329,6 +1329,17 @@ saved_by_user_id: currentUser.id,
 
   return (
     <AnimatePresence mode="sync">
+      {view === "login" && (
+  <motion.div
+    key="login"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.3 }}
+  >
+    <LoginPage />
+  </motion.div>
+)}
       {view === "landing" && (
         <motion.div
           key="landing"
