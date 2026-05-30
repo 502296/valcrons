@@ -25,11 +25,6 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
-const supabase = createClient(
-  "https://gethyhjzqyblovtoodhw.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdldGh5aGp6cXlibG92dG9vZGh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0OTA4MzksImV4cCI6MjA5NTA2NjgzOX0.18v7Gi18FrvSXUz_Ot6cSor8MIGbm0-WCAJ6f7ILONU"
-);
-
 type FacilityRequest = {
   id: number;
   created_at: string;
