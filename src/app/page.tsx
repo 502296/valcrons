@@ -340,10 +340,6 @@ saved_by_user_id: currentUser.id,
 >
   Sign up
 </button>
-            className="bg-white text-black px-4 py-1.5 rounded-full text-[13px] font-bold hover:bg-gray-200 transition-colors"
-          >
-            Get Started
-          </button>
         </div>
       </div>
     </nav>
