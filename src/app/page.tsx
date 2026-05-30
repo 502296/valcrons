@@ -276,6 +276,86 @@ saved_by_user_id: currentUser.id,
     e.currentTarget.reset();
   };
 
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+
+  const formData = new FormData(e.currentTarget);
+  const email = String(formData.get("email"));
+  const password = String(formData.get("password"));
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  setIsSubmitting(false);
+
+  if (error || !data.user) {
+    alert(error?.message || "Could not log in.");
+    return;
+  }
+
+  alert("Logged in successfully.");
+  setView("landing");
+};
+
+  const handleSignup = async (
+  e: React.FormEvent<HTMLFormElement>,
+  role: "facility" | "expert"
+) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+
+  const formData = new FormData(e.currentTarget);
+
+  const email = String(formData.get("email"));
+  const password = String(formData.get("password"));
+  const fullName = String(formData.get("full_name") || "");
+  const companyName = String(formData.get("company_name") || "");
+  const phone = String(formData.get("phone") || "");
+  const location = String(formData.get("location") || "");
+  const specialty = String(formData.get("specialty") || "");
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (error || !data.user) {
+    setIsSubmitting(false);
+    alert(error?.message || "Could not create account.");
+    return;
+  }
+
+  const { error: profileError } = await supabase.from("profiles").upsert({
+    id: data.user.id,
+    email,
+    role,
+    full_name: fullName,
+    company_name: companyName,
+    phone,
+    location,
+    specialty,
+  });
+
+  setIsSubmitting(false);
+
+  if (profileError) {
+    alert(profileError.message);
+    return;
+  }
+
+  alert("Account created successfully.");
+
+  if (role === "expert") {
+    setView("requests");
+    loadRequests();
+  } else {
+    setView("plantForm");
+  }
+};
+
   const Header = () => (
     <nav className="fixed top-0 w-full z-[100] border-b border-white/5 bg-[#050505]/80 backdrop-blur-xl">
       <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
