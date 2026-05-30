@@ -425,6 +425,53 @@ saved_by_user_id: currentUser.id,
     </nav>
   );
 
+  const LoginPage = () => (
+  <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
+    <Header />
+
+    <section className="max-w-xl mx-auto">
+      <BackButton />
+
+      <div className={`${cardClass} p-8`}>
+        <h1 className="text-4xl font-bold mb-8">
+          Log In
+        </h1>
+
+        <form onSubmit={handleLogin} className="space-y-5">
+
+          <div>
+            <label className={labelClass}>Email</label>
+            <input
+              name="email"
+              type="email"
+              className={inputClass}
+              required
+            />
+          </div>
+
+          <div>
+            <label className={labelClass}>Password</label>
+            <input
+              name="password"
+              type="password"
+              className={inputClass}
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className={`${primaryButton} w-full py-4 rounded-2xl font-bold`}
+          >
+            Log In
+          </button>
+
+        </form>
+      </div>
+    </section>
+  </div>
+);
+  
   const Footer = () => (
     <footer className="border-t border-white/5 bg-[#050505] py-12 px-6">
       <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12 text-[13px]">
