@@ -542,39 +542,43 @@ const SignupFacilityPage = () => (
           Company Registration
         </h1>
 
-        <div className="space-y-5">
-          <input
-            placeholder="Company Name"
-            className={inputClass}
-          />
+        <form className="space-y-5">
+         <input
+  name="company_name"
+  placeholder="Company Name"
+  className={inputClass}
+/>
 
-          <input
-            placeholder="Contact Person"
-            className={inputClass}
-          />
+        <input
+  name="full_name"
+  placeholder="Contact Person"
+  className={inputClass}
+/>
+         <input
+  name="email"
+  type="email"
+  placeholder="Email"
+  className={inputClass}
+/>
 
+         <input
+  name="password"
+  type="password"
+  placeholder="Password"
+  className={inputClass}
+/>
           <input
-            placeholder="Email"
-            className={inputClass}
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            className={inputClass}
-          />
-
-          <input
-            placeholder="City"
-            className={inputClass}
-          />
+  name="location"
+  placeholder="City"
+  className={inputClass}
+/>
 
           <button
             className={`${primaryButton} w-full py-4 rounded-2xl font-bold`}
           >
             Create Company Account
           </button>
-        </div>
+        </form>
       </div>
     </section>
   </div>
