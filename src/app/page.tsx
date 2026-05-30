@@ -1398,6 +1398,19 @@ saved_by_user_id: currentUser.id,
     <LoginPage />
   </motion.div>
 )}
+
+      {view === "signupChoice" && (
+  <motion.div
+    key="signupChoice"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.3 }}
+  >
+    <SignupChoicePage />
+  </motion.div>
+)}
+      
       {view === "landing" && (
         <motion.div
           key="landing"
