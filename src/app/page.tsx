@@ -529,6 +529,56 @@ saved_by_user_id: currentUser.id,
     </section>
   </div>
 );
+
+const SignupFacilityPage = () => (
+  <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
+    <Header />
+
+    <section className="max-w-2xl mx-auto">
+      <BackButton to="signupChoice" />
+
+      <div className={`${cardClass} p-8`}>
+        <h1 className="text-4xl font-bold mb-8">
+          Company Registration
+        </h1>
+
+        <div className="space-y-5">
+          <input
+            placeholder="Company Name"
+            className={inputClass}
+          />
+
+          <input
+            placeholder="Contact Person"
+            className={inputClass}
+          />
+
+          <input
+            placeholder="Email"
+            className={inputClass}
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            className={inputClass}
+          />
+
+          <input
+            placeholder="City"
+            className={inputClass}
+          />
+
+          <button
+            className={`${primaryButton} w-full py-4 rounded-2xl font-bold`}
+          >
+            Create Company Account
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+);
   
   const Footer = () => (
     <footer className="border-t border-white/5 bg-[#050505] py-12 px-6">
