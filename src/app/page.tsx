@@ -1460,6 +1460,18 @@ const SignupFacilityPage = () => (
     <SignupChoicePage />
   </motion.div>
 )}
+
+{view === "signupFacility" && (
+  <motion.div
+    key="signupFacility"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.3 }}
+  >
+    <SignupFacilityPage />
+  </motion.div>
+)}
       
       {view === "landing" && (
         <motion.div
