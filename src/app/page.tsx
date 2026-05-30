@@ -542,7 +542,10 @@ const SignupFacilityPage = () => (
           Company Registration
         </h1>
 
-        <form className="space-y-5">
+        <form
+  onSubmit={(e) => handleSignup(e, "facility")}
+  className="space-y-5"
+>
          <input
   name="company_name"
   placeholder="Company Name"
@@ -573,11 +576,14 @@ const SignupFacilityPage = () => (
   className={inputClass}
 />
 
-          <button
-            className={`${primaryButton} w-full py-4 rounded-2xl font-bold`}
-          >
-            Create Company Account
-          </button>
+        <button
+  type="submit"
+  disabled={isSubmitting}
+  className={`${primaryButton} w-full py-4 rounded-2xl font-bold disabled:opacity-60`}
+>
+  {isSubmitting ? "Creating account..." : "Create Company Account"}
+</button>
+          
         </form>
       </div>
     </section>
