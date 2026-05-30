@@ -471,6 +471,64 @@ saved_by_user_id: currentUser.id,
     </section>
   </div>
 );
+
+  const SignupChoicePage = () => (
+  <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
+    <Header />
+
+    <section className="max-w-4xl mx-auto">
+      <BackButton />
+
+      <div className="text-center mb-12">
+        <h1 className="text-5xl font-bold mb-4">
+          Choose Account Type
+        </h1>
+
+        <p className="text-gray-400">
+          Select how you want to use Valcrons.
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+
+        <div className={`${cardClass} p-8`}>
+          <h2 className="text-2xl font-bold mb-4">
+            Facility / Company
+          </h2>
+
+          <p className="text-gray-400 mb-8">
+            Post industrial requests and connect with qualified experts.
+          </p>
+
+          <button
+            onClick={() => setView("signupFacility")}
+            className={`${primaryButton} w-full py-4 rounded-2xl font-bold`}
+          >
+            Continue as Company
+          </button>
+        </div>
+
+        <div className={`${cardClass} p-8`}>
+          <h2 className="text-2xl font-bold mb-4">
+            Industrial Expert
+          </h2>
+
+          <p className="text-gray-400 mb-8">
+            Apply for opportunities and support industrial facilities.
+          </p>
+
+          <button
+            onClick={() => setView("signupExpert")}
+            className={`${primaryButton} w-full py-4 rounded-2xl font-bold`}
+          >
+            Continue as Expert
+          </button>
+        </div>
+
+      </div>
+    </section>
+  </div>
+);
   
   const Footer = () => (
     <footer className="border-t border-white/5 bg-[#050505] py-12 px-6">
