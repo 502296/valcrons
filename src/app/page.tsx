@@ -327,11 +327,19 @@ saved_by_user_id: currentUser.id,
         </div>
 
         <div className="flex items-center gap-4">
-          <button className="text-[13px] text-gray-400 hover:text-white font-medium">
-            Log in
-          </button>
-          <button
-            onClick={() => setView("plantForm")}
+        <button
+  onClick={() => setView("login")}
+  className="text-[13px] text-gray-400 hover:text-white font-medium"
+>
+  Log in
+</button>
+
+<button
+  onClick={() => setView("signupChoice")}
+  className="bg-white text-black px-4 py-1.5 rounded-full text-[13px] font-bold hover:bg-gray-200 transition-colors"
+>
+  Sign up
+</button>
             className="bg-white text-black px-4 py-1.5 rounded-full text-[13px] font-bold hover:bg-gray-200 transition-colors"
           >
             Get Started
