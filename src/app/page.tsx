@@ -43,6 +43,10 @@ type CurrentUser = {
 
 export default function ValcronsPro() {
   const [view, setView] = useState<
+    | "login"
+    | "signupChoice"
+    | "signupFacility"
+    | "signupExpert"
     | "landing"
     | "platform"
     | "plants"
