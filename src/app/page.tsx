@@ -658,18 +658,16 @@ const SignupFacilityPage = () => (
           animate={{ opacity: 1 }}
           className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-8"
         >
-          Industrial Diagnostics Network
+          Industrial Expertise Network
         </motion.span>
 
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-[1.1]">
-          Connect Plants With <br />
-          <span className="text-gray-500">Elite Industrial Experts.</span>
+          Connect Industrial Facilities With <br />
+        <span className="text-gray-500">Trusted Experts.</span>
         </h1>
 
         <p className="text-lg text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">
-          Secure real-time diagnostics, emergency maintenance coordination, and
-          verified industrial expertise — built for modern facilities and
-          technical teams.
+        A professional network connecting industrial facilities with experienced technicians, engineers, and specialized service providers.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-32">
