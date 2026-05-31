@@ -663,7 +663,7 @@ const SignupFacilityPage = () => (
 
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-[1.1]">
           Connect Industrial Facilities With <br />
-        <span className="text-gray-500">Trusted Experts.</span>
+        <span className="text-white">Trusted Experts.</span>
         </h1>
 
         <p className="text-lg text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">
