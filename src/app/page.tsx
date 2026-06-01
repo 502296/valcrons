@@ -639,6 +639,7 @@ const SignupFacilityPage = () => (
 
   const LandingPage = () => (
     <div
+  className="relative min-h-screen overflow-hidden"
     style={{
   backgroundImage: "url('/industrial-bg.jpg')",
   backgroundSize: "100% auto",
