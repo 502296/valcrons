@@ -639,13 +639,11 @@ const SignupFacilityPage = () => (
 
   const LandingPage = () => (
     <div
-      className="relative min-h-screen bg-[#050505] pt-32 pb-20 px-6 overflow-hidden text-white"
     style={{
   backgroundImage: "url('/industrial-bg.jpg')",
   backgroundSize: "100% auto",
   backgroundPosition: "center top",
   backgroundRepeat: "no-repeat",
-  backgroundColor: "#050505",
 }}
     >
       <div className="absolute inset-0 bg-black/30" />
