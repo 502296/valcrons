@@ -642,7 +642,7 @@ const SignupFacilityPage = () => (
       className="relative min-h-screen bg-[#050505] pt-32 pb-20 px-6 overflow-hidden text-white"
      style={{
   backgroundImage: "url('/industrial-bg.jpg')",
-  backgroundSize: "contain",
+  backgroundSize: "center center",
   backgroundPosition: "center center",
   backgroundRepeat: "no-repeat",
 }}
