@@ -647,7 +647,13 @@ const SignupFacilityPage = () => (
   backgroundRepeat: "no-repeat",
 }}
     >
-      <div className="absolute inset-0 bg-black/70" />
+      <div
+  className="absolute inset-0"
+  style={{
+    background:
+      "linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.55) 65%, rgba(0,0,0,0.9) 100%)",
+  }}
+/>
       <Header />
 
       <div className="relative z-10 max-w-5xl mx-auto text-center pt-24">
