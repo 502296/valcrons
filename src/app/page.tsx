@@ -643,7 +643,7 @@ const SignupFacilityPage = () => (
       style={{
         backgroundImage: "url('/industrial-bg.jpg')",
         backgroundSize: "cover",
-        backgroundPosition: "center",
+        backgroundSize: "85%",
         backgroundRepeat: "no-repeat",
       }}
     >
