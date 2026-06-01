@@ -646,7 +646,7 @@ const SignupFacilityPage = () => (
   backgroundRepeat: "no-repeat",
 }}
     >
-      <div className="absolute inset-0 bg-black/45" />
+      <div className="absolute inset-0 bg-black/55" />
       <Header />
 
       <div className="relative z-10 max-w-5xl mx-auto text-center pt-24">
