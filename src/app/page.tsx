@@ -649,7 +649,7 @@ const SignupFacilityPage = () => (
       <div className="absolute inset-0 bg-black/30" />
       <Header />
 
-      <div className="relative z-10 max-w-5xl mx-auto text-center">
+      <div className="relative z-10 max-w-5xl mx-auto text-center pt-24">
         <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
 
         <motion.span
