@@ -92,10 +92,11 @@ if (data.user) {
     data: { subscription },
   } = supabase.auth.onAuthStateChange((_event, session) => {
     if (session?.user) {
-      setCurrentUser({
-        id: session.user.id,
-        email: session.user.email ?? null,
-      });
+     setCurrentUser({
+  id: session.user.id,
+  email: session.user.email ?? null,
+  role: null,
+});
     } else {
       setCurrentUser(null);
     }
