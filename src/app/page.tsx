@@ -425,7 +425,7 @@ saved_by_user_id: currentUser.id,
               Experts
             </button>
             <button
-              onClick={() => setView("plants")}
+              onClick={() => setView("signupFacility")}
               className="hover:text-white transition-colors"
             >
               Facilities
