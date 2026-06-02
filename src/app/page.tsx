@@ -569,6 +569,78 @@ saved_by_user_id: currentUser.id,
   </div>
 );
 
+  const SignupExpertPage = () => (
+  <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
+    <Header />
+
+    <section className="max-w-2xl mx-auto">
+      <BackButton to="signupChoice" />
+
+      <div className={`${cardClass} p-8`}>
+        <h1 className="text-4xl font-bold mb-8">
+          Industrial Expert Registration
+        </h1>
+
+        <form
+          onSubmit={(e) => handleSignup(e, "expert")}
+          className="space-y-5"
+        >
+          <input
+            name="full_name"
+            placeholder="Full Name"
+            className={inputClass}
+          />
+
+          <input
+            name="email"
+            type="email"
+            placeholder="Email"
+            className={inputClass}
+          />
+
+          <input
+            name="password"
+            type="password"
+            placeholder="Password"
+            className={inputClass}
+          />
+
+          <input
+            name="location"
+            placeholder="City"
+            className={inputClass}
+          />
+
+          <input
+            name="specialty"
+            placeholder="Specialty / Trade"
+            className={inputClass}
+          />
+
+          <input
+            name="experience"
+            placeholder="Years of Experience"
+            className={inputClass}
+          />
+
+          <textarea
+            name="bio"
+            placeholder="Short Bio"
+            className={inputClass}
+          />
+
+          <button
+            type="submit"
+            className={`${primaryButton} w-full py-4 rounded-2xl font-bold`}
+          >
+            Create Expert Account
+          </button>
+        </form>
+      </div>
+    </section>
+  </div>
+);
+  
 const SignupFacilityPage = () => (
   <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
     <Header />
