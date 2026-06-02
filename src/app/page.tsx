@@ -791,14 +791,14 @@ const SignupFacilityPage = () => (
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-32">
           <button
-            onClick={() => setView("plants")}
+            onClick={() => setView("plantForm")}
             className={`${primaryButton} px-8 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3`}
           >
             For Plants & Facilities <ArrowRight size={18} />
           </button>
 
           <button
-            onClick={() => setView("experts")}
+            onClick={() => setView("expertForm")}
             className={`${secondaryButton} px-8 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3`}
           >
             For Experts & Technicians <ArrowRight size={18} />
