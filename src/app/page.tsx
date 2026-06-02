@@ -454,6 +454,14 @@ saved_by_user_id: currentUser.id,
         </div>
 
         <div className="flex items-center gap-4">
+          {currentUser && (
+  <button
+    onClick={() => setView("profile")}
+    className="text-[13px] text-gray-400 hover:text-white font-medium"
+  >
+    My Profile
+  </button>
+)}
         <button
   onClick={() => setView("login")}
   className="text-[13px] text-gray-400 hover:text-white font-medium"
