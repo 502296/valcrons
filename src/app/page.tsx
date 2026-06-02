@@ -419,7 +419,7 @@ saved_by_user_id: currentUser.id,
               Platform
             </button>
             <button
-              onClick={() => setView("experts")}
+              onClick={() => setView("signupExpert")}
               className="hover:text-white transition-colors"
             >
               Experts
