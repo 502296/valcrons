@@ -1414,7 +1414,7 @@ const SignupFacilityPage = () => (
     </button>
 
     <button
-      onClick={() => updateRequestStatus("saved")}
+      onClick={() => saveProjectAction("saved")}
       className={`${secondaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
     >
       Save for Later
