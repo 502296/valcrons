@@ -48,6 +48,7 @@ export default function ValcronsPro() {
     | "signupChoice"
     | "signupFacility"
     | "signupExpert"
+    | "profile"
     | "landing"
     | "platform"
     | "plants"
