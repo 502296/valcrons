@@ -1196,7 +1196,7 @@ const SignupFacilityPage = () => (
 
             <button
               type="button"
-              onClick={() => setView("plants")}
+              onClick={() => setView("signupFacility")}
               className={`${secondaryButton} px-8 py-4 rounded-2xl font-bold text-sm`}
             >
               Back
