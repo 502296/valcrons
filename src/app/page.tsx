@@ -928,7 +928,7 @@ const SignupFacilityPage = () => (
         </p>
 
         <button
-          onClick={() => setView("expertForm")}
+          onClick={() => setView("signupExpert")}
           className="bg-emerald-500/70 hover:bg-emerald-500/80 text-white transition-colors px-8 py-4 rounded-2xl font-bold text-sm flex items-center gap-3"
         >
           Apply as an Expert <ArrowRight size={18} />
