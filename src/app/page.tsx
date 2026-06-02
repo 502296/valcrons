@@ -790,7 +790,7 @@ const SignupFacilityPage = () => (
           </button>
 
           <button
-            onClick={() => setView("experts")}
+            onClick={() => setView("signupExpert")}
             className={`${secondaryButton} px-8 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3`}
           >
             For Experts & Technicians <ArrowRight size={18} />
