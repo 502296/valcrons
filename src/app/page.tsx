@@ -1580,6 +1580,18 @@ const SignupFacilityPage = () => (
   </motion.div>
 )}
 
+      {view === "signupExpert" && (
+  <motion.div
+    key="signupExpert"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.3 }}
+  >
+    <SignupExpertPage />
+  </motion.div>
+)}
+
 {view === "signupFacility" && (
   <motion.div
     key="signupFacility"
