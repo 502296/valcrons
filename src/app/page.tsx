@@ -71,13 +71,19 @@ export default function ValcronsPro() {
   useEffect(() => {
   const loadUser = async () => {
     const { data } = await supabase.auth.getUser();
+if (data.user) {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", data.user.id)
+    .maybeSingle();
 
-    if (data.user) {
-      setCurrentUser({
-        id: data.user.id,
-        email: data.user.email ?? null,
-      });
-    }
+  setCurrentUser({
+    id: data.user.id,
+    email: data.user.email ?? null,
+    role: profile?.role ?? null,
+  });
+}
   };
 
   loadUser();
