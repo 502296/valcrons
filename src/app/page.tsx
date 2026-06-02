@@ -548,7 +548,7 @@ saved_by_user_id: currentUser.id,
           </p>
 
           <button
-            onClick={() => setView("plantForm")}
+            onClick={() => setView("signupFacility")}
             className={`${primaryButton} w-full py-4 rounded-2xl font-bold`}
           >
             Continue as Company
@@ -565,7 +565,7 @@ saved_by_user_id: currentUser.id,
           </p>
 
           <button
-            onClick={() => setView("expertForm")}
+            onClick={() => setView("signupExpert")}
             className={`${primaryButton} w-full py-4 rounded-2xl font-bold`}
           >
             Continue as Expert
