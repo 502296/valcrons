@@ -10,13 +10,8 @@ import {
   UserCircle2,
   ArrowRight,
   Globe,
-  Menu,
-  LayoutDashboard,
-  Settings,
-  HelpCircle,
   Mail,
   Wrench,
-  Radio,
   Lock,
   BadgeCheck,
   Factory,
@@ -24,6 +19,20 @@ import {
   RefreshCw,
   ArrowLeft,
 } from "lucide-react";
+
+type View =
+  | "landing"
+  | "login"
+  | "signupChoice"
+  | "signupFacility"
+  | "signupExpert"
+  | "profile"
+  | "plants"
+  | "experts"
+  | "plantForm"
+  | "expertForm"
+  | "requests"
+  | "requestDetails";
 
 type FacilityRequest = {
   id: number;
@@ -40,72 +49,21 @@ type CurrentUser = {
   id: string;
   email: string | null;
   role: "facility" | "expert" | null;
+  full_name?: string | null;
+  company_name?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  specialty?: string | null;
 };
 
 export default function ValcronsPro() {
-  const [view, setView] = useState<
-    | "login"
-    | "signupChoice"
-    | "signupFacility"
-    | "signupExpert"
-    | "profile"
-    | "landing"
-    | "platform"
-    | "plants"
-    | "experts"
-    | "plantForm"
-    | "expertForm"
-    | "requests"
-    | "requestDetails"
-  >("landing");
-
-  const [activeTab, setActiveTab] = useState("factories");
-  const [selectedRequest, setSelectedRequest] =
-    useState<FacilityRequest | null>(null);
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [view, setView] = useState<View>("landing");
+  const [selectedRequest, setSelectedRequest] = useState<FacilityRequest | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requests, setRequests] = useState<FacilityRequest[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
-
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
-  useEffect(() => {
-  const loadUser = async () => {
-    const { data } = await supabase.auth.getUser();
-if (data.user) {
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", data.user.id)
-    .maybeSingle();
-
-  setCurrentUser({
-    id: data.user.id,
-    email: data.user.email ?? null,
-    role: profile?.role ?? null,
-  });
-}
-  };
-
-  loadUser();
-
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange((_event, session) => {
-    if (session?.user) {
-     setCurrentUser({
-  id: session.user.id,
-  email: session.user.email ?? null,
-  role: null,
-});
-    } else {
-      setCurrentUser(null);
-    }
-  });
-
-  return () => subscription.unsubscribe();
-}, []);
-  
   const primaryButton =
     "bg-[#2563eb]/80 hover:bg-[#2563eb] text-white transition-colors";
 
@@ -120,7 +78,45 @@ if (data.user) {
   const labelClass =
     "text-xs font-bold text-gray-400 uppercase tracking-[0.14em]";
 
-  const BackButton = ({ to = "landing" }: { to?: typeof view }) => (
+  const loadCurrentUser = async () => {
+    const { data } = await supabase.auth.getUser();
+
+    if (!data.user) {
+      setCurrentUser(null);
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, full_name, company_name, phone, location, specialty")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    setCurrentUser({
+      id: data.user.id,
+      email: data.user.email ?? null,
+      role: profile?.role ?? null,
+      full_name: profile?.full_name ?? null,
+      company_name: profile?.company_name ?? null,
+      phone: profile?.phone ?? null,
+      location: profile?.location ?? null,
+      specialty: profile?.specialty ?? null,
+    });
+  };
+
+  useEffect(() => {
+    loadCurrentUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async () => {
+      await loadCurrentUser();
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const BackButton = ({ to = "landing" }: { to?: View }) => (
     <button
       onClick={() => setView(to)}
       className="mb-8 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors"
@@ -144,31 +140,29 @@ if (data.user) {
 
     if (error) {
       console.error("Request queue load error:", error);
+      alert("Could not load requests.");
       return;
     }
 
     setRequests(data || []);
   };
 
-  const saveProjectAction = async (actionType: "saved" | "accepted" | "contacted") => {
-  if (!selectedRequest?.id) {
-    alert("No request selected.");
-    return;
-  }
+  const saveProjectAction = async (
+    request: FacilityRequest,
+    actionType: "saved" | "accepted" | "contacted"
+  ) => {
+    if (!currentUser) {
+      alert("Please log in first.");
+      setView("login");
+      return;
+    }
 
-  if (!currentUser) {
-    alert("Please log in before saving or accepting a project.");
-    return;
-  }
+    const technicianId = currentUser.email || currentUser.id;
 
-  const technicianId = currentUser.email || currentUser.id;
-
-  const { error } = await supabase
-    .from("technician_project_actions")
-    .upsert(
+    const { error } = await supabase.from("technician_project_actions").upsert(
       {
         technician_id: technicianId,
-        project_id: selectedRequest.id,
+        project_id: request.id,
         action_type: actionType,
       },
       {
@@ -176,88 +170,16 @@ if (data.user) {
       }
     );
 
-  if (error) {
-    console.error(error);
-    alert("Could not save this action.");
-    return;
-  }
-
-  alert(
-    actionType === "saved"
-      ? "Saved to your profile."
-      : "Request saved in your accepted projects."
-  );
-};
-  
-const updateRequestStatus = async (status: "accepted" | "saved") => {
-  if (!selectedRequest?.id) {
-    alert("No request selected.");
-    return;
-  }
-
-  if (!currentUser) {
-  alert("Please log in before accepting or saving a diagnostic case.");
-  return;
-}
-  const now = new Date().toISOString();
-
-  const { data: existingRequest, error: fetchError } = await supabase
-    .from("facility_requests")
-    .select("id")
-    .eq("id", selectedRequest.id)
-    .maybeSingle();
-
-  if (fetchError || !existingRequest) {
-    await loadRequests();
-    setView("requests");
-    alert("This request no longer exists in the live database. The queue has been refreshed.");
-    return;
-  }
-
-  const updateData =
-   status === "accepted"
-  ? {
-      status: "accepted",
-      accepted_by: currentUser.email || currentUser.id,
-      accepted_by_user_id: currentUser.id,
-      accepted_at: now,
-      saved_at: null,
-      saved_by_user_id: null,
+    if (error) {
+      console.error(error);
+      alert("Could not save this action.");
+      return;
     }
 
-    : {
-status: "saved",
-saved_at: now,
-saved_by_user_id: currentUser.id,
-};
-  
-  const { data, error } = await supabase
-    .from("facility_requests")
-    .update(updateData)
-    .eq("id", existingRequest.id)
-    .select(
-      "id, created_at, facility_type, urgency, issue_type, location, problem_description, status"
-    )
-    .maybeSingle();
+    alert(actionType === "saved" ? "Saved to your profile." : "Request accepted.");
+  };
 
-  if (error || !data) {
-    console.error("Status update error:", error);
-    alert("Could not update request status.");
-    return;
-  }
-
-  setSelectedRequest(data);
-  await loadRequests();
-
-  alert(
-    status === "accepted"
-      ? "Diagnostic case accepted."
-      : "Request saved for later."
-  );
-};
-  const submitFacilityRequest = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
+  const submitFacilityRequest = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -288,11 +210,11 @@ saved_by_user_id: currentUser.id,
 
     alert("Facility request submitted successfully.");
     e.currentTarget.reset();
+    setView("requests");
+    loadRequests();
   };
 
-  const submitExpertApplication = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
+  const submitExpertApplication = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -322,87 +244,118 @@ saved_by_user_id: currentUser.id,
 
     alert("Expert application submitted successfully.");
     e.currentTarget.reset();
+    setView("requests");
+    loadRequests();
   };
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  setIsSubmitting(true);
+    e.preventDefault();
+    setIsSubmitting(true);
 
-  const formData = new FormData(e.currentTarget);
-  const email = String(formData.get("email"));
-  const password = String(formData.get("password"));
+    const formData = new FormData(e.currentTarget);
+    const email = String(formData.get("email"));
+    const password = String(formData.get("password"));
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  setIsSubmitting(false);
+    setIsSubmitting(false);
 
-  if (error || !data.user) {
-    alert(error?.message || "Could not log in.");
-    return;
-  }
+    if (error || !data.user) {
+      alert(error?.message || "Could not log in.");
+      return;
+    }
 
-  alert("Logged in successfully.");
-  setView("landing");
-};
+    await loadCurrentUser();
+    alert("Logged in successfully.");
+    setView("landing");
+  };
 
   const handleSignup = async (
-  e: React.FormEvent<HTMLFormElement>,
-  role: "facility" | "expert"
-) => {
-  e.preventDefault();
-  setIsSubmitting(true);
+    e: React.FormEvent<HTMLFormElement>,
+    role: "facility" | "expert"
+  ) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-  const formData = new FormData(e.currentTarget);
+    const formData = new FormData(e.currentTarget);
 
-  const email = String(formData.get("email"));
-  const password = String(formData.get("password"));
-  const fullName = String(formData.get("full_name") || "");
-  const companyName = String(formData.get("company_name") || "");
-  const phone = String(formData.get("phone") || "");
-  const location = String(formData.get("location") || "");
-  const specialty = String(formData.get("specialty") || "");
+    const email = String(formData.get("email"));
+    const password = String(formData.get("password"));
+    const fullName = String(formData.get("full_name") || "");
+    const companyName = String(formData.get("company_name") || "");
+    const phone = String(formData.get("phone") || "");
+    const location = String(formData.get("location") || "");
+    const specialty = String(formData.get("specialty") || "");
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-  });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
 
-  if (error || !data.user) {
+    if (error || !data.user) {
+      setIsSubmitting(false);
+      alert(error?.message || "Could not create account.");
+      return;
+    }
+
+    const { error: profileError } = await supabase.from("profiles").upsert({
+      id: data.user.id,
+      email,
+      role,
+      full_name: fullName,
+      company_name: companyName,
+      phone,
+      location,
+      specialty,
+    });
+
     setIsSubmitting(false);
-    alert(error?.message || "Could not create account.");
-    return;
-  }
 
-  const { error: profileError } = await supabase.from("profiles").upsert({
-    id: data.user.id,
-    email,
-    role,
-    full_name: fullName,
-    company_name: companyName,
-    phone,
-    location,
-    specialty,
-  });
+    if (profileError) {
+      alert(profileError.message);
+      return;
+    }
 
-  setIsSubmitting(false);
+    await loadCurrentUser();
+    alert("Account created successfully.");
+    setView("profile");
+  };
 
-  if (profileError) {
-    alert(profileError.message);
-    return;
-  }
+  const updateProfile = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  alert("Account created successfully.");
+    if (!currentUser) {
+      alert("Please log in first.");
+      return;
+    }
 
-  if (role === "expert") {
-    setView("requests");
-    loadRequests();
-  } else {
-    setView("plantForm");
-  }
-};
+    setIsSubmitting(true);
+    const formData = new FormData(e.currentTarget);
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        full_name: formData.get("full_name"),
+        company_name: formData.get("company_name"),
+        phone: formData.get("phone"),
+        location: formData.get("location"),
+        specialty: formData.get("specialty"),
+      })
+      .eq("id", currentUser.id);
+
+    setIsSubmitting(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    await loadCurrentUser();
+    alert("Profile updated.");
+  };
 
   const Header = () => (
     <nav className="fixed top-0 w-full z-[100] border-b border-white/5 bg-[#050505]/80 backdrop-blur-xl">
@@ -421,24 +374,14 @@ saved_by_user_id: currentUser.id,
           </div>
 
           <div className="hidden md:flex items-center gap-6 text-[13px] text-gray-400 font-medium">
-            <button
-              onClick={() => setView("platform")}
-              className="hover:text-white transition-colors"
-            >
-              Platform
-            </button>
-            <button
-              onClick={() => setView("signupExpert")}
-              className="hover:text-white transition-colors"
-            >
-              Experts
-            </button>
-            <button
-              onClick={() => setView("signupFacility")}
-              className="hover:text-white transition-colors"
-            >
+            <button onClick={() => setView("plants")} className="hover:text-white transition-colors">
               Facilities
             </button>
+
+            <button onClick={() => setView("experts")} className="hover:text-white transition-colors">
+              Experts
+            </button>
+
             <button
               onClick={() => {
                 setView("requests");
@@ -448,298 +391,75 @@ saved_by_user_id: currentUser.id,
             >
               Requests
             </button>
-            <a href="#" className="hover:text-white transition-colors">
+
+            <button onClick={() => alert("Safety page coming soon.")} className="hover:text-white transition-colors">
               Safety
-            </a>
+            </button>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-          {currentUser && (
-  <button
-    onClick={() => setView("profile")}
-    className="text-[13px] text-gray-400 hover:text-white font-medium"
-  >
-    My Profile
-  </button>
-)}
-        <button
-  onClick={() => setView("login")}
-  className="text-[13px] text-gray-400 hover:text-white font-medium"
->
-  Log in
-</button>
+          {currentUser ? (
+            <>
+              <button
+                onClick={() => setView("profile")}
+                className="text-[13px] text-gray-400 hover:text-white font-medium"
+              >
+                My Profile
+              </button>
 
-<button
-  onClick={() => setView("signupChoice")}
-  className="bg-white text-black px-4 py-1.5 rounded-full text-[13px] font-bold hover:bg-gray-200 transition-colors"
->
-  Sign up
-</button>
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  setCurrentUser(null);
+                  setView("landing");
+                }}
+                className="bg-white text-black px-4 py-1.5 rounded-full text-[13px] font-bold hover:bg-gray-200 transition-colors"
+              >
+                Log out
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => setView("login")}
+                className="text-[13px] text-gray-400 hover:text-white font-medium"
+              >
+                Log in
+              </button>
+
+              <button
+                onClick={() => setView("signupChoice")}
+                className="bg-white text-black px-4 py-1.5 rounded-full text-[13px] font-bold hover:bg-gray-200 transition-colors"
+              >
+                Sign up
+              </button>
+            </>
+          )}
         </div>
       </div>
     </nav>
   );
 
-  const LoginPage = () => (
-  <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
-    <Header />
-
-    <section className="max-w-xl mx-auto">
-      <BackButton />
-
-      <div className={`${cardClass} p-8`}>
-        <h1 className="text-4xl font-bold mb-8">
-          Log In
-        </h1>
-
-        <form onSubmit={handleLogin} className="space-y-5">
-
-          <div>
-            <label className={labelClass}>Email</label>
-            <input
-              name="email"
-              type="email"
-              className={inputClass}
-              required
-            />
-          </div>
-
-          <div>
-            <label className={labelClass}>Password</label>
-            <input
-              name="password"
-              type="password"
-              className={inputClass}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className={`${primaryButton} w-full py-4 rounded-2xl font-bold`}
-          >
-            Log In
-          </button>
-
-        </form>
-      </div>
-    </section>
-  </div>
-);
-
-  const SignupChoicePage = () => (
-  <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
-    <Header />
-
-    <section className="max-w-4xl mx-auto">
-      <BackButton />
-
-      <div className="text-center mb-12">
-        <h1 className="text-5xl font-bold mb-4">
-          Choose Account Type
-        </h1>
-
-        <p className="text-gray-400">
-          Select how you want to use Valcrons.
-        </p>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-6">
-
-        <div className={`${cardClass} p-8`}>
-          <h2 className="text-2xl font-bold mb-4">
-            Facility / Company
-          </h2>
-
-          <p className="text-gray-400 mb-8">
-            Post industrial requests and connect with qualified experts.
-          </p>
-
-          <button
-            onClick={() => setView("signupFacility")}
-            className={`${primaryButton} w-full py-4 rounded-2xl font-bold`}
-          >
-            Continue as Company
-          </button>
-        </div>
-
-        <div className={`${cardClass} p-8`}>
-          <h2 className="text-2xl font-bold mb-4">
-            Industrial Expert
-          </h2>
-
-          <p className="text-gray-400 mb-8">
-            Apply for opportunities and support industrial facilities.
-          </p>
-
-          <button
-            onClick={() => setView("signupExpert")}
-            className={`${primaryButton} w-full py-4 rounded-2xl font-bold`}
-          >
-            Continue as Expert
-          </button>
-        </div>
-
-      </div>
-    </section>
-  </div>
-);
-
-  const SignupExpertPage = () => (
-  <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
-    <Header />
-
-    <section className="max-w-2xl mx-auto">
-      <BackButton to="signupChoice" />
-
-      <div className={`${cardClass} p-8`}>
-        <h1 className="text-4xl font-bold mb-8">
-          Industrial Expert Registration
-        </h1>
-
-        <form
-          onSubmit={(e) => handleSignup(e, "expert")}
-          className="space-y-5"
-        >
-          <input
-            name="full_name"
-            placeholder="Full Name"
-            className={inputClass}
-          />
-
-          <input
-            name="email"
-            type="email"
-            placeholder="Email"
-            className={inputClass}
-          />
-
-          <input
-            name="password"
-            type="password"
-            placeholder="Password"
-            className={inputClass}
-          />
-
-          <input
-            name="location"
-            placeholder="City"
-            className={inputClass}
-          />
-
-          <input
-            name="specialty"
-            placeholder="Specialty / Trade"
-            className={inputClass}
-          />
-
-          <input
-            name="experience"
-            placeholder="Years of Experience"
-            className={inputClass}
-          />
-
-          <textarea
-            name="bio"
-            placeholder="Short Bio"
-            className={inputClass}
-          />
-
-          <button
-            type="submit"
-            className={`${primaryButton} w-full py-4 rounded-2xl font-bold`}
-          >
-            Create Expert Account
-          </button>
-        </form>
-      </div>
-    </section>
-  </div>
-);
-  
-const SignupFacilityPage = () => (
-  <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
-    <Header />
-
-    <section className="max-w-2xl mx-auto">
-      <BackButton to="signupChoice" />
-
-      <div className={`${cardClass} p-8`}>
-        <h1 className="text-4xl font-bold mb-8">
-          Company Registration
-        </h1>
-
-        <form
-  onSubmit={(e) => handleSignup(e, "facility")}
-  className="space-y-5"
->
-         <input
-  name="company_name"
-  placeholder="Company Name"
-  className={inputClass}
-/>
-
-        <input
-  name="full_name"
-  placeholder="Contact Person"
-  className={inputClass}
-/>
-         <input
-  name="email"
-  type="email"
-  placeholder="Email"
-  className={inputClass}
-/>
-
-         <input
-  name="password"
-  type="password"
-  placeholder="Password"
-  className={inputClass}
-/>
-          <input
-  name="location"
-  placeholder="City"
-  className={inputClass}
-/>
-
-        <button
-  type="submit"
-  disabled={isSubmitting}
-  className={`${primaryButton} w-full py-4 rounded-2xl font-bold disabled:opacity-60`}
->
-  {isSubmitting ? "Creating account..." : "Create Company Account"}
-</button>
-          
-        </form>
-      </div>
-    </section>
-  </div>
-);
-  
   const Footer = () => (
     <footer className="border-t border-white/5 bg-[#050505] py-12 px-6">
       <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12 text-[13px]">
         <div>
           <div className="flex items-center gap-2 mb-4">
             <Zap size={16} className="text-[#60a5fa]" />
-            <span className="font-bold uppercase tracking-tighter">
-              Valcrons
-            </span>
+            <span className="font-bold uppercase tracking-tighter">Valcrons</span>
           </div>
           <p className="text-gray-500 leading-relaxed">
-            The industrial intelligence network connecting facilities with
-            verified technical expertise.
+            The industrial expertise network connecting facilities with verified technical expertise.
           </p>
         </div>
 
         <div>
           <h4 className="font-bold text-white mb-4">Legal</h4>
           <ul className="space-y-2 text-gray-500">
-            <li>Privacy Policy</li>
-            <li>Terms of Service</li>
-            <li>Compliance</li>
+            <li><button onClick={() => alert("Privacy Policy coming soon.")}>Privacy Policy</button></li>
+            <li><button onClick={() => alert("Terms of Service coming soon.")}>Terms of Service</button></li>
+            <li><button onClick={() => alert("Compliance page coming soon.")}>Compliance</button></li>
           </ul>
         </div>
 
@@ -750,15 +470,14 @@ const SignupFacilityPage = () => (
               <Mail size={14} />
               <span className="text-[#93c5fd]">support@valcrons.com</span>
             </li>
-            <li>Help Center</li>
+            <li><button onClick={() => alert("Help Center coming soon.")}>Help Center</button></li>
           </ul>
         </div>
 
         <div>
           <h4 className="font-bold text-white mb-4">Statement</h4>
           <p className="text-[11px] text-gray-600 uppercase tracking-widest leading-tight">
-            Valcrons is a connection and diagnostic coordination platform. We
-            do not operate machinery directly.
+            Valcrons is a connection and diagnostic coordination platform. We do not operate machinery directly.
           </p>
         </div>
       </div>
@@ -767,18 +486,18 @@ const SignupFacilityPage = () => (
 
   const LandingPage = () => (
     <div
-  className="relative min-h-screen overflow-hidden"
-    style={{
-  backgroundImage: "url('/industrial-bg.jpg')",
-  backgroundSize: "cover",
-  backgroundPosition: "center top",
-  backgroundRepeat: "no-repeat",
-}}
+      className="relative min-h-screen overflow-hidden"
+      style={{
+        backgroundImage: "url('/industrial-bg.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center top",
+        backgroundRepeat: "no-repeat",
+      }}
     >
- <div className="absolute inset-0 bg-black/70" />
+      <div className="absolute inset-0 bg-black/70" />
       <Header />
 
-      <div className="relative z-10 max-w-5xl mx-auto text-center pt-24">
+      <div className="relative z-10 max-w-5xl mx-auto text-center pt-24 px-6">
         <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
 
         <motion.span
@@ -791,49 +510,57 @@ const SignupFacilityPage = () => (
 
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-[1.1]">
           Connect Industrial Facilities With <br />
-        <span className="text-white">Trusted Experts.</span>
+          <span className="text-white">Trusted Experts.</span>
         </h1>
 
         <p className="text-lg text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">
-        A professional network connecting industrial facilities with experienced technicians, engineers, and specialized service providers.
+          A professional network connecting industrial facilities with experienced technicians, engineers, and specialized service providers.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-32">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-28">
           <button
-            onClick={() => setView("plantForm")}
+            onClick={() => setView("plants")}
             className={`${primaryButton} px-8 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3`}
           >
             For Plants & Facilities <ArrowRight size={18} />
           </button>
 
           <button
-            onClick={() => setView("expertForm")}
+            onClick={() => setView("experts")}
             className={`${secondaryButton} px-8 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3`}
           >
             For Experts & Technicians <ArrowRight size={18} />
+          </button>
+
+          <button
+            onClick={() => {
+              setView("requests");
+              loadRequests();
+            }}
+            className={`${secondaryButton} px-8 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3`}
+          >
+            View Requests <ArrowRight size={18} />
           </button>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 text-left border-t border-white/5 pt-20">
           <div className="space-y-4">
             <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-[#93c5fd]">
-              <Video size={20} />
+              <ShieldCheck size={20} />
             </div>
-            <h3 className="font-bold">Live Diagnostic Sessions</h3>
+            <h3 className="font-bold">Verified Industrial Experts</h3>
             <p className="text-sm text-gray-500 leading-relaxed">
-              Connect facility teams with technical specialists for secure
-              real-time video triage.
+              Build trust with experienced industrial professionals.
             </p>
           </div>
 
           <div className="space-y-4">
             <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-emerald-300/80">
-              <ShieldCheck size={20} />
+              <Video size={20} />
             </div>
-            <h3 className="font-bold">Verified Industrial Experts</h3>
+            <h3 className="font-bold">Remote First</h3>
             <p className="text-sm text-gray-500 leading-relaxed">
-              Built for PLC, automation, electrical, mechanical, and maintenance
-              professionals.
+              Start with expert review and coordination before on-site escalation.
             </p>
           </div>
 
@@ -841,10 +568,9 @@ const SignupFacilityPage = () => (
             <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-amber-200/80">
               <Globe size={20} />
             </div>
-            <h3 className="font-bold">Multi-Site Operations</h3>
+            <h3 className="font-bold">Built for Scale</h3>
             <p className="text-sm text-gray-500 leading-relaxed">
-              Designed for facilities, factories, and distributed industrial
-              operations.
+              Designed for facilities, factories, and distributed industrial operations.
             </p>
           </div>
         </div>
@@ -857,9 +583,7 @@ const SignupFacilityPage = () => (
   );
 
   const PlantsPage = () => (
-    <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
-      <Header />
-
+    <PageShell>
       <section className="max-w-6xl mx-auto">
         <BackButton />
 
@@ -868,64 +592,48 @@ const SignupFacilityPage = () => (
         </span>
 
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-8">
-          Keep Production Moving <br />
-          <span className="text-gray-500">When Equipment Fails.</span>
+          Post Industrial Requests <br />
+          <span className="text-gray-500">And Find Trusted Expertise.</span>
         </h1>
 
         <p className="text-lg text-gray-400 max-w-2xl leading-relaxed mb-10">
-          Valcrons helps factories, facilities, and maintenance leaders connect
-          with verified industrial experts for urgent diagnostics, remote
-          guidance, and technical escalation.
+          Valcrons helps factories and facility leaders connect with verified industrial experts for diagnostics, guidance, and technical escalation.
         </p>
 
         <button
-          onClick={() => setView("signupFacility")}
+          onClick={() => setView("plantForm")}
           className={`${primaryButton} px-8 py-4 rounded-2xl font-bold text-sm flex items-center gap-3`}
         >
-          Request Industrial Support <ArrowRight size={18} />
+          Create Facility Request <ArrowRight size={18} />
         </button>
 
         <div className="grid md:grid-cols-3 gap-6 mt-20">
           {[
             {
               icon: <Factory size={22} />,
-              title: "Emergency Support",
-              text: "Request fast technical support when a line, machine, or system needs immediate attention.",
+              title: "Industrial Facilities",
+              text: "Built for manufacturing, distribution, food processing, packaging, and industrial operations.",
             },
             {
-              icon: <Radio size={22} />,
-              title: "Remote Video Triage",
-              text: "Start a secure diagnostic session with an expert before sending anyone on-site.",
+              icon: <Wrench size={22} />,
+              title: "Expert Matching",
+              text: "Submit the issue and let qualified experts review where they can help.",
             },
             {
               icon: <Lock size={22} />,
-              title: "Secure Coordination",
-              text: "Built for professional industrial communication, safety notes, and controlled access.",
+              title: "Clear Boundaries",
+              text: "Valcrons connects and coordinates. We do not operate machinery directly.",
             },
           ].map((item) => (
-            <div key={item.title} className={`${cardClass} p-7`}>
-              <div className="w-11 h-11 rounded-xl bg-white/[0.04] text-[#93c5fd] flex items-center justify-center mb-5">
-                {item.icon}
-              </div>
-              <h3 className="font-bold mb-3">{item.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
-                {item.text}
-              </p>
-            </div>
+            <InfoCard key={item.title} {...item} color="text-[#93c5fd]" />
           ))}
         </div>
       </section>
-
-      <div className="mt-32">
-        <Footer />
-      </div>
-    </div>
+    </PageShell>
   );
 
   const ExpertsPage = () => (
-    <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
-      <Header />
-
+    <PageShell>
       <section className="max-w-6xl mx-auto">
         <BackButton />
 
@@ -939,84 +647,316 @@ const SignupFacilityPage = () => (
         </h1>
 
         <p className="text-lg text-gray-400 max-w-2xl leading-relaxed mb-10">
-          Valcrons is built for experienced technicians, automation specialists,
-          electricians, mechanics, controls engineers, and industrial
-          troubleshooters who solve real production problems.
+          Valcrons is built for experienced technicians, automation specialists, electricians, mechanics, controls engineers, and troubleshooters.
         </p>
 
-        <button
-          onClick={() => setView("signupExpert")}
-          className="bg-emerald-500/70 hover:bg-emerald-500/80 text-white transition-colors px-8 py-4 rounded-2xl font-bold text-sm flex items-center gap-3"
-        >
-          Apply as an Expert <ArrowRight size={18} />
-        </button>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <button
+            onClick={() => setView("expertForm")}
+            className="bg-emerald-500/70 hover:bg-emerald-500/80 text-white transition-colors px-8 py-4 rounded-2xl font-bold text-sm flex items-center gap-3"
+          >
+            Apply as an Expert <ArrowRight size={18} />
+          </button>
+
+          <button
+            onClick={() => {
+              setView("requests");
+              loadRequests();
+            }}
+            className={`${secondaryButton} px-8 py-4 rounded-2xl font-bold text-sm flex items-center gap-3`}
+          >
+            View Requests <ArrowRight size={18} />
+          </button>
+        </div>
 
         <div className="grid md:grid-cols-3 gap-6 mt-20">
           {[
             {
               icon: <BadgeCheck size={22} />,
               title: "Verified Expert Profile",
-              text: "Build professional trust through skill verification and industrial specialization.",
+              text: "Build professional trust through skill verification and specialization.",
             },
             {
               icon: <Wrench size={22} />,
               title: "High-Value Industrial Work",
-              text: "Connect with facilities that need real technical expertise, not general handyman service.",
+              text: "Connect with facilities that need real technical expertise.",
             },
             {
               icon: <UserCircle2 size={22} />,
-              title: "Remote & On-Site Potential",
-              text: "Support diagnostics remotely first, then escalate to on-site service when needed.",
+              title: "Professional Network",
+              text: "A focused industrial network instead of a general job board.",
             },
           ].map((item) => (
-            <div key={item.title} className={`${cardClass} p-7`}>
-              <div className="w-11 h-11 rounded-xl bg-white/[0.04] text-emerald-300/80 flex items-center justify-center mb-5">
-                {item.icon}
-              </div>
-              <h3 className="font-bold mb-3">{item.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
-                {item.text}
-              </p>
-            </div>
+            <InfoCard key={item.title} {...item} color="text-emerald-300/80" />
           ))}
         </div>
       </section>
+    </PageShell>
+  );
 
-      <div className="mt-32">
-        <Footer />
-      </div>
-    </div>
+  const LoginPage = () => (
+    <PageShell narrow>
+      <BackButton />
+      <AuthCard title="Log In">
+        <form onSubmit={handleLogin} className="space-y-5">
+          <input name="email" type="email" placeholder="Email" className={inputClass} required />
+          <input name="password" type="password" placeholder="Password" className={inputClass} required />
+          <button type="submit" disabled={isSubmitting} className={`${primaryButton} w-full py-4 rounded-2xl font-bold disabled:opacity-60`}>
+            {isSubmitting ? "Logging in..." : "Log In"}
+          </button>
+        </form>
+      </AuthCard>
+    </PageShell>
+  );
+
+  const SignupChoicePage = () => (
+    <PageShell>
+      <section className="max-w-4xl mx-auto">
+        <BackButton />
+
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold mb-4">Choose Account Type</h1>
+          <p className="text-gray-400">Select how you want to use Valcrons.</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className={`${cardClass} p-8`}>
+            <h2 className="text-2xl font-bold mb-4">Facility / Company</h2>
+            <p className="text-gray-400 mb-8">
+              Post industrial requests and connect with qualified experts.
+            </p>
+            <button onClick={() => setView("signupFacility")} className={`${primaryButton} w-full py-4 rounded-2xl font-bold`}>
+              Continue as Company
+            </button>
+          </div>
+
+          <div className={`${cardClass} p-8`}>
+            <h2 className="text-2xl font-bold mb-4">Industrial Expert</h2>
+            <p className="text-gray-400 mb-8">
+              Build your profile and respond to industrial opportunities.
+            </p>
+            <button onClick={() => setView("signupExpert")} className={`${primaryButton} w-full py-4 rounded-2xl font-bold`}>
+              Continue as Expert
+            </button>
+          </div>
+        </div>
+      </section>
+    </PageShell>
+  );
+
+  const SignupFacilityPage = () => (
+    <PageShell narrow>
+      <BackButton to="signupChoice" />
+      <AuthCard title="Company Registration">
+        <form onSubmit={(e) => handleSignup(e, "facility")} className="space-y-5">
+          <input name="company_name" placeholder="Company Name" className={inputClass} required />
+          <input name="full_name" placeholder="Contact Person" className={inputClass} required />
+          <input name="email" type="email" placeholder="Email" className={inputClass} required />
+          <input name="password" type="password" placeholder="Password" className={inputClass} required />
+          <input name="phone" placeholder="Phone Number" className={inputClass} />
+          <input name="location" placeholder="City, State" className={inputClass} />
+          <button type="submit" disabled={isSubmitting} className={`${primaryButton} w-full py-4 rounded-2xl font-bold disabled:opacity-60`}>
+            {isSubmitting ? "Creating account..." : "Create Company Account"}
+          </button>
+        </form>
+      </AuthCard>
+    </PageShell>
+  );
+
+  const SignupExpertPage = () => (
+    <PageShell narrow>
+      <BackButton to="signupChoice" />
+      <AuthCard title="Expert Registration">
+        <form onSubmit={(e) => handleSignup(e, "expert")} className="space-y-5">
+          <input name="full_name" placeholder="Full Name" className={inputClass} required />
+          <input name="email" type="email" placeholder="Email" className={inputClass} required />
+          <input name="password" type="password" placeholder="Password" className={inputClass} required />
+          <input name="location" placeholder="City, State" className={inputClass} />
+          <input name="specialty" placeholder="Specialty / Trade" className={inputClass} />
+          <input name="phone" placeholder="Phone Number" className={inputClass} />
+          <button type="submit" disabled={isSubmitting} className={`${primaryButton} w-full py-4 rounded-2xl font-bold disabled:opacity-60`}>
+            {isSubmitting ? "Creating account..." : "Create Expert Account"}
+          </button>
+        </form>
+      </AuthCard>
+    </PageShell>
+  );
+
+  const ProfilePage = () => (
+    <PageShell>
+      <section className="max-w-4xl mx-auto">
+        <BackButton />
+
+        {!currentUser ? (
+          <div className={`${cardClass} p-8`}>
+            <h1 className="text-3xl font-bold mb-4">Please log in first.</h1>
+            <button onClick={() => setView("login")} className={`${primaryButton} px-6 py-3 rounded-2xl font-bold`}>
+              Log In
+            </button>
+          </div>
+        ) : (
+          <div className={`${cardClass} p-8`}>
+            <span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
+              My Profile
+            </span>
+
+            <h1 className="text-4xl font-bold mb-3">Account Profile</h1>
+            <p className="text-gray-400 mb-8">
+              Manage your Valcrons account information.
+            </p>
+
+            <div className="mb-8 grid md:grid-cols-2 gap-5">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+                <p className={labelClass}>Email</p>
+                <p className="mt-2 text-white">{currentUser.email}</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+                <p className={labelClass}>Account Type</p>
+                <p className="mt-2 text-white capitalize">{currentUser.role || "Not set"}</p>
+              </div>
+            </div>
+
+            <form onSubmit={updateProfile} className="grid md:grid-cols-2 gap-5">
+              <input name="full_name" defaultValue={currentUser.full_name || ""} placeholder="Full Name / Contact Person" className={inputClass} />
+              <input name="company_name" defaultValue={currentUser.company_name || ""} placeholder="Company Name" className={inputClass} />
+              <input name="phone" defaultValue={currentUser.phone || ""} placeholder="Phone Number" className={inputClass} />
+              <input name="location" defaultValue={currentUser.location || ""} placeholder="City, State" className={inputClass} />
+              <input name="specialty" defaultValue={currentUser.specialty || ""} placeholder="Specialty / Trade" className={`${inputClass} md:col-span-2`} />
+
+              <button type="submit" disabled={isSubmitting} className={`${primaryButton} md:col-span-2 py-4 rounded-2xl font-bold disabled:opacity-60`}>
+                {isSubmitting ? "Saving..." : "Save Profile"}
+              </button>
+            </form>
+          </div>
+        )}
+      </section>
+    </PageShell>
+  );
+
+  const PlantFormPage = () => (
+    <PageShell>
+      <section className="max-w-5xl mx-auto">
+        <BackButton to="plants" />
+
+        <div className="mb-10">
+          <span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
+            Facility Request
+          </span>
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5">
+            Request Industrial Support.
+          </h1>
+          <p className="text-gray-400 max-w-2xl leading-relaxed">
+            Tell us about your facility and the issue. Experts can review and respond when their experience matches.
+          </p>
+        </div>
+
+        <form onSubmit={submitFacilityRequest} className={`grid md:grid-cols-2 gap-5 ${cardClass} p-6 md:p-8`}>
+          <input name="company_name" className={inputClass} placeholder="Company Name" required />
+          <input name="contact_person" className={inputClass} placeholder="Contact Person" required />
+          <input name="work_email" className={inputClass} placeholder="Work Email" type="email" required />
+          <input name="phone_number" className={inputClass} placeholder="Phone Number" />
+          <select name="facility_type" className={inputClass} defaultValue="" required>
+            <option value="" disabled>Choose facility type</option>
+            <option>Manufacturing Plant</option>
+            <option>Warehouse / Distribution</option>
+            <option>Food Processing</option>
+            <option>Printing / Packaging</option>
+            <option>Machine Shop</option>
+            <option>Other Industrial Facility</option>
+          </select>
+          <select name="urgency" className={inputClass} defaultValue="" required>
+            <option value="" disabled>Choose urgency</option>
+            <option>Emergency — production stopped</option>
+            <option>High — major issue</option>
+            <option>Normal — needs diagnosis</option>
+            <option>Planning — future support</option>
+          </select>
+          <input name="issue_type" className={inputClass} placeholder="Issue Type: PLC, motor, conveyor..." />
+          <input name="location" className={inputClass} placeholder="City, State" />
+          <textarea name="problem_description" className={`${inputClass} md:col-span-2 min-h-[140px] resize-none`} placeholder="Describe the problem..." required />
+          <button type="submit" disabled={isSubmitting} className={`${primaryButton} md:col-span-2 px-8 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 disabled:opacity-60`}>
+            {isSubmitting ? "Submitting..." : "Submit Facility Request"} <ArrowRight size={18} />
+          </button>
+        </form>
+      </section>
+    </PageShell>
+  );
+
+  const ExpertFormPage = () => (
+    <PageShell>
+      <section className="max-w-5xl mx-auto">
+        <BackButton to="experts" />
+
+        <div className="mb-10">
+          <span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-emerald-300/80 text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
+            Expert Application
+          </span>
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5">
+            Apply to Join Valcrons.
+          </h1>
+          <p className="text-gray-400 max-w-2xl leading-relaxed">
+            Tell us about your technical background, specialties, and availability.
+          </p>
+        </div>
+
+        <form onSubmit={submitExpertApplication} className={`grid md:grid-cols-2 gap-5 ${cardClass} p-6 md:p-8`}>
+          <input name="full_name" className={inputClass} placeholder="Full Name" required />
+          <input name="email" className={inputClass} placeholder="Email" type="email" required />
+          <input name="phone_number" className={inputClass} placeholder="Phone Number" />
+          <input name="location" className={inputClass} placeholder="City, State" />
+          <select name="primary_specialty" className={inputClass} defaultValue="" required>
+            <option value="" disabled>Choose specialty</option>
+            <option>PLC / Automation</option>
+            <option>Industrial Electrical</option>
+            <option>Mechanical Maintenance</option>
+            <option>Hydraulics / Pneumatics</option>
+            <option>Controls Engineering</option>
+            <option>Industrial Troubleshooting</option>
+          </select>
+          <select name="years_experience" className={inputClass} defaultValue="" required>
+            <option value="" disabled>Choose experience</option>
+            <option>1–3 years</option>
+            <option>4–7 years</option>
+            <option>8–15 years</option>
+            <option>15+ years</option>
+          </select>
+          <select name="availability" className={inputClass} defaultValue="">
+            <option value="" disabled>Choose availability</option>
+            <option>Remote diagnostics only</option>
+            <option>On-site only</option>
+            <option>Remote and on-site</option>
+            <option>Emergency availability</option>
+          </select>
+          <input name="certifications" className={inputClass} placeholder="Certifications" />
+          <textarea name="technical_background" className={`${inputClass} md:col-span-2 min-h-[140px] resize-none`} placeholder="Technical background..." required />
+          <button type="submit" disabled={isSubmitting} className="bg-emerald-500/70 hover:bg-emerald-500/80 text-white transition-colors md:col-span-2 px-8 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 disabled:opacity-60">
+            {isSubmitting ? "Submitting..." : "Submit Expert Application"} <ArrowRight size={18} />
+          </button>
+        </form>
+      </section>
+    </PageShell>
   );
 
   const RequestsPage = () => (
-    <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
-      <Header />
-
+    <PageShell>
       <section className="max-w-6xl mx-auto">
         <BackButton />
 
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-12">
           <div>
             <span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
-              Diagnostic Request Queue
+              Request Queue
             </span>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5">
               Active Industrial Requests.
             </h1>
             <p className="text-gray-400 max-w-2xl leading-relaxed">
-              Review facility-submitted diagnostic requests and respond only
-              when your expertise matches the issue.
+              Review facility-submitted requests and respond only when your expertise matches the issue.
             </p>
           </div>
 
-          <button
-            onClick={() => loadRequests()}
-            className="bg-white/[0.05] border border-white/10 hover:bg-white/[0.1] hover:border-white/30 text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300"
-          >
-            <RefreshCw
-              size={15}
-              className={isLoadingRequests ? "animate-spin" : ""}
-            />
+          <button onClick={loadRequests} className="bg-white/[0.05] border border-white/10 hover:bg-white/[0.1] hover:border-white/30 text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2">
+            <RefreshCw size={15} className={isLoadingRequests ? "animate-spin" : ""} />
             Refresh Queue
           </button>
         </div>
@@ -1028,10 +968,7 @@ const SignupFacilityPage = () => (
         ) : (
           <div className="grid gap-5">
             {requests.map((request) => (
-              <div
-                key={request.id}
-                className={`${cardClass} p-6 md:p-7 border border-white/10 hover:border-[#2563eb]/50 transition-all duration-300 hover:shadow-[0_0_30px_-10px_rgba(37,99,235,0.2)]`}
-              >
+              <div key={request.id} className={`${cardClass} p-6 md:p-7 hover:border-[#2563eb]/50 transition-all duration-300`}>
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
                   <div>
                     <div className="flex flex-wrap items-center gap-3 mb-4">
@@ -1043,12 +980,13 @@ const SignupFacilityPage = () => (
                       </span>
                     </div>
                     <h3 className="text-2xl font-bold tracking-tight mb-3 text-gray-100">
-                      {request.issue_type || "Industrial Diagnostic Request"}
+                      {request.issue_type || "Industrial Request"}
                     </h3>
                     <p className="text-sm text-gray-400 leading-relaxed max-w-3xl">
                       {request.problem_description || "No description provided."}
                     </p>
                   </div>
+
                   <div className="min-w-[190px] text-sm text-gray-500 md:text-right space-y-2">
                     <p className="flex md:justify-end items-center gap-2">
                       <MapPin size={14} />
@@ -1063,11 +1001,15 @@ const SignupFacilityPage = () => (
                       setSelectedRequest(request);
                       setView("requestDetails");
                     }}
-                    className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-5 py-3 rounded-2xl font-bold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                    className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-5 py-3 rounded-2xl font-bold text-sm"
                   >
                     Review Request
                   </button>
-                  <button className="bg-white/[0.03] border border-white/10 hover:bg-white/[0.1] text-white px-5 py-3 rounded-2xl font-bold text-sm transition-all duration-300">
+
+                  <button
+                    onClick={() => saveProjectAction(request, "saved")}
+                    className="bg-white/[0.03] border border-white/10 hover:bg-white/[0.1] text-white px-5 py-3 rounded-2xl font-bold text-sm"
+                  >
                     Save for Later
                   </button>
                 </div>
@@ -1076,690 +1018,172 @@ const SignupFacilityPage = () => (
           </div>
         )}
       </section>
-
-      <div className="mt-32">
-        <Footer />
-      </div>
-    </div>
-  );
-
-  const PlantFormPage = () => (
-    <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
-      <Header />
-
-      <section className="max-w-5xl mx-auto">
-        <BackButton to="plants" />
-
-        <div className="mb-10">
-          <span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
-            Facility Request
-          </span>
-
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5">
-            Request Industrial Support.
-          </h1>
-
-          <p className="text-gray-400 max-w-2xl leading-relaxed">
-            Tell us about your facility and the issue. Valcrons will use this
-            information to prepare the right technical response path.
-          </p>
-        </div>
-
-        <form
-          onSubmit={submitFacilityRequest}
-          className={`grid md:grid-cols-2 gap-5 ${cardClass} p-6 md:p-8`}
-        >
-          <div className="space-y-2">
-            <label className={labelClass}>Company Name</label>
-            <input
-              name="company_name"
-              className={inputClass}
-              placeholder="Example: Blue River Manufacturing"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className={labelClass}>Contact Person</label>
-            <input
-              name="contact_person"
-              className={inputClass}
-              placeholder="Full name"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className={labelClass}>Work Email</label>
-            <input
-              name="work_email"
-              className={inputClass}
-              placeholder="name@company.com"
-              type="email"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className={labelClass}>Phone Number</label>
-            <input
-              name="phone_number"
-              className={inputClass}
-              placeholder="(000) 000-0000"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className={labelClass}>Facility Type</label>
-            <select name="facility_type" className={inputClass} defaultValue="" required>
-              <option value="" disabled>
-                Choose facility type
-              </option>
-              <option>Manufacturing Plant</option>
-              <option>Warehouse / Distribution</option>
-              <option>Food Processing</option>
-              <option>Printing / Packaging</option>
-              <option>Machine Shop</option>
-              <option>Other Industrial Facility</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className={labelClass}>Urgency</label>
-            <select name="urgency" className={inputClass} defaultValue="" required>
-              <option value="" disabled>
-                Choose urgency
-              </option>
-              <option>Emergency — production stopped</option>
-              <option>High — major issue</option>
-              <option>Normal — needs diagnosis</option>
-              <option>Planning — future support</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className={labelClass}>Issue Type</label>
-            <input
-              name="issue_type"
-              className={inputClass}
-              placeholder="PLC, motor, conveyor, electrical, hydraulic..."
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className={labelClass}>Location</label>
-            <input name="location" className={inputClass} placeholder="City, State" />
-          </div>
-
-          <div className="md:col-span-2 space-y-2">
-            <label className={labelClass}>Describe the Problem</label>
-            <textarea
-              name="problem_description"
-              className={`${inputClass} min-h-[140px] resize-none`}
-              placeholder="Briefly describe what failed, what changed, and whether production is currently stopped."
-              required
-            />
-          </div>
-
-          <div className="md:col-span-2 flex flex-col sm:flex-row gap-4 pt-4">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={`${primaryButton} px-8 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 disabled:opacity-60`}
-            >
-              {isSubmitting ? "Submitting..." : "Submit Facility Request"}{" "}
-              <ArrowRight size={18} />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setView("signupFacility")}
-              className={`${secondaryButton} px-8 py-4 rounded-2xl font-bold text-sm`}
-            >
-              Back
-            </button>
-          </div>
-        </form>
-      </section>
-
-      <div className="mt-32">
-        <Footer />
-      </div>
-    </div>
-  );
-
-  const ExpertFormPage = () => (
-    <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
-      <Header />
-
-      <section className="max-w-5xl mx-auto">
-        <BackButton to="experts" />
-
-        <div className="mb-10">
-          <span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-emerald-300/80 text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
-            Expert Application
-          </span>
-
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5">
-            Apply to Join Valcrons.
-          </h1>
-
-          <p className="text-gray-400 max-w-2xl leading-relaxed">
-            Tell us about your technical background, specialties, and availability.
-          </p>
-        </div>
-
-        <form
-          onSubmit={submitExpertApplication}
-          className={`grid md:grid-cols-2 gap-5 ${cardClass} p-6 md:p-8`}
-        >
-          <div className="space-y-2">
-            <label className={labelClass}>Full Name</label>
-            <input name="full_name" className={inputClass} placeholder="Full name" required />
-          </div>
-
-          <div className="space-y-2">
-            <label className={labelClass}>Email</label>
-            <input name="email" className={inputClass} placeholder="name@email.com" type="email" required />
-          </div>
-
-          <div className="space-y-2">
-        <label className={labelClass}>Password</label>
-        <input
-          name="password"
-          type="password"
-          className={inputClass}
-          placeholder="Create a password"
-          required
-        />
-        </div>
-
-          <div className="space-y-2">
-            <label className={labelClass}>Phone Number</label>
-            <input name="phone_number" className={inputClass} placeholder="(000) 000-0000" />
-          </div>
-
-          <div className="space-y-2">
-            <label className={labelClass}>Location</label>
-            <input name="location" className={inputClass} placeholder="City, State" />
-          </div>
-
-          <div className="space-y-2">
-            <label className={labelClass}>Primary Specialty</label>
-            <select name="primary_specialty" className={inputClass} defaultValue="" required>
-              <option value="" disabled>
-                Choose specialty
-              </option>
-              <option>PLC / Automation</option>
-              <option>Industrial Electrical</option>
-              <option>Mechanical Maintenance</option>
-              <option>Hydraulics / Pneumatics</option>
-              <option>Controls Engineering</option>
-              <option>Industrial Troubleshooting</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className={labelClass}>Years of Experience</label>
-            <select name="years_experience" className={inputClass} defaultValue="" required>
-              <option value="" disabled>
-                Choose experience
-              </option>
-              <option>1–3 years</option>
-              <option>4–7 years</option>
-              <option>8–15 years</option>
-              <option>15+ years</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className={labelClass}>Availability</label>
-            <select name="availability" className={inputClass} defaultValue="">
-              <option value="" disabled>
-                Choose availability
-              </option>
-              <option>Remote diagnostics only</option>
-              <option>On-site only</option>
-              <option>Remote and on-site</option>
-              <option>Emergency availability</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className={labelClass}>Certifications</label>
-            <input name="certifications" className={inputClass} placeholder="OSHA, PLC, electrical license, etc." />
-          </div>
-
-          <div className="md:col-span-2 space-y-2">
-            <label className={labelClass}>Technical Background</label>
-            <textarea
-              name="technical_background"
-              className={`${inputClass} min-h-[140px] resize-none`}
-              placeholder="Briefly describe the systems, machines, industries, and problems you are strongest at solving."
-              required
-            />
-          </div>
-
-          <div className="md:col-span-2 flex flex-col sm:flex-row gap-4 pt-4">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-emerald-500/70 hover:bg-emerald-500/80 text-white transition-colors px-8 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 disabled:opacity-60"
-            >
-              {isSubmitting ? "Submitting..." : "Submit Expert Application"}{" "}
-              <ArrowRight size={18} />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setView("experts")}
-              className={`${secondaryButton} px-8 py-4 rounded-2xl font-bold text-sm`}
-            >
-              Back
-            </button>
-          </div>
-        </form>
-      </section>
-
-      <div className="mt-32">
-        <Footer />
-      </div>
-    </div>
-  );
-
-  const ProfilePage = () => (
-  <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
-    <Header />
-
-    <section className="max-w-4xl mx-auto">
-      <BackButton />
-
-      <div className={`${cardClass} p-8`}>
-        <span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
-          My Profile
-        </span>
-
-        <h1 className="text-4xl font-bold mb-6">Account Profile</h1>
-
-        <p className="text-gray-400 mb-8">
-          Manage your Valcrons account information.
-        </p>
-
-        <div className="space-y-4">
-          <div>
-            <p className={labelClass}>Email</p>
-            <p className="text-white">{currentUser?.email || "Not available"}</p>
-          </div>
-
-          <div>
-            <p className={labelClass}>Account Type</p>
-            <p className="text-white capitalize">
-              {currentUser?.role || "Not set"}
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
-);
-
-  const PlatformView = () => (
-    <div className="flex h-screen bg-[#050505] text-white">
-      <motion.aside
-        initial={{ x: -200 }}
-        animate={{ x: 0 }}
-        className={`${isSidebarOpen ? "w-64" : "w-20"} border-r border-white/5 bg-[#080808] flex flex-col transition-all duration-300`}
-      >
-        <div className="p-6 h-20 flex items-center justify-between">
-          {isSidebarOpen && (
-            <span className="font-bold text-sm uppercase tracking-tighter">
-              Valcrons Hub
-            </span>
-          )}
-          <button
-            onClick={() => setSidebarOpen(!isSidebarOpen)}
-            className="p-2 hover:bg-white/5 rounded-lg text-gray-500"
-          >
-            <Menu size={18} />
-          </button>
-        </div>
-
-        <div className="flex-1 px-4 space-y-2">
-          {[
-            { id: "factories", label: "Factories", icon: <LayoutDashboard size={18} /> },
-            { id: "experts", label: "Experts", icon: <UserCircle2 size={18} /> },
-            { id: "settings", label: "Settings", icon: <Settings size={18} /> },
-            { id: "help", label: "Help", icon: <HelpCircle size={18} /> },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm font-medium transition-colors ${
-                activeTab === item.id
-                  ? "bg-[#2563eb]/80 text-white"
-                  : "text-gray-500 hover:bg-white/5"
-              }`}
-            >
-              {item.icon}
-              {isSidebarOpen && item.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="p-6 border-t border-white/5">
-          <button
-            onClick={() => setView("landing")}
-            className="w-full text-xs text-gray-600 hover:text-white transition-colors flex items-center gap-2"
-          >
-            <ArrowRight size={12} className="rotate-180" /> Exit Platform
-          </button>
-        </div>
-      </motion.aside>
-
-      <main className="flex-1 overflow-y-auto">
-        <header className="h-20 border-b border-white/5 flex items-center justify-between px-10 bg-[#050505]/50 backdrop-blur-md sticky top-0 z-50">
-          <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">
-            {activeTab}
-          </h2>
-
-          <div className="flex items-center gap-4">
-            <div className="bg-emerald-500/5 text-emerald-300/80 px-3 py-1 rounded-full text-[10px] font-bold border border-emerald-500/10 flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-300/80 animate-pulse" />
-              Live Server 01
-            </div>
-            <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10" />
-          </div>
-        </header>
-
-        <div className="p-10 max-w-6xl">
-          <BackButton />
-
-          <div className="grid md:grid-cols-2 gap-10">
-            <div className="aspect-video bg-[#111] rounded-[2rem] border border-white/5 flex items-center justify-center text-gray-600 font-mono text-xs">
-              [ Initializing Video Triage Environment... ]
-            </div>
-
-            <div className="space-y-6">
-              <h1 className="text-2xl font-bold tracking-tight">
-                Active Diagnostics
-              </h1>
-              <p className="text-sm text-gray-500 leading-relaxed italic">
-                "Select a factory or an expert from the sidebar to begin the
-                encrypted session."
-              </p>
-
-              <div className="p-6 bg-white/[0.025] border border-white/10 rounded-2xl">
-                <h4 className="text-xs font-bold text-[#93c5fd] uppercase mb-2">
-                  Safety Note
-                </h4>
-                <p className="text-[12px] text-gray-400 leading-relaxed">
-                  By starting, you agree to our Terms of Service. Valcrons is
-                  not responsible for physical machine operation.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+    </PageShell>
   );
 
   const RequestDetailsPage = () => {
-    if (!selectedRequest) return null;
+    if (!selectedRequest) {
+      return (
+        <PageShell>
+          <section className="max-w-4xl mx-auto">
+            <BackButton to="requests" />
+            <div className={`${cardClass} p-8 text-gray-400`}>
+              No request selected.
+            </div>
+          </section>
+        </PageShell>
+      );
+    }
 
     return (
-      <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
-        <Header />
-
+      <PageShell>
         <section className="max-w-5xl mx-auto">
           <BackButton to="requests" />
 
           <div className="mb-10">
             <span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
-              Diagnostic Request
+              Industrial Request
             </span>
-
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
               {selectedRequest.issue_type || "Industrial Request"}
             </h1>
-
             <p className="text-gray-400 text-lg leading-relaxed max-w-3xl">
               {selectedRequest.problem_description}
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div className={`${cardClass} p-7`}>
-              <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
-                Facility Type
-              </p>
-
-              <h3 className="text-xl font-bold">
-                {selectedRequest.facility_type || "Industrial Facility"}
-              </h3>
-            </div>
-
-            <div className={`${cardClass} p-7`}>
-              <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
-                Urgency
-              </p>
-
-              <h3 className="text-xl font-bold text-amber-200/80">
-                {selectedRequest.urgency || "Pending Review"}
-              </h3>
-            </div>
-
-            <div className={`${cardClass} p-7`}>
-              <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
-                Location
-              </p>
-
-              <h3 className="text-xl font-bold">
-                {selectedRequest.location || "Unknown"}
-              </h3>
-            </div>
-
-            <div className={`${cardClass} p-7`}>
-              <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
-                Status
-              </p>
-
-              <h3 className="text-xl font-bold text-emerald-300/80">
-                {selectedRequest.status || "Pending"}
-              </h3>
-            </div>
+            {[
+              ["Facility Type", selectedRequest.facility_type || "Industrial Facility"],
+              ["Urgency", selectedRequest.urgency || "Pending Review"],
+              ["Location", selectedRequest.location || "Unknown"],
+              ["Status", selectedRequest.status || "Pending"],
+            ].map(([label, value]) => (
+              <div key={label} className={`${cardClass} p-7`}>
+                <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-3">
+                  {label}
+                </p>
+                <h3 className="text-xl font-bold">{value}</h3>
+              </div>
+            ))}
           </div>
 
           <div className={`mt-10 ${cardClass} p-8`}>
             <h2 className="text-2xl font-bold mb-5">Technical Summary</h2>
-
             <p className="text-gray-400 leading-relaxed text-[15px]">
-              This request has been submitted to the Valcrons industrial queue
-              and is awaiting expert review. Respond only if your expertise
-              directly matches the operational issue and facility environment.
+              This request has been submitted to the Valcrons industrial queue and is awaiting expert review.
             </p>
 
-          {selectedRequest.status === "pending" || !selectedRequest.status ? (
-  <div className="flex flex-col sm:flex-row gap-4 mt-8">
-    <button
-      onClick={() => saveProjectAction("accepted")}
-      className={`${primaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
-    >
-      Accept Diagnostic Case
-    </button>
+            <div className="flex flex-col sm:flex-row gap-4 mt-8">
+              <button
+                onClick={() => saveProjectAction(selectedRequest, "accepted")}
+                className={`${primaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
+              >
+                Accept Request
+              </button>
 
-    <button
-      onClick={() => saveProjectAction("saved")}
-      className={`${secondaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
-    >
-      Save for Later
-    </button>
-  </div>
-) : (
-  <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.035] p-5">
-    <p className="text-sm font-bold text-white">
-      {selectedRequest.status === "accepted"
-        ? "This diagnostic case has been accepted."
-        : "This diagnostic case has been saved for later."}
-    </p>
-
-    <p className="mt-2 text-sm text-gray-500">
-      It is no longer available for public action in the request queue.
-    </p>
-  </div>
-)}
+              <button
+                onClick={() => saveProjectAction(selectedRequest, "saved")}
+                className={`${secondaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
+              >
+                Save for Later
+              </button>
+            </div>
           </div>
         </section>
-
-        <div className="mt-32">
-          <Footer />
-        </div>
-      </div>
+      </PageShell>
     );
+  };
+
+  const PageShell = ({
+    children,
+    narrow = false,
+  }: {
+    children: React.ReactNode;
+    narrow?: boolean;
+  }) => (
+    <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
+      <Header />
+      <div className={narrow ? "max-w-xl mx-auto" : ""}>{children}</div>
+      <div className="mt-32">
+        <Footer />
+      </div>
+    </div>
+  );
+
+  const AuthCard = ({
+    title,
+    children,
+  }: {
+    title: string;
+    children: React.ReactNode;
+  }) => (
+    <div className={`${cardClass} p-8`}>
+      <h1 className="text-4xl font-bold mb-8">{title}</h1>
+      {children}
+    </div>
+  );
+
+  const InfoCard = ({
+    icon,
+    title,
+    text,
+    color,
+  }: {
+    icon: React.ReactNode;
+    title: string;
+    text: string;
+    color: string;
+  }) => (
+    <div className={`${cardClass} p-7`}>
+      <div className={`w-11 h-11 rounded-xl bg-white/[0.04] ${color} flex items-center justify-center mb-5`}>
+        {icon}
+      </div>
+      <h3 className="font-bold mb-3">{title}</h3>
+      <p className="text-sm text-gray-500 leading-relaxed">{text}</p>
+    </div>
+  );
+
+  const renderView = () => {
+    switch (view) {
+      case "login":
+        return <LoginPage />;
+      case "signupChoice":
+        return <SignupChoicePage />;
+      case "signupFacility":
+        return <SignupFacilityPage />;
+      case "signupExpert":
+        return <SignupExpertPage />;
+      case "profile":
+        return <ProfilePage />;
+      case "plants":
+        return <PlantsPage />;
+      case "experts":
+        return <ExpertsPage />;
+      case "plantForm":
+        return <PlantFormPage />;
+      case "expertForm":
+        return <ExpertFormPage />;
+      case "requests":
+        return <RequestsPage />;
+      case "requestDetails":
+        return <RequestDetailsPage />;
+      default:
+        return <LandingPage />;
+    }
   };
 
   return (
     <AnimatePresence mode="sync">
-      {view === "login" && (
-  <motion.div
-    key="login"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    transition={{ duration: 0.3 }}
-  >
-    <LoginPage />
-  </motion.div>
-)}
-
-      {view === "signupChoice" && (
-  <motion.div
-    key="signupChoice"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    transition={{ duration: 0.3 }}
-  >
-    <SignupChoicePage />
-  </motion.div>
-)}
-
-      {view === "signupExpert" && (
-  <motion.div
-    key="signupExpert"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    transition={{ duration: 0.3 }}
-  >
-    <SignupExpertPage />
-  </motion.div>
-)}
-
-{view === "signupFacility" && (
-  <motion.div
-    key="signupFacility"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    transition={{ duration: 0.3 }}
-  >
-    <SignupFacilityPage />
-  </motion.div>
-)}
-      
-      {view === "landing" && (
-        <motion.div
-          key="landing"
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-        >
-          <LandingPage />
-        </motion.div>
-      )}
-
-      {view === "plants" && (
-        <motion.div
-          key="plants"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <PlantsPage />
-        </motion.div>
-      )}
-
-      {view === "experts" && (
-        <motion.div
-          key="experts"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <ExpertsPage />
-        </motion.div>
-      )}
-
-      {view === "plantForm" && (
-        <motion.div
-          key="plantForm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <PlantFormPage />
-        </motion.div>
-      )}
-
-      {view === "expertForm" && (
-        <motion.div
-          key="expertForm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <ExpertFormPage />
-        </motion.div>
-      )}
-
-      {view === "requests" && (
-        <motion.div
-          key="requests"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <RequestsPage />
-        </motion.div>
-      )}
-
-      {view === "requestDetails" && (
-        <motion.div
-          key="requestDetails"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <RequestDetailsPage />
-        </motion.div>
-      )}
-
-      {view === "platform" && (
-        <motion.div
-          key="platform"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <PlatformView />
-        </motion.div>
-      )}
+      <motion.div
+        key={view}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.25 }}
+      >
+        {renderView()}
+      </motion.div>
     </AnimatePresence>
   );
 }
