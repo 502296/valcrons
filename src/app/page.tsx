@@ -1367,6 +1367,42 @@ const SignupFacilityPage = () => (
     </div>
   );
 
+  const ProfilePage = () => (
+  <div className="min-h-screen bg-[#050505] text-white pt-32 px-6">
+    <Header />
+
+    <section className="max-w-4xl mx-auto">
+      <BackButton />
+
+      <div className={`${cardClass} p-8`}>
+        <span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
+          My Profile
+        </span>
+
+        <h1 className="text-4xl font-bold mb-6">Account Profile</h1>
+
+        <p className="text-gray-400 mb-8">
+          Manage your Valcrons account information.
+        </p>
+
+        <div className="space-y-4">
+          <div>
+            <p className={labelClass}>Email</p>
+            <p className="text-white">{currentUser?.email || "Not available"}</p>
+          </div>
+
+          <div>
+            <p className={labelClass}>Account Type</p>
+            <p className="text-white capitalize">
+              {currentUser?.role || "Not set"}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+);
+
   const PlatformView = () => (
     <div className="flex h-screen bg-[#050505] text-white">
       <motion.aside
