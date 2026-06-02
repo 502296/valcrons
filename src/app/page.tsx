@@ -1247,6 +1247,17 @@ const SignupFacilityPage = () => (
           </div>
 
           <div className="space-y-2">
+        <label className={labelClass}>Password</label>
+        <input
+          name="password"
+          type="password"
+          className={inputClass}
+          placeholder="Create a password"
+          required
+        />
+        </div>
+
+          <div className="space-y-2">
             <label className={labelClass}>Phone Number</label>
             <input name="phone_number" className={inputClass} placeholder="(000) 000-0000" />
           </div>
