@@ -1407,7 +1407,7 @@ const SignupFacilityPage = () => (
           {selectedRequest.status === "pending" || !selectedRequest.status ? (
   <div className="flex flex-col sm:flex-row gap-4 mt-8">
     <button
-      onClick={() => updateRequestStatus("accepted")}
+      onClick={() => saveProjectAction("accepted")}
       className={`${primaryButton} px-7 py-4 rounded-2xl font-bold text-sm`}
     >
       Accept Diagnostic Case
