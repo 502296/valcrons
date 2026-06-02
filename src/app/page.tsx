@@ -862,7 +862,7 @@ const SignupFacilityPage = () => (
         </p>
 
         <button
-          onClick={() => setView("plantForm")}
+          onClick={() => setView("signupFacility")}
           className={`${primaryButton} px-8 py-4 rounded-2xl font-bold text-sm flex items-center gap-3`}
         >
           Request Industrial Support <ArrowRight size={18} />
