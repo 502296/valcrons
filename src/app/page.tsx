@@ -39,6 +39,7 @@ type FacilityRequest = {
 type CurrentUser = {
   id: string;
   email: string | null;
+  role: "facility" | "expert" | null;
 };
 
 export default function ValcronsPro() {
