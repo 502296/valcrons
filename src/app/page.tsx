@@ -141,6 +141,45 @@ export default function ValcronsPro() {
     setRequests(data || []);
   };
 
+  const saveProjectAction = async (actionType: "saved" | "accepted" | "contacted") => {
+  if (!selectedRequest?.id) {
+    alert("No request selected.");
+    return;
+  }
+
+  if (!currentUser) {
+    alert("Please log in before saving or accepting a project.");
+    return;
+  }
+
+  const technicianId = currentUser.email || currentUser.id;
+
+  const { error } = await supabase
+    .from("technician_project_actions")
+    .upsert(
+      {
+        technician_id: technicianId,
+        project_id: selectedRequest.id,
+        action_type: actionType,
+      },
+      {
+        onConflict: "technician_id,project_id,action_type",
+      }
+    );
+
+  if (error) {
+    console.error(error);
+    alert("Could not save this action.");
+    return;
+  }
+
+  alert(
+    actionType === "saved"
+      ? "Saved to your profile."
+      : "Request saved in your accepted projects."
+  );
+};
+  
 const updateRequestStatus = async (status: "accepted" | "saved") => {
   if (!selectedRequest?.id) {
     alert("No request selected.");
