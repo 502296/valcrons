@@ -290,10 +290,20 @@ export default function ValcronsPro() {
     const location = String(formData.get("location") || "");
     const specialty = String(formData.get("specialty") || "");
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+   const { data, error } = await supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    data: {
+      role,
+      full_name: fullName,
+      company_name: companyName,
+      phone,
+      location,
+      specialty,
+    },
+  },
+});
 
     if (error || !data.user) {
       setIsSubmitting(false);
