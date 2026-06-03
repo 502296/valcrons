@@ -1,13 +1,17 @@
 import Header from "@/components/layout/Header";
 import Hero from "@/components/home/Hero";
-import TrustBar from "@/components/home/TrustBar";
+import FeatureCards from "@/components/home/FeatureCards";
+import HowItWorks from "@/components/home/HowItWorks";
+import Industries from "@/components/home/Industries";
 
 export default function Home() {
   return (
     <main>
       <Header />
       <Hero />
-      <TrustBar />
+      <FeatureCards />
+      <HowItWorks />
+      <Industries />
     </main>
   );
 }
