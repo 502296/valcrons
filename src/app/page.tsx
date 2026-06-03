@@ -1111,6 +1111,161 @@ export default function ValcronsPro() {
     </div>
   );
 
+  const ProfilePage = () => (
+  <PageShell>
+    <section className="max-w-5xl mx-auto">
+      <BackButton />
+
+      {!currentUser ? (
+        <div className={`${cardClass} p-8`}>
+          <h1 className="text-3xl font-bold mb-4">Please log in first.</h1>
+          <button
+            onClick={() => setView("login")}
+            className={`${primaryButton} px-6 py-3 rounded-2xl font-bold`}
+          >
+            Log In
+          </button>
+        </div>
+      ) : (
+        <div className={`${cardClass} p-8`}>
+          <span className="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[#93c5fd] text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
+            My Valcrons Profile
+          </span>
+
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-8">
+            <div>
+              <h1 className="text-4xl font-bold mb-3">
+                {currentUser.role === "facility"
+                  ? currentUser.company_name || "Company Profile"
+                  : currentUser.full_name || "Expert Profile"}
+              </h1>
+
+              <p className="text-gray-400">
+                {currentUser.role === "facility"
+                  ? "Manage your company information and industrial requests."
+                  : "Manage your expert profile and request activity."}
+              </p>
+            </div>
+
+            <div className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-bold uppercase tracking-widest text-[#93c5fd]">
+              {currentUser.role || "Account"}
+            </div>
+          </div>
+
+          <div className="flex gap-3 mb-8 border-b border-white/10 pb-4">
+            <button
+              onClick={() => setProfileTab("profile")}
+              className={`px-5 py-2 rounded-full text-sm font-bold transition-colors ${
+                profileTab === "profile"
+                  ? "bg-[#2563eb] text-white"
+                  : "bg-white/[0.04] text-gray-400 hover:text-white"
+              }`}
+            >
+              Profile
+            </button>
+
+            <button
+              onClick={() => setProfileTab("activity")}
+              className={`px-5 py-2 rounded-full text-sm font-bold transition-colors ${
+                profileTab === "activity"
+                  ? "bg-[#2563eb] text-white"
+                  : "bg-white/[0.04] text-gray-400 hover:text-white"
+              }`}
+            >
+              Activity
+            </button>
+          </div>
+
+          {profileTab === "profile" && (
+            <>
+              <div className="mb-8 grid md:grid-cols-2 gap-5">
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+                  <p className={labelClass}>Email</p>
+                  <p className="mt-2 text-white">{currentUser.email}</p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+                  <p className={labelClass}>Account Type</p>
+                  <p className="mt-2 text-white capitalize">
+                    {currentUser.role || "Not set"}
+                  </p>
+                </div>
+              </div>
+
+              <form onSubmit={updateProfile} className="grid md:grid-cols-2 gap-5">
+                <input
+                  name="full_name"
+                  defaultValue={currentUser.full_name || ""}
+                  placeholder={
+                    currentUser.role === "facility"
+                      ? "Contact Person"
+                      : "Full Name"
+                  }
+                  className={inputClass}
+                />
+
+                <input
+                  name="company_name"
+                  defaultValue={currentUser.company_name || ""}
+                  placeholder="Company Name"
+                  className={inputClass}
+                />
+
+                <input
+                  name="phone"
+                  defaultValue={currentUser.phone || ""}
+                  placeholder="Phone Number"
+                  className={inputClass}
+                />
+
+                <input
+                  name="location"
+                  defaultValue={currentUser.location || ""}
+                  placeholder="City, State"
+                  className={inputClass}
+                />
+
+                <input
+                  name="specialty"
+                  defaultValue={currentUser.specialty || ""}
+                  placeholder="Specialty / Trade"
+                  className={`${inputClass} md:col-span-2`}
+                />
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`${primaryButton} md:col-span-2 py-4 rounded-2xl font-bold disabled:opacity-60`}
+                >
+                  {isSubmitting ? "Saving..." : "Save Profile"}
+                </button>
+              </form>
+            </>
+          )}
+
+          {profileTab === "activity" && (
+            <div className="grid md:grid-cols-3 gap-5">
+              {currentUser.role === "expert" ? (
+                <>
+                  <ProfileStat title="Saved Requests" value="Coming Soon" />
+                  <ProfileStat title="Accepted Requests" value="Coming Soon" />
+                  <ProfileStat title="Contacted Requests" value="Coming Soon" />
+                </>
+              ) : (
+                <>
+                  <ProfileStat title="My Requests" value="Coming Soon" />
+                  <ProfileStat title="Pending" value="Coming Soon" />
+                  <ProfileStat title="Accepted" value="Coming Soon" />
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  </PageShell>
+);
+
   const AuthCard = ({
     title,
     children,
