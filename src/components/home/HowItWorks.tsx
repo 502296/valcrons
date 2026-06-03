@@ -11,11 +11,11 @@ export default function HowItWorks() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-14 max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a7a3f]">
-            How It Works
+            Industrial Response Process
           </p>
 
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-[#111827]">
-            From urgent request to qualified expert.
+            From critical downtime to operational recovery.
           </h2>
         </div>
 
@@ -23,9 +23,9 @@ export default function HowItWorks() {
           {steps.map((step, index) => (
             <div
               key={step}
-              className="rounded-[2rem] border border-black/10 bg-[#f7f7f4] p-8"
+              className="rounded-[2rem] border border-[#c8a96b]/20 bg-[#f7f7f4] p-8 shadow-[0_20px_60px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_30px_80px_rgba(0,0,0,0.10)]"
             >
-              <div className="mb-10 flex h-12 w-12 items-center justify-center rounded-full bg-[#111827] text-sm font-semibold text-white shadow-lg">
+              <div className="mb-10 flex h-14 w-14 items-center justify-center rounded-full bg-[#111827] text-sm font-semibold text-[#c8a96b] shadow-xl">
                 {index + 1}
               </div>
 
