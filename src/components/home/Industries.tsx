@@ -1,10 +1,10 @@
 const industries = [
-  "Manufacturing",
-  "Energy",
-  "Automation",
-  "Food Processing",
-  "Logistics",
-  "Heavy Equipment",
+  ["Manufacturing", "Production facilities"],
+  ["Energy", "Power, utilities, and critical systems"],
+  ["Automation", "Controls, robotics, and PLC environments"],
+  ["Food Processing", "Processing lines and regulated facilities"],
+  ["Logistics", "Warehousing and distribution operations"],
+  ["Heavy Equipment", "Industrial machines and field assets"],
 ];
 
 export default function Industries() {
@@ -21,13 +21,19 @@ export default function Industries() {
           </h2>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {industries.map((industry) => (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {industries.map(([title, text]) => (
             <div
-              key={industry}
-              className="rounded-2xl border border-black/10 bg-white px-7 py-6 text-lg font-semibold text-[#111827] shadow-sm"
+              key={title}
+              className="rounded-3xl border border-black/10 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(0,0,0,0.08)]"
             >
-              {industry}
+              <h3 className="text-xl font-semibold text-[#111827]">
+                {title}
+              </h3>
+
+              <p className="mt-3 text-sm leading-6 text-[#6b7280]">
+                {text}
+              </p>
             </div>
           ))}
         </div>
