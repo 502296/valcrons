@@ -8,7 +8,7 @@ export default function Hero() {
           className="h-full w-full object-cover object-center"
         />
 
-      <div className="absolute inset-0 bg-gradient-to-r from-[#f7f7f4] via-[#f7f7f4]/55 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#f7f7f4] via-[#f7f7f4]/20 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#f7f7f4]/10" />
       </div>
 
