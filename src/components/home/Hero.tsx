@@ -9,7 +9,7 @@ export default function Hero() {
         />
 
       <div className="absolute inset-0 bg-gradient-to-r from-[#f7f7f4] via-[#f7f7f4]/55 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#f7f7f4]/55" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#f7f7f4]/10" />
       </div>
 
       <div className="relative z-10 mx-auto flex min-h-[82vh] max-w-7xl items-center px-6">
