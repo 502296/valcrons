@@ -311,23 +311,12 @@ export default function ValcronsPro() {
       return;
     }
 
-    const { error: profileError } = await supabase.from("profiles").upsert({
-      id: data.user.id,
-      email,
-      role,
-      full_name: fullName,
-      company_name: companyName,
-      phone,
-      location,
-      specialty,
-    });
-
     setIsSubmitting(false);
+await loadCurrentUser();
 
-    if (profileError) {
-      alert(profileError.message);
-      return;
-    }
+alert("Account created successfully. Please confirm your email if required.");
+
+setView("profile");
 
     await loadCurrentUser();
     alert("Account created successfully.");
