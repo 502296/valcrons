@@ -1154,8 +1154,6 @@ export default function ValcronsPro() {
         return <SignupFacilityPage />;
       case "signupExpert":
         return <SignupExpertPage />;
-      case "profile":
-        return <ProfilePage />;
       case "plants":
         return <PlantsPage />;
       case "experts":
@@ -1164,6 +1162,8 @@ export default function ValcronsPro() {
         return <PlantFormPage />;
       case "expertForm":
         return <ExpertFormPage />;
+        case "profile":
+      return <ProfilePage />;
       case "requests":
         return <RequestsPage />;
       case "requestDetails":
