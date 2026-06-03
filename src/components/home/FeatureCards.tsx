@@ -4,22 +4,22 @@ const features = [
   {
     title: "Emergency Response",
     text: "Fast access to qualified industrial experts when critical issues arise.",
-    icon: <Zap size={26} />,
+    icon: <Zap size={32} />,
   },
   {
     title: "Verified Experts",
     text: "Every expert is reviewed, vetted, and matched by industrial capability.",
-    icon: <ShieldCheck size={26} />,
+    icon: <ShieldCheck size={32} />,
   },
   {
     title: "National Coverage",
     text: "A growing expert network designed for industrial operations across the U.S.",
-    icon: <Globe2 size={26} />,
+    icon: <Globe2 size={32} />,
   },
   {
     title: "Downtime Reduction",
     text: "Reduce costly interruptions by connecting with the right expertise faster.",
-    icon: <TrendingDown size={26} />,
+    icon: <TrendingDown size={32} />,
   },
 ];
 
@@ -41,9 +41,9 @@ export default function FeatureCards() {
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-[2rem] border border-black/10 bg-white p-8 shadow-[0_24px_70px_rgba(0,0,0,0.07)] transition hover:-translate-y-1 hover:shadow-[0_34px_90px_rgba(0,0,0,0.12)]"
+              className="rounded-[2rem] border border-[#c8a96b]/20 bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_30px_80px_rgba(0,0,0,0.10)]"
             >
-              <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#111827] text-[#c8a96b]">
+              <div className="mb-8 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#111827] text-[#c8a96b] shadow-xl">
                 {feature.icon}
               </div>
 
