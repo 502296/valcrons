@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -9,6 +10,10 @@ import { supabase } from "@/lib/supabase";
 
 export default function RequestSupportPage() {
   const router = useRouter();
+
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [loggedIn, setLoggedIn] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -23,6 +28,23 @@ export default function RequestSupportPage() {
     supportType: "",
     issueDescription: "",
   });
+
+  useEffect(() => {
+    async function checkUser() {
+      const { data } = await supabase.auth.getUser();
+
+      if (!data.user) {
+        setLoggedIn(false);
+        setCheckingAuth(false);
+        return;
+      }
+
+      setLoggedIn(true);
+      setCheckingAuth(false);
+    }
+
+    checkUser();
+  }, []);
 
   function updateField(field: string, value: string) {
     setFormData((prev) => ({
@@ -58,6 +80,73 @@ export default function RequestSupportPage() {
     }
 
     router.push("/requests");
+  }
+
+  if (checkingAuth) {
+    return (
+      <>
+        <main className="min-h-screen bg-[#f4f1ea]">
+          <Header />
+
+          <section className="px-6 py-32">
+            <div className="mx-auto max-w-3xl rounded-3xl border border-black/10 bg-white p-10 text-center shadow-sm">
+              <p className="text-sm font-semibold text-[#374151]">
+                Checking secure access...
+              </p>
+            </div>
+          </section>
+        </main>
+
+        <Footer />
+      </>
+    );
+  }
+
+  if (!loggedIn) {
+    return (
+      <>
+        <main className="min-h-screen bg-[#f4f1ea]">
+          <Header />
+
+          <section className="px-6 py-32">
+            <div className="mx-auto max-w-3xl rounded-[2rem] border border-black/10 bg-white p-10 text-center shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a7a3f]">
+                Company Access Required
+              </p>
+
+              <h1 className="mt-4 text-4xl font-bold text-[#111827]">
+                Create an Account to Post a Request
+              </h1>
+
+              <p className="mx-auto mt-4 max-w-xl text-[#4b5563]">
+                Industrial support requests can only be submitted through a
+                registered company account. VALCRONS protects facilities,
+                experts, and operational information through verified
+                account-based access.
+              </p>
+
+              <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+                <Link
+                  href="/login"
+                  className="rounded-xl border border-black/10 bg-white px-6 py-3 font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                >
+                  Log In
+                </Link>
+
+                <Link
+                  href="/signup"
+                  className="rounded-xl bg-[#111827] px-6 py-3 font-semibold text-white hover:bg-black"
+                >
+                  Create Account
+                </Link>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <Footer />
+      </>
+    );
   }
 
   return (
