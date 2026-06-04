@@ -10,6 +10,13 @@ export default function SignupPage() {
       <main className="min-h-screen bg-[#f4f1eb] px-6 pt-32 pb-24">
         <div className="mx-auto max-w-6xl">
 
+          <Link
+      href="/"
+      className="mb-8 inline-flex text-sm font-semibold text-[#374151] hover:text-black"
+>
+      ← Back
+    </Link>
+
           <div className="mb-12 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a7a3f]">
               VALCRONS ACCESS
