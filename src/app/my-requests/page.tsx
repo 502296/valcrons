@@ -192,9 +192,10 @@ export default function MyRequestsPage() {
 function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a7a3f]">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
         {label}
       </p>
+
       <p className="mt-1 font-semibold text-[#111827]">
         {value}
       </p>
