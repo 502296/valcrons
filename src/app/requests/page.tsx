@@ -56,6 +56,29 @@ export default function RequestsPage() {
               </p>
             </div>
 
+            <div className="mt-10 grid gap-4 sm:grid-cols-3">
+  <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
+    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9a7a3f]">
+      Active Requests
+    </p>
+    <p className="mt-3 text-3xl font-semibold text-[#111827]">3</p>
+  </div>
+
+  <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
+    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9a7a3f]">
+      Urgent
+    </p>
+    <p className="mt-3 text-3xl font-semibold text-[#111827]">1</p>
+  </div>
+
+  <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
+    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9a7a3f]">
+      Awaiting Review
+    </p>
+    <p className="mt-3 text-3xl font-semibold text-[#111827]">2</p>
+  </div>
+</div>
+            
             <div className="mt-8 grid gap-6">
               {requests.map((request) => (
                 <article
