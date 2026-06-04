@@ -1,6 +1,52 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+
+type UserRole = "expert" | "company" | "facility" | null;
 
 export default function Header() {
+  const [role, setRole] = useState<UserRole>(null);
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    async function loadUser() {
+      const { data } = await supabase.auth.getUser();
+
+      if (!data.user) {
+        setLoggedIn(false);
+        setRole(null);
+        return;
+      }
+
+      setLoggedIn(true);
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+
+      setRole((profile?.role as UserRole) || null);
+    }
+
+    loadUser();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      loadUser();
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  }
+
   return (
     <header className="fixed left-0 top-0 z-50 w-full border-b border-black/5 bg-white/80 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
@@ -20,41 +66,80 @@ export default function Header() {
         </Link>
 
         <nav className="hidden items-center gap-8 text-sm font-medium text-[#374151] md:flex">
-          <Link href="/#how-it-works" className="hover:text-black">
-            How It Works
-          </Link>
+          {!loggedIn && (
+            <>
+              <Link href="/#how-it-works" className="hover:text-black">
+                How It Works
+              </Link>
+              <Link href="/#experts" className="hover:text-black">
+                Experts
+              </Link>
+              <Link href="/#industries" className="hover:text-black">
+                Industries
+              </Link>
+              <Link href="/#safety" className="hover:text-black">
+                Safety
+              </Link>
+              <Link href="/requests" className="font-semibold text-[#111827] hover:text-black">
+                Browse Requests
+              </Link>
+            </>
+          )}
 
-          <Link href="/#experts" className="hover:text-black">
-            Experts
-          </Link>
+          {loggedIn && role === "expert" && (
+            <>
+              <Link href="/requests" className="font-semibold text-[#111827] hover:text-black">
+                Browse Requests
+              </Link>
+              <Link href="/saved-requests" className="hover:text-black">
+                Saved Requests
+              </Link>
+              <Link href="/profile" className="hover:text-black">
+                Profile
+              </Link>
+            </>
+          )}
 
-          <Link href="/#industries" className="hover:text-black">
-            Industries
-          </Link>
-
-          <Link href="/#safety" className="hover:text-black">
-            Safety
-          </Link>
-
-          <Link href="/requests" className="font-semibold text-[#111827] hover:text-black">
-            Browse Requests
-          </Link>
+          {loggedIn && (role === "company" || role === "facility") && (
+            <>
+              <Link href="/request-support" className="font-semibold text-[#111827] hover:text-black">
+                Post Request
+              </Link>
+              <Link href="/my-requests" className="hover:text-black">
+                My Requests
+              </Link>
+              <Link href="/profile" className="hover:text-black">
+                Profile
+              </Link>
+            </>
+          )}
         </nav>
 
         <div className="flex items-center gap-4">
-          <Link
-            href="/login"
-            className="hidden text-sm font-medium text-[#374151] hover:text-black sm:block"
-          >
-            Log In
-          </Link>
+          {!loggedIn ? (
+            <>
+              <Link
+                href="/login"
+                className="hidden text-sm font-medium text-[#374151] hover:text-black sm:block"
+              >
+                Log In
+              </Link>
 
-          <Link
-            href="/request-support"
-            className="rounded-xl bg-[#111827] px-5 py-3 text-sm font-semibold text-white hover:bg-black"
-          >
-            Request Access
-          </Link>
+              <Link
+                href="/request-support"
+                className="rounded-xl bg-[#111827] px-5 py-3 text-sm font-semibold text-white hover:bg-black"
+              >
+                Request Access
+              </Link>
+            </>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="rounded-xl bg-[#111827] px-5 py-3 text-sm font-semibold text-white hover:bg-black"
+            >
+              Logout
+            </button>
+          )}
         </div>
       </div>
     </header>
