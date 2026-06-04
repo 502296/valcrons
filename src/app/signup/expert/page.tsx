@@ -48,7 +48,6 @@ export default function ExpertSignupPage() {
         role: "expert",
         full_name: fullName,
         specialty,
-        years_experience: experience,
         location,
         phone,
       });
