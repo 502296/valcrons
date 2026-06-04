@@ -109,6 +109,15 @@ export default function RequestSupportPage() {
           <Header />
 
           <section className="px-6 py-32">
+            <div className="mx-auto mb-8 max-w-3xl">
+              <Link
+                href="/"
+                className="inline-flex text-sm font-semibold text-[#374151] hover:text-black"
+            >
+              ← Back
+            </Link>
+          </div>
+            
             <div className="mx-auto max-w-3xl rounded-[2rem] border border-black/10 bg-white p-10 text-center shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a7a3f]">
                 Company Access Required
