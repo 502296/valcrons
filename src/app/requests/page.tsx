@@ -56,7 +56,7 @@ export default function RequestsPage() {
               </p>
             </div>
 
-            <div className="mt-14 grid gap-6">
+            <div className="mt-8 grid gap-6">
               {requests.map((request) => (
                 <article
                   key={request.title}
