@@ -24,6 +24,7 @@ export default function RequestsPage() {
   const [requests, setRequests] = useState<FacilityRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [savedIds, setSavedIds] = useState<number[]>([]);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   useEffect(() => {
     loadRequests();
@@ -54,6 +55,16 @@ export default function RequestsPage() {
 
     setSavedIds(updated);
     localStorage.setItem("valcrons_saved_requests", JSON.stringify(updated));
+  }
+
+  function getRequestTitle(request: FacilityRequest) {
+    if (request.problem_description && request.problem_description.length > 8) {
+      return request.problem_description.length > 72
+        ? `${request.problem_description.slice(0, 72)}...`
+        : request.problem_description;
+    }
+
+    return request.issue_type || "Industrial support request";
   }
 
   return (
@@ -120,76 +131,131 @@ export default function RequestsPage() {
                 </div>
               )}
 
-              {requests.map((request) => (
-                <article
-                  key={request.id}
-                  className="rounded-[2rem] border border-black/10 bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-md md:p-10"
-                >
-                  <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
-                    <div className="max-w-3xl">
-                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#111827]">
-                        {request.urgency || "Review"}
-                      </p>
+              {requests.map((request) => {
+                const isExpanded = expandedId === request.id;
 
-                      <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-[#111827]">
-                        {request.issue_type || "Industrial support request"}
-                      </h2>
+                return (
+                  <article
+                    key={request.id}
+                    className="rounded-[2rem] border border-black/10 bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-md md:p-10"
+                  >
+                    <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+                      <div className="max-w-3xl">
+                        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#111827]">
+                          {request.urgency || "Review"}
+                        </p>
 
-                      <p className="mt-4 text-sm leading-7 text-[#374151]">
-                        {request.problem_description}
-                      </p>
+                        <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-[#111827]">
+                          {getRequestTitle(request)}
+                        </h2>
 
-                      <div className="mt-7 grid gap-4 text-sm text-[#374151] sm:grid-cols-3">
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
-                            Industry
-                          </p>
-                          <p className="mt-2 font-medium text-[#111827]">
-                            {request.facility_type}
-                          </p>
+                        <p className="mt-4 text-sm leading-7 text-[#374151]">
+                          {request.issue_type || "General industrial support"}
+                        </p>
+
+                        <div className="mt-7 grid gap-4 text-sm text-[#374151] sm:grid-cols-4">
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
+                              Industry
+                            </p>
+                            <p className="mt-2 font-medium text-[#111827]">
+                              {request.facility_type}
+                            </p>
+                          </div>
+
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
+                              Location
+                            </p>
+                            <p className="mt-2 font-medium text-[#111827]">
+                              {request.location}
+                            </p>
+                          </div>
+
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
+                              Support Type
+                            </p>
+                            <p className="mt-2 font-medium text-[#111827]">
+                              {request.issue_type}
+                            </p>
+                          </div>
+
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
+                              Status
+                            </p>
+                            <p className="mt-2 font-medium text-[#111827]">
+                              {request.status || "pending"}
+                            </p>
+                          </div>
                         </div>
 
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
-                            Location
-                          </p>
-                          <p className="mt-2 font-medium text-[#111827]">
-                            {request.location}
-                          </p>
-                        </div>
+                        {isExpanded && (
+                          <div className="mt-8 rounded-3xl border border-black/10 bg-[#f8f6f1] p-6">
+                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#111827]">
+                              Request Details
+                            </p>
 
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
-                            Status
-                          </p>
-                          <p className="mt-2 font-medium text-[#111827]">
-                            {request.status || "pending"}
-                          </p>
-                        </div>
+                            <p className="mt-4 text-sm leading-7 text-[#374151]">
+                              {request.problem_description}
+                            </p>
+
+                            <div className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
+                              <div>
+                                <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
+                                  Company
+                                </p>
+                                <p className="mt-2 font-medium text-[#111827]">
+                                  Hidden until contact
+                                </p>
+                              </div>
+
+                              <div>
+                                <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
+                                  Phone
+                                </p>
+                                <p className="mt-2 font-medium text-[#111827]">
+                                  Hidden for privacy
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col gap-3 md:min-w-[190px]">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedId(isExpanded ? null : request.id)
+                          }
+                          className="rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm font-semibold text-[#111827] transition hover:bg-white"
+                        >
+                          {isExpanded ? "Hide Details" : "View Request"}
+                        </button>
+
+                        <a
+                          href={`mailto:${request.work_email}?subject=VALCRONS Expert Support Inquiry&body=Hello, I saw your industrial support request on VALCRONS and would like to discuss how I may be able to help.`}
+                          className="rounded-2xl bg-[#07111f] px-5 py-4 text-center text-sm font-semibold text-white transition hover:bg-black"
+                        >
+                          Contact Facility →
+                        </a>
+
+                        <button
+                          type="button"
+                          onClick={() => saveRequest(request.id)}
+                          className="rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm font-semibold text-[#111827] transition hover:bg-white"
+                        >
+                          {savedIds.includes(request.id)
+                            ? "Saved ✓"
+                            : "Save Request"}
+                        </button>
                       </div>
                     </div>
-
-                    <div className="flex flex-col gap-3 md:min-w-[190px]">
-                      <a
-                        href={`mailto:${request.work_email}?subject=VALCRONS Expert Support Inquiry&body=Hello, I saw your industrial support request on VALCRONS and would like to discuss how I may be able to help.`}
-                        className="rounded-2xl bg-[#07111f] px-5 py-4 text-center text-sm font-semibold text-white transition hover:bg-black"
-                      >
-                        Contact Facility →
-                      </a>
-
-                      <button
-                        type="button"
-                        onClick={() => saveRequest(request.id)}
-                        className="rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm font-semibold text-[#111827] transition hover:bg-white"
-                      >
-                        {savedIds.includes(request.id)
-                          ? "Saved ✓"
-                          : "Save Request"}
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           </div>
         </section>
