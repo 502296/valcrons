@@ -25,16 +25,32 @@ export default function RequestsPage() {
   const [loading, setLoading] = useState(true);
   const [savedIds, setSavedIds] = useState<number[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
-  useEffect(() => {
+ useEffect(() => {
+  async function checkUser() {
+    const { data } = await supabase.auth.getUser();
+
+    if (!data.user) {
+      setLoggedIn(false);
+      setCheckingAuth(false);
+      return;
+    }
+
+    setLoggedIn(true);
+    setCheckingAuth(false);
+
     loadRequests();
 
     const saved = localStorage.getItem("valcrons_saved_requests");
     if (saved) {
       setSavedIds(JSON.parse(saved));
     }
-  }, []);
+  }
 
+  checkUser();
+}, []);
   async function loadRequests() {
     const { data, error } = await supabase
       .from("facility_requests")
@@ -66,6 +82,66 @@ export default function RequestsPage() {
 
     return request.issue_type || "Industrial support request";
   }
+
+  if (checkingAuth) {
+  return (
+    <main className="min-h-screen bg-[#f4f1ea]">
+      <Header />
+      <section className="px-6 py-32">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-black/10 bg-white p-10 text-center shadow-sm">
+          <p className="text-sm font-semibold text-[#374151]">
+            Checking secure access...
+          </p>
+        </div>
+      </section>
+      <Footer />
+    </main>
+  );
+}
+
+if (!loggedIn) {
+  return (
+    <main className="min-h-screen bg-[#f4f1ea]">
+      <Header />
+
+      <section className="px-6 py-32">
+        <div className="mx-auto max-w-3xl rounded-[2rem] border border-black/10 bg-white p-10 text-center shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a7a3f]">
+            Secure Industrial Access
+          </p>
+
+          <h1 className="mt-4 text-4xl font-bold text-[#111827]">
+            Industrial Access Required
+          </h1>
+
+          <p className="mx-auto mt-4 max-w-xl text-[#4b5563]">
+            To view industrial requests, you must create an account or log in first.
+            VALCRONS protects facilities, experts, and operational information through
+            verified account-based access.
+          </p>
+
+          <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+            <a
+              href="/login"
+              className="rounded-xl border border-black/10 bg-white px-6 py-3 font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+            >
+              Log In
+            </a>
+
+            <a
+              href="/signup"
+              className="rounded-xl bg-[#111827] px-6 py-3 font-semibold text-white hover:bg-black"
+            >
+              Create Account
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </main>
+  );
+}
 
   return (
     <>
