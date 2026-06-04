@@ -40,6 +40,7 @@ export default function RequestsPage() {
 
         <section className="px-6 py-28">
           <div className="mx-auto max-w-7xl">
+            <BackButton />
             <div className="max-w-4xl">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a7a3f]">
                 Industrial Requests
