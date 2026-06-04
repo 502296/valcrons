@@ -34,7 +34,7 @@ export default function RequestSupportPage() {
                   <input
                     type="text"
                     placeholder="Example: BlueRiver Manufacturing"
-                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm outline-none focus:border-[#9a7a3f]"
+                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-gray-400 outline-none focus:border-[#9a7a3f]"
                   />
                 </div>
 
@@ -45,7 +45,7 @@ export default function RequestSupportPage() {
                   <input
                     type="text"
                     placeholder="Full name"
-                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm outline-none focus:border-[#9a7a3f]"
+                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-gray-400 outline-none focus:border-[#9a7a3f]"
                   />
                 </div>
 
@@ -56,7 +56,7 @@ export default function RequestSupportPage() {
                   <input
                     type="email"
                     placeholder="name@company.com"
-                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm outline-none focus:border-[#9a7a3f]"
+                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-gray-400 outline-none focus:border-[#9a7a3f]"
                   />
                 </div>
 
@@ -67,7 +67,7 @@ export default function RequestSupportPage() {
                   <input
                     type="tel"
                     placeholder="+1 (502) 000-0000"
-                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm outline-none focus:border-[#9a7a3f]"
+                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-gray-400 outline-none focus:border-[#9a7a3f]"
                   />
                 </div>
 
@@ -78,7 +78,7 @@ export default function RequestSupportPage() {
                   <input
                     type="text"
                     placeholder="City, State"
-                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm outline-none focus:border-[#9a7a3f]"
+                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-gray-400 outline-none focus:border-[#9a7a3f]"
                   />
                 </div>
 
@@ -86,7 +86,7 @@ export default function RequestSupportPage() {
                   <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a7a3f]">
                     Industry
                   </label>
-                  <select className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm outline-none focus:border-[#9a7a3f]">
+                  <select className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] outline-none focus:border-[#9a7a3f]">
                     <option>Select industry</option>
                     <option>Manufacturing</option>
                     <option>Energy</option>
@@ -101,7 +101,7 @@ export default function RequestSupportPage() {
                   <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a7a3f]">
                     Priority Level
                   </label>
-                  <select className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm outline-none focus:border-[#9a7a3f]">
+                  <select className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] outline-none focus:border-[#9a7a3f]">
                     <option>Select priority</option>
                     <option>Urgent — Operations affected now</option>
                     <option>High Priority — Needs expert review soon</option>
@@ -113,7 +113,7 @@ export default function RequestSupportPage() {
                   <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a7a3f]">
                     Support Type
                   </label>
-                  <select className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm outline-none focus:border-[#9a7a3f]">
+                  <select className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] outline-none focus:border-[#9a7a3f]">
                     <option>Select support type</option>
                     <option>Remote expert review</option>
                     <option>On-site expert support</option>
@@ -130,7 +130,7 @@ export default function RequestSupportPage() {
                 <textarea
                   rows={7}
                   placeholder="Describe the issue, affected equipment, urgency, symptoms, downtime impact, and what support is needed."
-                  className="mt-3 w-full resize-none rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm leading-7 outline-none focus:border-[#9a7a3f]"
+                  className="mt-3 w-full resize-none rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm leading-7 text-[#111827] placeholder:text-gray-400 outline-none focus:border-[#9a7a3f]"
                 />
               </div>
 
