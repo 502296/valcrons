@@ -1,8 +1,65 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import BackButton from "@/components/layout/BackButton";
+import { supabase } from "@/lib/supabase";
 
 export default function RequestSupportPage() {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const [formData, setFormData] = useState({
+    companyName: "",
+    contactPerson: "",
+    workEmail: "",
+    phoneNumber: "",
+    facilityLocation: "",
+    industry: "",
+    priorityLevel: "",
+    supportType: "",
+    issueDescription: "",
+  });
+
+  function updateField(field: string, value: string) {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setErrorMessage("");
+    setIsSubmitting(true);
+
+    const { error } = await supabase.from("facility_requests").insert({
+      company_name: formData.companyName,
+      contact_person: formData.contactPerson,
+      work_email: formData.workEmail,
+      phone_number: formData.phoneNumber,
+      location: formData.facilityLocation,
+      facility_type: formData.industry,
+      urgency: formData.priorityLevel,
+      issue_type: formData.supportType,
+      problem_description: formData.issueDescription,
+      status: "pending",
+    });
+
+    setIsSubmitting(false);
+
+    if (error) {
+      setErrorMessage("Request could not be submitted. Please try again.");
+      console.error(error);
+      return;
+    }
+
+    router.push("/requests");
+  }
+
   return (
     <>
       <main className="min-h-screen bg-[#f4f1ea]">
@@ -25,14 +82,20 @@ export default function RequestSupportPage() {
               your request for qualified industrial experts.
             </p>
 
-            <form className="mt-14 rounded-[2rem] border border-black/10 bg-white p-8 shadow-sm md:p-10">
+            <form
+              onSubmit={handleSubmit}
+              className="mt-14 rounded-[2rem] border border-black/10 bg-white p-8 shadow-sm md:p-10"
+            >
               <div className="grid gap-6 md:grid-cols-2">
                 <div>
                   <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
                     Company Name
                   </label>
                   <input
+                    required
                     type="text"
+                    value={formData.companyName}
+                    onChange={(e) => updateField("companyName", e.target.value)}
                     placeholder="Example: BlueRiver Manufacturing"
                     className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-[#374151] outline-none focus:border-[#9a7a3f]"
                   />
@@ -43,7 +106,12 @@ export default function RequestSupportPage() {
                     Contact Person
                   </label>
                   <input
+                    required
                     type="text"
+                    value={formData.contactPerson}
+                    onChange={(e) =>
+                      updateField("contactPerson", e.target.value)
+                    }
                     placeholder="Full name"
                     className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-[#374151] outline-none focus:border-[#9a7a3f]"
                   />
@@ -54,7 +122,10 @@ export default function RequestSupportPage() {
                     Work Email
                   </label>
                   <input
+                    required
                     type="email"
+                    value={formData.workEmail}
+                    onChange={(e) => updateField("workEmail", e.target.value)}
                     placeholder="name@company.com"
                     className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-[#374151] outline-none focus:border-[#9a7a3f]"
                   />
@@ -66,6 +137,8 @@ export default function RequestSupportPage() {
                   </label>
                   <input
                     type="tel"
+                    value={formData.phoneNumber}
+                    onChange={(e) => updateField("phoneNumber", e.target.value)}
                     placeholder="+1 (502) 000-0000"
                     className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-[#374151] outline-none focus:border-[#9a7a3f]"
                   />
@@ -76,7 +149,12 @@ export default function RequestSupportPage() {
                     Facility Location
                   </label>
                   <input
+                    required
                     type="text"
+                    value={formData.facilityLocation}
+                    onChange={(e) =>
+                      updateField("facilityLocation", e.target.value)
+                    }
                     placeholder="City, State"
                     className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-[#374151] outline-none focus:border-[#9a7a3f]"
                   />
@@ -86,8 +164,13 @@ export default function RequestSupportPage() {
                   <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
                     Industry
                   </label>
-                  <select className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] outline-none focus:border-[#9a7a3f]">
-                    <option>Select industry</option>
+                  <select
+                    required
+                    value={formData.industry}
+                    onChange={(e) => updateField("industry", e.target.value)}
+                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] outline-none focus:border-[#9a7a3f]"
+                  >
+                    <option value="">Select industry</option>
                     <option>Manufacturing</option>
                     <option>Energy</option>
                     <option>Automation</option>
@@ -101,8 +184,15 @@ export default function RequestSupportPage() {
                   <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
                     Priority Level
                   </label>
-                  <select className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] outline-none focus:border-[#9a7a3f]">
-                    <option>Select priority</option>
+                  <select
+                    required
+                    value={formData.priorityLevel}
+                    onChange={(e) =>
+                      updateField("priorityLevel", e.target.value)
+                    }
+                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] outline-none focus:border-[#9a7a3f]"
+                  >
+                    <option value="">Select priority</option>
                     <option>Urgent — Operations affected now</option>
                     <option>High Priority — Needs expert review soon</option>
                     <option>Review — Planning or evaluation</option>
@@ -113,8 +203,13 @@ export default function RequestSupportPage() {
                   <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
                     Support Type
                   </label>
-                  <select className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] outline-none focus:border-[#9a7a3f]">
-                    <option>Select support type</option>
+                  <select
+                    required
+                    value={formData.supportType}
+                    onChange={(e) => updateField("supportType", e.target.value)}
+                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] outline-none focus:border-[#9a7a3f]"
+                  >
+                    <option value="">Select support type</option>
                     <option>Remote expert review</option>
                     <option>On-site expert support</option>
                     <option>Emergency response coordination</option>
@@ -128,11 +223,22 @@ export default function RequestSupportPage() {
                   Operational Issue Description
                 </label>
                 <textarea
+                  required
                   rows={7}
+                  value={formData.issueDescription}
+                  onChange={(e) =>
+                    updateField("issueDescription", e.target.value)
+                  }
                   placeholder="Describe the issue, affected equipment, urgency, symptoms, downtime impact, and what support is needed."
                   className="mt-3 w-full resize-none rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm leading-7 text-[#111827] placeholder:text-[#374151] outline-none focus:border-[#9a7a3f]"
                 />
               </div>
+
+              {errorMessage && (
+                <p className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+                  {errorMessage}
+                </p>
+              )}
 
               <div className="mt-8 rounded-3xl border border-black/10 bg-[#f8f6f1] p-5">
                 <p className="text-sm leading-7 text-[#374151]">
@@ -150,10 +256,11 @@ export default function RequestSupportPage() {
                 </p>
 
                 <button
-                  type="button"
-                  className="rounded-2xl bg-[#07111f] px-7 py-4 text-sm font-semibold text-white transition hover:bg-black"
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="rounded-2xl bg-[#07111f] px-7 py-4 text-sm font-semibold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Submit Request →
+                  {isSubmitting ? "Submitting..." : "Submit Request →"}
                 </button>
               </div>
             </form>
