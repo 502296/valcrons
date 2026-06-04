@@ -5,8 +5,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import BackButton from "@/components/layout/BackButton";
 import { supabase } from "@/lib/supabase";
+
+type Profile = {
+  id: string;
+  full_name: string | null;
+  role: string | null;
+  email: string | null;
+  company_name: string | null;
+  phone: string | null;
+  location: string | null;
+};
 
 export default function RequestSupportPage() {
   const router = useRouter();
@@ -30,20 +39,45 @@ export default function RequestSupportPage() {
   });
 
   useEffect(() => {
-    async function checkUser() {
-      const { data } = await supabase.auth.getUser();
+    async function checkUserAndLoadProfile() {
+      const { data: userData } = await supabase.auth.getUser();
 
-      if (!data.user) {
+      if (!userData.user) {
         setLoggedIn(false);
         setCheckingAuth(false);
         return;
       }
 
       setLoggedIn(true);
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userData.user.id)
+        .single();
+
+      if (profile) {
+        const p = profile as Profile;
+
+        setFormData((prev) => ({
+          ...prev,
+          companyName: p.company_name || "",
+          contactPerson: p.full_name || "",
+          workEmail: p.email || userData.user.email || "",
+          phoneNumber: p.phone || "",
+          facilityLocation: p.location || "",
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          workEmail: userData.user.email || "",
+        }));
+      }
+
       setCheckingAuth(false);
     }
 
-    checkUser();
+    checkUserAndLoadProfile();
   }, []);
 
   function updateField(field: string, value: string) {
@@ -79,7 +113,7 @@ export default function RequestSupportPage() {
       return;
     }
 
-    router.push("/requests");
+    router.push("/my-requests");
   }
 
   if (checkingAuth) {
@@ -89,10 +123,8 @@ export default function RequestSupportPage() {
           <Header />
 
           <section className="px-6 py-32">
-            <div className="mx-auto max-w-3xl rounded-3xl border border-black/10 bg-white p-10 text-center shadow-sm">
-              <p className="text-sm font-semibold text-[#374151]">
-                Checking secure access...
-              </p>
+            <div className="mx-auto max-w-3xl rounded-3xl border border-black/10 bg-white p-10 text-center text-[#111827] shadow-sm">
+              Checking secure access...
             </div>
           </section>
         </main>
@@ -113,11 +145,11 @@ export default function RequestSupportPage() {
               <Link
                 href="/"
                 className="inline-flex text-sm font-semibold text-[#374151] hover:text-black"
-            >
-              ← Back
-            </Link>
-          </div>
-            
+              >
+                ← Back
+              </Link>
+            </div>
+
             <div className="mx-auto max-w-3xl rounded-[2rem] border border-black/10 bg-white p-10 text-center shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a7a3f]">
                 Company Access Required
@@ -165,7 +197,12 @@ export default function RequestSupportPage() {
 
         <section className="px-6 py-24">
           <div className="mx-auto max-w-5xl">
-            <BackButton />
+            <Link
+              href="/"
+              className="mb-8 inline-flex text-sm font-semibold text-[#374151] hover:text-black"
+            >
+              ← Back
+            </Link>
 
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#111827]">
               Request Expert Support
@@ -185,78 +222,46 @@ export default function RequestSupportPage() {
               className="mt-14 rounded-[2rem] border border-black/10 bg-white p-8 shadow-sm md:p-10"
             >
               <div className="grid gap-6 md:grid-cols-2">
-                <div>
-                  <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
-                    Company Name
-                  </label>
-                  <input
-                    required
-                    type="text"
-                    value={formData.companyName}
-                    onChange={(e) => updateField("companyName", e.target.value)}
-                    placeholder="Example: BlueRiver Manufacturing"
-                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-[#374151] outline-none focus:border-[#9a7a3f]"
-                  />
-                </div>
+                <FormInput
+                  label="Company Name"
+                  value={formData.companyName}
+                  placeholder="Example: BlueRiver Manufacturing"
+                  required
+                  onChange={(value) => updateField("companyName", value)}
+                />
 
-                <div>
-                  <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
-                    Contact Person
-                  </label>
-                  <input
-                    required
-                    type="text"
-                    value={formData.contactPerson}
-                    onChange={(e) =>
-                      updateField("contactPerson", e.target.value)
-                    }
-                    placeholder="Full name"
-                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-[#374151] outline-none focus:border-[#9a7a3f]"
-                  />
-                </div>
+                <FormInput
+                  label="Contact Person"
+                  value={formData.contactPerson}
+                  placeholder="Full name"
+                  required
+                  onChange={(value) => updateField("contactPerson", value)}
+                />
 
-                <div>
-                  <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
-                    Work Email
-                  </label>
-                  <input
-                    required
-                    type="email"
-                    value={formData.workEmail}
-                    onChange={(e) => updateField("workEmail", e.target.value)}
-                    placeholder="name@company.com"
-                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-[#374151] outline-none focus:border-[#9a7a3f]"
-                  />
-                </div>
+                <FormInput
+                  label="Work Email"
+                  type="email"
+                  value={formData.workEmail}
+                  placeholder="name@company.com"
+                  required
+                  onChange={(value) => updateField("workEmail", value)}
+                />
 
-                <div>
-                  <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.phoneNumber}
-                    onChange={(e) => updateField("phoneNumber", e.target.value)}
-                    placeholder="+1 (502) 000-0000"
-                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-[#374151] outline-none focus:border-[#9a7a3f]"
-                  />
-                </div>
+                <FormInput
+                  label="Phone Number"
+                  type="tel"
+                  value={formData.phoneNumber}
+                  placeholder="+1 (502) 000-0000"
+                  onChange={(value) => updateField("phoneNumber", value)}
+                />
 
-                <div>
-                  <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
-                    Facility Location
-                  </label>
-                  <input
-                    required
-                    type="text"
-                    value={formData.facilityLocation}
-                    onChange={(e) =>
-                      updateField("facilityLocation", e.target.value)
-                    }
-                    placeholder="City, State"
-                    className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-[#374151] outline-none focus:border-[#9a7a3f]"
-                  />
-                </div>
+                <FormInput
+                  label="Facility Location"
+                  value={formData.facilityLocation}
+                  placeholder="City, State"
+                  required
+                  onChange={(value) => updateField("facilityLocation", value)}
+                />
 
                 <div>
                   <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
@@ -368,5 +373,37 @@ export default function RequestSupportPage() {
 
       <Footer />
     </>
+  );
+}
+
+function FormInput({
+  label,
+  value,
+  placeholder,
+  type = "text",
+  required = false,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  placeholder: string;
+  type?: string;
+  required?: boolean;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div>
+      <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
+        {label}
+      </label>
+      <input
+        required={required}
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] placeholder:text-[#374151] outline-none focus:border-[#9a7a3f]"
+      />
+    </div>
   );
 }
