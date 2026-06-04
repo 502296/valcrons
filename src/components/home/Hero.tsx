@@ -29,7 +29,7 @@ export default function Hero() {
 
           <div className="flex flex-col gap-4 sm:flex-row">
             <a
-              href="/requests"
+              href="/request-support"
               className="rounded-xl bg-[#111827] px-7 py-4 text-center text-sm font-semibold text-white transition hover:bg-black"
             >
               Request Expert Support →
