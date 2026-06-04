@@ -126,7 +126,7 @@ export default function Header() {
               </Link>
 
               <Link
-                href="/request-support"
+                href="/signup"
                 className="rounded-xl bg-[#111827] px-5 py-3 text-sm font-semibold text-white hover:bg-black"
               >
                 Request Access
