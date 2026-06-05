@@ -78,14 +78,47 @@ export default function SettingsPage() {
     window.location.href = "/login";
   }
 
-  async function deleteAccount() {
-    setMessage("");
-    setError("");
+ async function deleteAccount() {
+  setMessage("");
+  setError("");
 
-    setError(
-      "Account deletion requires administrator verification. Please contact VALCRONS support."
-    );
+  const confirmed = window.confirm(
+    "Are you sure you want to permanently delete your VALCRONS account? This action cannot be undone."
+  );
+
+  if (!confirmed) return;
+
+  const secondConfirm = window.confirm(
+    "Final confirmation: delete this account permanently?"
+  );
+
+  if (!secondConfirm) return;
+
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+
+  if (!token) {
+    setError("Session expired. Please log in again.");
+    return;
   }
+
+  const response = await fetch("/api/delete-account", {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    setError(result.error || "Account could not be deleted.");
+    return;
+  }
+
+  await supabase.auth.signOut();
+  window.location.href = "/login";
+}
 
   if (loading) {
     return (
