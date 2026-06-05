@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -78,6 +78,15 @@ export default function SettingsPage() {
     window.location.href = "/login";
   }
 
+  async function deleteAccount() {
+    setMessage("");
+    setError("");
+
+    setError(
+      "Account deletion requires administrator verification. Please contact VALCRONS support."
+    );
+  }
+
   if (loading) {
     return (
       <>
@@ -114,7 +123,8 @@ export default function SettingsPage() {
           </h1>
 
           <p className="mt-4 max-w-2xl text-lg leading-8 text-[#374151]">
-            Manage your VALCRONS account security, notifications, and access preferences.
+            Manage your VALCRONS account security, notifications, and access
+            preferences.
           </p>
 
           {(message || error) && (
@@ -140,7 +150,8 @@ export default function SettingsPage() {
               </h2>
 
               <p className="mt-3 max-w-2xl text-sm leading-7 text-[#4b5563]">
-                Update your password regularly to protect access to company requests and operational information.
+                Update your password regularly to protect access to company
+                requests and operational information.
               </p>
 
               <div className="mt-8 grid gap-5 md:grid-cols-2">
@@ -156,7 +167,10 @@ export default function SettingsPage() {
                   label="Confirm New Password"
                   value={passwordForm.confirmPassword}
                   onChange={(value) =>
-                    setPasswordForm({ ...passwordForm, confirmPassword: value })
+                    setPasswordForm({
+                      ...passwordForm,
+                      confirmPassword: value,
+                    })
                   }
                 />
               </div>
@@ -215,7 +229,10 @@ export default function SettingsPage() {
               </div>
 
               <button
-                onClick={() => setMessage("Notification preferences saved.")}
+                onClick={() => {
+                  setError("");
+                  setMessage("Notification preferences saved.");
+                }}
                 className="mt-8 rounded-xl border border-black/10 bg-white px-6 py-3 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
               >
                 Save Preferences
@@ -232,7 +249,8 @@ export default function SettingsPage() {
               </h2>
 
               <p className="mt-3 max-w-2xl text-sm leading-7 text-[#4b5563]">
-                Sign out of your current VALCRONS session. Use this when working from shared or public devices.
+                Sign out of your current VALCRONS session. Use this when
+                working from shared or public devices.
               </p>
 
               <button
@@ -253,13 +271,12 @@ export default function SettingsPage() {
               </h2>
 
               <p className="mt-3 max-w-2xl text-sm leading-7 text-[#4b5563]">
-                Account deletion will be added later with extra verification to protect company data and request history.
+                Account deletion requires administrator verification to protect
+                company data, request history, and platform security.
               </p>
 
               <button
-                onClick={() =>
-                  setError("Account deletion is not enabled yet for safety.")
-                }
+                onClick={deleteAccount}
                 className="mt-8 rounded-xl border border-red-200 bg-red-50 px-6 py-3 text-sm font-semibold text-red-700 hover:bg-red-100"
               >
                 Delete Account
@@ -308,49 +325,6 @@ function CheckboxRow({
   checked: boolean;
   onChange: (checked: boolean) => void;
 }) {
-
- async function deleteAccount() {
-  setMessage("");
-  setError("");
-
-  const confirmed = window.confirm(
-    "Are you sure you want to permanently delete your VALCRONS account? This action cannot be undone."
-  );
-
-  if (!confirmed) return;
-
-  const secondConfirm = window.confirm(
-    "Final confirmation: delete this account permanently?"
-  );
-
-  if (!secondConfirm) return;
-
-  const { data } = await supabase.auth.getSession();
-
-  const token = data.session?.access_token;
-
-  if (!token) {
-    setError("Session expired. Please log in again.");
-    return;
-  }
-
-  const response = await fetch("/api/delete-account", {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  const result = await response.json();
-
-  if (!response.ok) {
-    setError(result.error || "Account could not be deleted.");
-    return;
-  }
-
-  await supabase.auth.signOut();
-  window.location.href = "/login";
-}
   return (
     <label className="flex items-center justify-between rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4">
       <span className="text-sm font-semibold text-[#111827]">{label}</span>
