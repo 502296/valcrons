@@ -258,9 +258,12 @@ export default function ProfilePage() {
                 </>
               )}
 
-              <button className="rounded-xl border border-black/10 bg-white px-6 py-3 font-semibold text-[#111827] hover:bg-[#f4f1ea]">
-                Account Settings
-              </button>
+             <Link
+  href="/settings"
+  className="rounded-xl border border-black/10 bg-white px-6 py-3 font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+>
+  Account Settings
+</Link>
             </div>
           </section>
 
