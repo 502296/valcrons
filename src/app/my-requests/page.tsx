@@ -238,6 +238,12 @@ const totalRequests = requests.length;
                 Review, track, edit, close, and reopen support requests
                 submitted by your facility.
               </p>
+              <div className="mt-10 grid gap-4 md:grid-cols-4">
+  <StatCard title="Active Requests" value={activeRequests} />
+  <StatCard title="Awaiting Review" value={awaitingReview} />
+  <StatCard title="Closed Requests" value={closedRequests} />
+  <StatCard title="Total Requests" value={totalRequests} />
+</div>
             </div>
 
             <Link
