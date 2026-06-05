@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Header from "@/components/layout/Header";
@@ -13,16 +13,42 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
   const [error, setError] = useState("");
 
-  async function handleLogin(e: React.FormEvent) {
+  useEffect(() => {
+    async function prepareLogin() {
+      const savedEmail = localStorage.getItem("valcrons_login_email");
+
+      if (savedEmail) {
+        setEmail(savedEmail);
+      }
+
+      const { data } = await supabase.auth.getUser();
+
+      if (data.user) {
+        router.push("/");
+        return;
+      }
+
+      setChecking(false);
+    }
+
+    prepareLogin();
+  }, [router]);
+
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
     setLoading(true);
     setError("");
 
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
     const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: cleanEmail,
+      password: cleanPassword,
     });
 
     if (error) {
@@ -31,8 +57,28 @@ export default function LoginPage() {
       return;
     }
 
+    localStorage.setItem("valcrons_login_email", cleanEmail);
+
     router.push("/");
     router.refresh();
+  }
+
+  if (checking) {
+    return (
+      <>
+        <Header />
+
+        <main className="min-h-screen bg-[#f4f1eb] px-6 pt-32 pb-20">
+          <section className="mx-auto max-w-md rounded-3xl border border-black/10 bg-white p-8 shadow-sm">
+            <p className="text-sm font-semibold text-[#111827]">
+              Checking secure access...
+            </p>
+          </section>
+        </main>
+
+        <Footer />
+      </>
+    );
   }
 
   return (
@@ -41,7 +87,7 @@ export default function LoginPage() {
 
       <main className="min-h-screen bg-[#f4f1eb] px-6 pt-32 pb-20">
         <section className="mx-auto max-w-md rounded-3xl border border-black/10 bg-white p-8 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#9a7a3f]">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#111827]">
             Secure Access
           </p>
 
@@ -58,6 +104,7 @@ export default function LoginPage() {
               <label className="text-sm font-semibold text-[#111827]">
                 Email
               </label>
+
               <input
                 type="email"
                 required
@@ -65,6 +112,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-2 w-full rounded-xl border border-black/10 px-4 py-3 text-[#111827] outline-none focus:border-[#111827]"
                 placeholder="you@example.com"
+                autoComplete="email"
               />
             </div>
 
@@ -72,6 +120,7 @@ export default function LoginPage() {
               <label className="text-sm font-semibold text-[#111827]">
                 Password
               </label>
+
               <input
                 type="password"
                 required
@@ -79,11 +128,12 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="mt-2 w-full rounded-xl border border-black/10 px-4 py-3 text-[#111827] outline-none focus:border-[#111827]"
                 placeholder="••••••••"
+                autoComplete="current-password"
               />
             </div>
 
             {error && (
-              <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
                 {error}
               </div>
             )}
