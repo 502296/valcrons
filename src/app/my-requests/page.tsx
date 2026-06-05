@@ -22,6 +22,15 @@ export default function MyRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const [editForm, setEditForm] = useState({
+    facility_type: "",
+    urgency: "",
+    location: "",
+    issue_type: "",
+    problem_description: "",
+  });
 
   useEffect(() => {
     loadRequests();
@@ -43,6 +52,55 @@ export default function MyRequestsPage() {
 
     setRequests(data || []);
     setLoading(false);
+  }
+
+  function startEdit(request: Request) {
+    setEditingId(request.id);
+    setExpandedId(request.id);
+
+    setEditForm({
+      facility_type: request.facility_type || "",
+      urgency: request.urgency || "",
+      location: request.location || "",
+      issue_type: request.issue_type || "",
+      problem_description: request.problem_description || "",
+    });
+  }
+
+  async function saveEdit(id: string) {
+    setUpdatingId(id);
+
+    const { error } = await supabase
+      .from("facility_requests")
+      .update({
+        facility_type: editForm.facility_type,
+        urgency: editForm.urgency,
+        location: editForm.location,
+        issue_type: editForm.issue_type,
+        problem_description: editForm.problem_description,
+      })
+      .eq("id", id);
+
+    if (!error) {
+      setRequests((prev) =>
+        prev.map((request) =>
+          request.id === id
+            ? {
+                ...request,
+                facility_type: editForm.facility_type,
+                urgency: editForm.urgency,
+                location: editForm.location,
+                issue_type: editForm.issue_type,
+                problem_description: editForm.problem_description,
+              }
+            : request
+        )
+      );
+
+      setEditingId(null);
+    }
+
+    setUpdatingId(null);
   }
 
   async function closeRequest(id: string) {
@@ -77,9 +135,7 @@ export default function MyRequestsPage() {
             ← Back
           </Link>
 
-          <h1 className="text-4xl font-bold text-[#111827]">
-            My Requests
-          </h1>
+          <h1 className="text-4xl font-bold text-[#111827]">My Requests</h1>
 
           <p className="mt-3 text-[#4b5563]">
             Review, track, and manage all requests submitted by your facility.
@@ -97,6 +153,7 @@ export default function MyRequestsPage() {
             <div className="mt-10 grid gap-6">
               {requests.map((request) => {
                 const isExpanded = expandedId === request.id;
+                const isEditing = editingId === request.id;
                 const status = request.status || "pending";
 
                 return (
@@ -105,14 +162,16 @@ export default function MyRequestsPage() {
                     className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm"
                   >
                     <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-                      <div className="max-w-3xl">
+                      <div className="max-w-3xl flex-1">
                         <div className="flex flex-wrap items-center gap-3">
                           <h3 className="text-2xl font-bold text-[#111827]">
                             {request.facility_type || "Industrial Request"}
                           </h3>
 
-                          <span className="rounded-full bg-[#f8f6f1] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#374151]">
-                            {status}
+                          <span className="rounded-full border border-black/10 bg-[#111827] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-white">
+                            {status === "closed"
+                              ? "Closed"
+                              : "Awaiting Review"}
                           </span>
                         </div>
 
@@ -120,12 +179,12 @@ export default function MyRequestsPage() {
                           {request.location || "Location not specified"}
                         </p>
 
-                        <p className="mt-4 text-[#374151] leading-relaxed">
+                        <p className="mt-4 leading-relaxed text-[#374151]">
                           {request.problem_description ||
                             "No problem description provided."}
                         </p>
 
-                        {isExpanded && (
+                        {isExpanded && !isEditing && (
                           <div className="mt-6 grid gap-4 rounded-2xl border border-black/10 bg-[#f8f6f1] p-5 text-sm text-[#374151] md:grid-cols-2">
                             <Detail
                               label="Support Type"
@@ -135,10 +194,7 @@ export default function MyRequestsPage() {
                               label="Priority"
                               value={request.urgency || "Pending"}
                             />
-                            <Detail
-                              label="Request ID"
-                              value={request.id}
-                            />
+                            <Detail label="Request ID" value={request.id} />
                             <Detail
                               label="Created"
                               value={new Date(
@@ -147,10 +203,67 @@ export default function MyRequestsPage() {
                             />
                           </div>
                         )}
+
+                        {isEditing && (
+                          <div className="mt-6 grid gap-4 rounded-2xl border border-black/10 bg-[#f8f6f1] p-5 md:grid-cols-2">
+                            <Field
+                              label="Industry"
+                              value={editForm.facility_type}
+                              onChange={(value) =>
+                                setEditForm({
+                                  ...editForm,
+                                  facility_type: value,
+                                })
+                              }
+                            />
+
+                            <Field
+                              label="Location"
+                              value={editForm.location}
+                              onChange={(value) =>
+                                setEditForm({ ...editForm, location: value })
+                              }
+                            />
+
+                            <Field
+                              label="Priority"
+                              value={editForm.urgency}
+                              onChange={(value) =>
+                                setEditForm({ ...editForm, urgency: value })
+                              }
+                            />
+
+                            <Field
+                              label="Support Type"
+                              value={editForm.issue_type}
+                              onChange={(value) =>
+                                setEditForm({ ...editForm, issue_type: value })
+                              }
+                            />
+
+                            <div className="md:col-span-2">
+                              <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
+                                Problem Description
+                              </label>
+
+                              <textarea
+                                rows={5}
+                                value={editForm.problem_description}
+                                onChange={(e) =>
+                                  setEditForm({
+                                    ...editForm,
+                                    problem_description: e.target.value,
+                                  })
+                                }
+                                className="mt-3 w-full resize-none rounded-2xl border border-black/10 bg-white px-5 py-4 text-sm leading-7 text-[#111827] outline-none focus:border-[#111827]"
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex flex-col gap-3 md:items-end">
-                        <span className="rounded-full bg-red-100 px-4 py-2 text-sm font-semibold text-red-700">
+                        <span className="rounded-full border border-black/10 bg-[#111827] px-4 py-2 text-sm font-semibold text-white">
                           {request.urgency || "Pending"}
                         </span>
 
@@ -162,6 +275,34 @@ export default function MyRequestsPage() {
                         >
                           {isExpanded ? "Hide Details" : "View Details"}
                         </button>
+
+                        {!isEditing ? (
+                          <button
+                            onClick={() => startEdit(request)}
+                            className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                          >
+                            Edit Request
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => saveEdit(request.id)}
+                              disabled={updatingId === request.id}
+                              className="rounded-xl bg-[#111827] px-4 py-2 text-sm font-semibold text-white hover:bg-black disabled:opacity-60"
+                            >
+                              {updatingId === request.id
+                                ? "Saving..."
+                                : "Save Edit"}
+                            </button>
+
+                            <button
+                              onClick={() => setEditingId(null)}
+                              className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        )}
 
                         {status !== "closed" && (
                           <button
@@ -196,9 +337,31 @@ function Detail({ label, value }: { label: string; value: string }) {
         {label}
       </p>
 
-      <p className="mt-1 font-semibold text-[#111827]">
-        {value}
-      </p>
+      <p className="mt-1 font-semibold text-[#111827]">{value}</p>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div>
+      <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
+        {label}
+      </label>
+
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-3 w-full rounded-2xl border border-black/10 bg-white px-5 py-4 text-sm text-[#111827] outline-none focus:border-[#111827]"
+      />
     </div>
   );
 }
