@@ -25,6 +25,19 @@ export default function MyRequestsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const activeRequests = requests.filter(
+  (r) => r.status !== "closed"
+).length;
+
+const closedRequests = requests.filter(
+  (r) => r.status === "closed"
+).length;
+
+const awaitingReview = requests.filter(
+  (r) => r.status !== "closed"
+).length;
+
+const totalRequests = requests.length;
 
   const [editForm, setEditForm] = useState({
     facility_type: "",
