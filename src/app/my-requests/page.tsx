@@ -479,6 +479,26 @@ const totalRequests = requests.length;
   );
 }
 
+function StatCard({
+  title,
+  value,
+}: {
+  title: string;
+  value: number;
+}) {
+  return (
+    <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
+        {title}
+      </p>
+
+      <p className="mt-3 text-4xl font-bold text-[#111827]">
+        {value}
+      </p>
+    </div>
+  );
+}
+
 function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div>
