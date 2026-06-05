@@ -54,6 +54,20 @@ export default function MyRequestsPage() {
     setLoading(false);
   }
 
+  function priorityLabel(value: string | null) {
+    if (!value) return "PENDING";
+    if (value.toLowerCase().includes("urgent")) return "URGENT";
+    if (value.toLowerCase().includes("high")) return "HIGH PRIORITY";
+    if (value.toLowerCase().includes("normal")) return "NORMAL";
+    if (value.toLowerCase().includes("review")) return "REVIEW";
+    return "PRIORITY";
+  }
+
+  function statusLabel(value: string | null) {
+    if (value === "closed") return "CLOSED";
+    return "AWAITING EXPERT REVIEW";
+  }
+
   function startEdit(request: Request) {
     setEditingId(request.id);
     setExpandedId(request.id);
@@ -168,10 +182,8 @@ export default function MyRequestsPage() {
                             {request.facility_type || "Industrial Request"}
                           </h3>
 
-                          <span className="rounded-full border border-black/10 bg-[#111827] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-white">
-                            {status === "closed"
-                              ? "Closed"
-                              : "Awaiting Review"}
+                          <span className="rounded-full bg-[#111827] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white">
+                            {statusLabel(status)}
                           </span>
                         </div>
 
@@ -191,7 +203,7 @@ export default function MyRequestsPage() {
                               value={request.issue_type || "Not specified"}
                             />
                             <Detail
-                              label="Priority"
+                              label="Priority Details"
                               value={request.urgency || "Pending"}
                             />
                             <Detail label="Request ID" value={request.id} />
@@ -263,27 +275,31 @@ export default function MyRequestsPage() {
                       </div>
 
                       <div className="flex flex-col gap-3 md:items-end">
-                        <span className="rounded-full border border-black/10 bg-[#111827] px-4 py-2 text-sm font-semibold text-white">
-                          {request.urgency || "Pending"}
+                        <span className="rounded-full border border-black/10 bg-[#111827] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white">
+                          {priorityLabel(request.urgency)}
                         </span>
 
-                        <button
-                          onClick={() =>
-                            setExpandedId(isExpanded ? null : request.id)
-                          }
-                          className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
-                        >
-                          {isExpanded ? "Hide Details" : "View Details"}
-                        </button>
+                        {!isEditing && (
+                          <>
+                            <button
+                              onClick={() =>
+                                setExpandedId(isExpanded ? null : request.id)
+                              }
+                              className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                            >
+                              {isExpanded ? "Hide Details" : "View Details"}
+                            </button>
 
-                        {!isEditing ? (
-                          <button
-                            onClick={() => startEdit(request)}
-                            className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
-                          >
-                            Edit Request
-                          </button>
-                        ) : (
+                            <button
+                              onClick={() => startEdit(request)}
+                              className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                            >
+                              Edit Request
+                            </button>
+                          </>
+                        )}
+
+                        {isEditing && (
                           <>
                             <button
                               onClick={() => saveEdit(request.id)}
@@ -292,7 +308,7 @@ export default function MyRequestsPage() {
                             >
                               {updatingId === request.id
                                 ? "Saving..."
-                                : "Save Edit"}
+                                : "Save Changes"}
                             </button>
 
                             <button
