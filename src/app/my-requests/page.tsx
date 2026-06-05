@@ -23,6 +23,8 @@ export default function MyRequestsPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const [editForm, setEditForm] = useState({
     facility_type: "",
@@ -37,6 +39,8 @@ export default function MyRequestsPage() {
   }, []);
 
   async function loadRequests() {
+    setLoading(true);
+
     const { data: userData } = await supabase.auth.getUser();
 
     if (!userData.user) {
@@ -44,31 +48,46 @@ export default function MyRequestsPage() {
       return;
     }
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("facility_requests")
       .select("*")
       .eq("work_email", userData.user.email)
       .order("created_at", { ascending: false });
 
+    if (error) {
+      setErrorMessage("Requests could not be loaded. Please try again.");
+      setLoading(false);
+      return;
+    }
+
     setRequests(data || []);
     setLoading(false);
   }
 
+  function clearMessages() {
+    setMessage("");
+    setErrorMessage("");
+  }
+
   function priorityLabel(value: string | null) {
-    if (!value) return "PENDING";
-    if (value.toLowerCase().includes("urgent")) return "URGENT";
-    if (value.toLowerCase().includes("high")) return "HIGH PRIORITY";
-    if (value.toLowerCase().includes("normal")) return "NORMAL";
-    if (value.toLowerCase().includes("review")) return "REVIEW";
-    return "PRIORITY";
+    const text = (value || "").toLowerCase();
+
+    if (text.includes("urgent")) return "URGENT";
+    if (text.includes("high")) return "HIGH PRIORITY";
+    if (text.includes("normal")) return "NORMAL";
+    if (text.includes("review")) return "REVIEW";
+    return "PENDING";
   }
 
   function statusLabel(value: string | null) {
     if (value === "closed") return "CLOSED";
+    if (value === "accepted") return "EXPERT ACCEPTED";
+    if (value === "saved") return "SAVED BY EXPERT";
     return "AWAITING EXPERT REVIEW";
   }
 
   function startEdit(request: Request) {
+    clearMessages();
     setEditingId(request.id);
     setExpandedId(request.id);
 
@@ -82,6 +101,7 @@ export default function MyRequestsPage() {
   }
 
   async function saveEdit(id: string) {
+    clearMessages();
     setUpdatingId(id);
 
     const { error } = await supabase
@@ -95,29 +115,41 @@ export default function MyRequestsPage() {
       })
       .eq("id", id);
 
-    if (!error) {
-      setRequests((prev) =>
-        prev.map((request) =>
-          request.id === id
-            ? {
-                ...request,
-                facility_type: editForm.facility_type,
-                urgency: editForm.urgency,
-                location: editForm.location,
-                issue_type: editForm.issue_type,
-                problem_description: editForm.problem_description,
-              }
-            : request
-        )
-      );
+    setUpdatingId(null);
 
-      setEditingId(null);
+    if (error) {
+      setErrorMessage("Request could not be updated. Please try again.");
+      return;
     }
 
-    setUpdatingId(null);
+    setRequests((prev) =>
+      prev.map((request) =>
+        request.id === id
+          ? {
+              ...request,
+              facility_type: editForm.facility_type,
+              urgency: editForm.urgency,
+              location: editForm.location,
+              issue_type: editForm.issue_type,
+              problem_description: editForm.problem_description,
+            }
+          : request
+      )
+    );
+
+    setEditingId(null);
+    setMessage("Request updated successfully.");
   }
 
   async function closeRequest(id: string) {
+    clearMessages();
+
+    const confirmed = window.confirm(
+      "Close this request? It will remain in your history and can be reopened later."
+    );
+
+    if (!confirmed) return;
+
     setUpdatingId(id);
 
     const { error } = await supabase
@@ -125,15 +157,45 @@ export default function MyRequestsPage() {
       .update({ status: "closed" })
       .eq("id", id);
 
-    if (!error) {
-      setRequests((prev) =>
-        prev.map((request) =>
-          request.id === id ? { ...request, status: "closed" } : request
-        )
-      );
+    setUpdatingId(null);
+
+    if (error) {
+      setErrorMessage("Request could not be closed. Please check permissions.");
+      return;
     }
 
+    setRequests((prev) =>
+      prev.map((request) =>
+        request.id === id ? { ...request, status: "closed" } : request
+      )
+    );
+
+    setMessage("Request closed successfully.");
+  }
+
+  async function reopenRequest(id: string) {
+    clearMessages();
+    setUpdatingId(id);
+
+    const { error } = await supabase
+      .from("facility_requests")
+      .update({ status: "pending" })
+      .eq("id", id);
+
     setUpdatingId(null);
+
+    if (error) {
+      setErrorMessage("Request could not be reopened. Please check permissions.");
+      return;
+    }
+
+    setRequests((prev) =>
+      prev.map((request) =>
+        request.id === id ? { ...request, status: "pending" } : request
+      )
+    );
+
+    setMessage("Request reopened successfully.");
   }
 
   return (
@@ -149,11 +211,41 @@ export default function MyRequestsPage() {
             ← Back
           </Link>
 
-          <h1 className="text-4xl font-bold text-[#111827]">My Requests</h1>
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#111827]">
+                Facility Command Center
+              </p>
 
-          <p className="mt-3 text-[#4b5563]">
-            Review, track, and manage all requests submitted by your facility.
-          </p>
+              <h1 className="mt-4 text-5xl font-semibold tracking-[-0.04em] text-[#111827]">
+                My Requests
+              </h1>
+
+              <p className="mt-4 max-w-2xl text-lg leading-8 text-[#374151]">
+                Review, track, edit, close, and reopen support requests
+                submitted by your facility.
+              </p>
+            </div>
+
+            <Link
+              href="/request-support"
+              className="rounded-2xl bg-[#111827] px-6 py-3 text-sm font-semibold text-white hover:bg-black"
+            >
+              Post New Request →
+            </Link>
+          </div>
+
+          {(message || errorMessage) && (
+            <div
+              className={`mt-8 rounded-2xl border px-5 py-4 text-sm font-semibold ${
+                errorMessage
+                  ? "border-red-200 bg-red-50 text-red-700"
+                  : "border-black/10 bg-white text-[#111827]"
+              }`}
+            >
+              {errorMessage || message}
+            </div>
+          )}
 
           {loading ? (
             <div className="mt-10 rounded-3xl border border-black/10 bg-white p-8 text-[#111827] shadow-sm">
@@ -169,13 +261,18 @@ export default function MyRequestsPage() {
                 const isExpanded = expandedId === request.id;
                 const isEditing = editingId === request.id;
                 const status = request.status || "pending";
+                const isClosed = status === "closed";
 
                 return (
                   <div
                     key={request.id}
-                    className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm"
+                    className={`rounded-[2rem] border p-6 shadow-sm ${
+                      isClosed
+                        ? "border-black/10 bg-white/70"
+                        : "border-black/10 bg-white"
+                    }`}
                   >
-                    <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                    <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
                       <div className="max-w-3xl flex-1">
                         <div className="flex flex-wrap items-center gap-3">
                           <h3 className="text-2xl font-bold text-[#111827]">
@@ -187,11 +284,11 @@ export default function MyRequestsPage() {
                           </span>
                         </div>
 
-                        <p className="mt-2 text-sm text-[#6b7280]">
+                        <p className="mt-2 text-sm font-medium text-[#6b7280]">
                           {request.location || "Location not specified"}
                         </p>
 
-                        <p className="mt-4 leading-relaxed text-[#374151]">
+                        <p className="mt-4 max-w-3xl leading-relaxed text-[#374151]">
                           {request.problem_description ||
                             "No problem description provided."}
                         </p>
@@ -206,7 +303,10 @@ export default function MyRequestsPage() {
                               label="Priority Details"
                               value={request.urgency || "Pending"}
                             />
-                            <Detail label="Request ID" value={request.id} />
+                            <Detail
+                              label="Request ID"
+                              value={String(request.id)}
+                            />
                             <Detail
                               label="Created"
                               value={new Date(
@@ -274,7 +374,7 @@ export default function MyRequestsPage() {
                         )}
                       </div>
 
-                      <div className="flex flex-col gap-3 md:items-end">
+                      <div className="flex min-w-[170px] flex-col gap-3 md:items-end">
                         <span className="rounded-full border border-black/10 bg-[#111827] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white">
                           {priorityLabel(request.urgency)}
                         </span>
@@ -285,17 +385,19 @@ export default function MyRequestsPage() {
                               onClick={() =>
                                 setExpandedId(isExpanded ? null : request.id)
                               }
-                              className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                              className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
                             >
                               {isExpanded ? "Hide Details" : "View Details"}
                             </button>
 
-                            <button
-                              onClick={() => startEdit(request)}
-                              className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
-                            >
-                              Edit Request
-                            </button>
+                            {!isClosed && (
+                              <button
+                                onClick={() => startEdit(request)}
+                                className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                              >
+                                Edit Request
+                              </button>
+                            )}
                           </>
                         )}
 
@@ -304,7 +406,7 @@ export default function MyRequestsPage() {
                             <button
                               onClick={() => saveEdit(request.id)}
                               disabled={updatingId === request.id}
-                              className="rounded-xl bg-[#111827] px-4 py-2 text-sm font-semibold text-white hover:bg-black disabled:opacity-60"
+                              className="w-full rounded-xl bg-[#111827] px-4 py-2 text-sm font-semibold text-white hover:bg-black disabled:opacity-60"
                             >
                               {updatingId === request.id
                                 ? "Saving..."
@@ -313,22 +415,34 @@ export default function MyRequestsPage() {
 
                             <button
                               onClick={() => setEditingId(null)}
-                              className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                              className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
                             >
                               Cancel
                             </button>
                           </>
                         )}
 
-                        {status !== "closed" && (
+                        {!isEditing && !isClosed && (
                           <button
                             onClick={() => closeRequest(request.id)}
                             disabled={updatingId === request.id}
-                            className="rounded-xl bg-[#111827] px-4 py-2 text-sm font-semibold text-white hover:bg-black disabled:opacity-60"
+                            className="w-full rounded-xl bg-[#111827] px-4 py-2 text-sm font-semibold text-white hover:bg-black disabled:opacity-60"
                           >
                             {updatingId === request.id
                               ? "Closing..."
                               : "Close Request"}
+                          </button>
+                        )}
+
+                        {!isEditing && isClosed && (
+                          <button
+                            onClick={() => reopenRequest(request.id)}
+                            disabled={updatingId === request.id}
+                            className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea] disabled:opacity-60"
+                          >
+                            {updatingId === request.id
+                              ? "Reopening..."
+                              : "Reopen Request"}
                           </button>
                         )}
                       </div>
