@@ -308,6 +308,49 @@ function CheckboxRow({
   checked: boolean;
   onChange: (checked: boolean) => void;
 }) {
+
+ async function deleteAccount() {
+  setMessage("");
+  setError("");
+
+  const confirmed = window.confirm(
+    "Are you sure you want to permanently delete your VALCRONS account? This action cannot be undone."
+  );
+
+  if (!confirmed) return;
+
+  const secondConfirm = window.confirm(
+    "Final confirmation: delete this account permanently?"
+  );
+
+  if (!secondConfirm) return;
+
+  const { data } = await supabase.auth.getSession();
+
+  const token = data.session?.access_token;
+
+  if (!token) {
+    setError("Session expired. Please log in again.");
+    return;
+  }
+
+  const response = await fetch("/api/delete-account", {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    setError(result.error || "Account could not be deleted.");
+    return;
+  }
+
+  await supabase.auth.signOut();
+  window.location.href = "/login";
+}
   return (
     <label className="flex items-center justify-between rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4">
       <span className="text-sm font-semibold text-[#111827]">{label}</span>
