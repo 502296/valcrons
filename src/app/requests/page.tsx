@@ -138,11 +138,20 @@ export default function RequestsPage() {
       return;
     }
 
-    const { error } = await supabase.from("technician_project_actions").insert({
-      technician_id: expertId,
-      project_id: requestId,
-      action_type: actionType,
-    });
+   const { error } = await supabase
+  .from("technician_project_actions")
+  .insert({
+    technician_id: expertId,
+    project_id: requestId,
+    action_type: actionType,
+  });
+
+console.log("VALCRONS action result:", {
+  requestId,
+  actionType,
+  expertId,
+  error,
+});
 
     setUpdatingAction(null);
 
