@@ -34,7 +34,7 @@ const closedRequests = requests.filter(
 ).length;
 
 const awaitingReview = requests.filter(
-  (r) => r.status !== "closed"
+  (r) => r.status === "pending" || !r.status
 ).length;
 
 const totalRequests = requests.length;
