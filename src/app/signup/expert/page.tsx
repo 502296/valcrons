@@ -49,26 +49,6 @@ export default function ExpertSignupPage() {
       return;
     }
 
-    const userId = data.user?.id;
-
-    if (userId) {
-      const { error: profileError } = await supabase.from("profiles").upsert({
-        id: userId,
-        email,
-        role: "expert",
-        full_name: fullName,
-        specialty,
-        location,
-        phone,
-      });
-
-      if (profileError) {
-        setError(profileError.message);
-        setLoading(false);
-        return;
-      }
-    }
-
     setMessage("Expert account created. Please check your email, then log in.");
     setLoading(false);
 
