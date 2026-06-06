@@ -139,7 +139,9 @@ return;
 const contactData = (data || []) as ContactRequest[];
 setContactRequests(contactData);
 
-const expertIds = [...new Set(contactData.map((item) => item.expert_id))];
+const expertIds = Array.from(
+  new Set(contactData.map((item) => item.expert_id))
+);
 
 if (expertIds.length === 0) {
 setExpertProfiles({});
