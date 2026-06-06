@@ -56,12 +56,17 @@ const totalRequests = requests.length;
   async function loadRequests() {
     setLoading(true);
 
-    const { data: userData } = await supabase.auth.getUser();
+   const {
+  data: { session },
+} = await supabase.auth.getSession();
 
-    if (!userData.user) {
-      window.location.href = "/login";
-      return;
-    }
+if (!session?.user) {
+  setLoading(false);
+  window.location.href = "/login";
+  return;
+}
+
+const user = session.user;
 
     const { data, error } = await supabase
       .from("facility_requests")
