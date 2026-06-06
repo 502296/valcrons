@@ -156,7 +156,14 @@ const { data: profiles } = await supabase
 const profileMap: Record<string, ExpertProfile> = {};
 
 (profiles || []).forEach((profile) => {
-profileMap[profile.id] = profile as ExpertProfile;
+profileMap[profile.uid] = {
+  id: profile.uid,
+  full_name: profile.full_name,
+  email: profile.email,
+  phone: profile.phone,
+  location: profile.location,
+  specialty: profile.specialty,
+};
 });
 
 setExpertProfiles(profileMap);
