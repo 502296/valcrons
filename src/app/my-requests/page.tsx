@@ -210,7 +210,7 @@ problem_description: request.problem_description || "",
 });
 }
 
-async function saveEdit(id: string) {
+async function saveEdit(id: number) {
 clearMessages();
 setUpdatingId(id);
 
