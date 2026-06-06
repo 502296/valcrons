@@ -9,139 +9,244 @@ import { supabase } from "@/lib/supabase";
 type FacilityRequest = {
   id: number;
   created_at: string;
-  company_name: string;
-  contact_person: string;
-  work_email: string;
-  facility_type: string;
-  urgency: string;
-  issue_type: string;
-  location: string;
-  problem_description: string;
-  status: string;
+  company_name: string | null;
+  contact_person: string | null;
+  work_email: string | null;
+  facility_type: string | null;
+  urgency: string | null;
+  issue_type: string | null;
+  location: string | null;
+  problem_description: string | null;
+  status: string | null;
+};
+
+type ActionType = "saved" | "accepted" | "contact_requested";
+
+type ExpertActions = {
+  saved: number[];
+  accepted: number[];
+  contact_requested: number[];
 };
 
 export default function RequestsPage() {
   const [requests, setRequests] = useState<FacilityRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [savedIds, setSavedIds] = useState<number[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [loggedIn, setLoggedIn] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [expertId, setExpertId] = useState<string | null>(null);
+  const [actions, setActions] = useState<ExpertActions>({
+    saved: [],
+    accepted: [],
+    contact_requested: [],
+  });
+  const [message, setMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [updatingAction, setUpdatingAction] = useState<string | null>(null);
 
- useEffect(() => {
-  async function checkUser() {
-    const { data } = await supabase.auth.getUser();
+  useEffect(() => {
+    async function init() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    if (!data.user) {
-      setLoggedIn(false);
+      if (!session?.user) {
+        setLoggedIn(false);
+        setCheckingAuth(false);
+        setLoading(false);
+        return;
+      }
+
+      setLoggedIn(true);
+      setExpertId(session.user.id);
       setCheckingAuth(false);
-      return;
+
+      await loadRequests();
+      await loadExpertActions(session.user.id);
     }
 
-    setLoggedIn(true);
-    setCheckingAuth(false);
+    init();
+  }, []);
 
-    loadRequests();
-
-    const saved = localStorage.getItem("valcrons_saved_requests");
-    if (saved) {
-      setSavedIds(JSON.parse(saved));
-    }
-  }
-
-  checkUser();
-}, []);
   async function loadRequests() {
+    setLoading(true);
+
     const { data, error } = await supabase
       .from("facility_requests")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (!error && data) {
-      setRequests(data);
+    if (error) {
+      setErrorMessage("Requests could not be loaded. Please try again.");
+      setLoading(false);
+      return;
     }
 
+    const openRequests = (data || []).filter(
+      (request) => request.status !== "closed"
+    );
+
+    setRequests(openRequests);
     setLoading(false);
   }
 
-  function saveRequest(id: number) {
-    const updated = savedIds.includes(id)
-      ? savedIds.filter((savedId) => savedId !== id)
-      : [...savedIds, id];
+  async function loadExpertActions(userId: string) {
+    const { data, error } = await supabase
+      .from("technician_project_actions")
+      .select("project_id, action_type")
+      .eq("technician_id", userId);
 
-    setSavedIds(updated);
-    localStorage.setItem("valcrons_saved_requests", JSON.stringify(updated));
+    if (error) return;
+
+    const nextActions: ExpertActions = {
+      saved: [],
+      accepted: [],
+      contact_requested: [],
+    };
+
+    (data || []).forEach((item) => {
+      const actionType = item.action_type as ActionType;
+      const projectId = Number(item.project_id);
+
+      if (
+        actionType === "saved" ||
+        actionType === "accepted" ||
+        actionType === "contact_requested"
+      ) {
+        nextActions[actionType].push(projectId);
+      }
+    });
+
+    setActions(nextActions);
+  }
+
+  function hasAction(requestId: number, actionType: ActionType) {
+    return actions[actionType].includes(requestId);
+  }
+
+  async function addExpertAction(requestId: number, actionType: ActionType) {
+    if (!expertId) return;
+
+    setMessage("");
+    setErrorMessage("");
+    setUpdatingAction(`${requestId}-${actionType}`);
+
+    const alreadyExists = hasAction(requestId, actionType);
+
+    if (alreadyExists) {
+      setUpdatingAction(null);
+      return;
+    }
+
+    const { error } = await supabase.from("technician_project_actions").insert({
+      technician_id: expertId,
+      project_id: requestId,
+      action_type: actionType,
+    });
+
+    setUpdatingAction(null);
+
+    if (error) {
+      setErrorMessage("Action could not be saved. Please check permissions.");
+      return;
+    }
+
+    setActions((prev) => ({
+      ...prev,
+      [actionType]: [...prev[actionType], requestId],
+    }));
+
+    if (actionType === "saved") setMessage("Project saved successfully.");
+    if (actionType === "accepted") setMessage("Project accepted successfully.");
+    if (actionType === "contact_requested") {
+      setMessage("Contact request sent to the facility.");
+    }
   }
 
   function getRequestTitle(request: FacilityRequest) {
-    if (request.problem_description && request.problem_description.length > 8) {
-      return request.problem_description.length > 72
-        ? `${request.problem_description.slice(0, 72)}...`
-        : request.problem_description;
+    const description = request.problem_description || "";
+
+    if (description.length > 8) {
+      return description.length > 72
+        ? `${description.slice(0, 72)}...`
+        : description;
     }
 
     return request.issue_type || "Industrial support request";
   }
 
+  function priorityLabel(value: string | null) {
+    const text = (value || "").toLowerCase();
+
+    if (text.includes("urgent")) return "URGENT — NEEDS IMMEDIATE REVIEW";
+    if (text.includes("high")) return "HIGH PRIORITY — NEEDS EXPERT REVIEW SOON";
+    if (text.includes("normal")) return "NORMAL PRIORITY";
+    return "PENDING REVIEW";
+  }
+
+  const urgentCount = requests.filter((request) =>
+    (request.urgency || "").toLowerCase().includes("urgent")
+  ).length;
+
   if (checkingAuth) {
-  return (
-    <main className="min-h-screen bg-[#f4f1ea]">
-      <Header />
-      <section className="px-6 py-32">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-black/10 bg-white p-10 text-center shadow-sm">
-          <p className="text-sm font-semibold text-[#374151]">
-            Checking secure access...
-          </p>
-        </div>
-      </section>
-      <Footer />
-    </main>
-  );
-}
-
-if (!loggedIn) {
-  return (
-    <main className="min-h-screen bg-[#f4f1ea]">
-      <Header />
-
-      <section className="px-6 py-32">
-        <div className="mx-auto max-w-3xl rounded-[2rem] border border-black/10 bg-white p-10 text-center shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a7a3f]">
-            Secure Industrial Access
-          </p>
-
-          <h1 className="mt-4 text-4xl font-bold text-[#111827]">
-            Industrial Access Required
-          </h1>
-
-          <p className="mx-auto mt-4 max-w-xl text-[#4b5563]">
-            To view industrial requests, you must create an account or log in first.
-            VALCRONS protects facilities, experts, and operational information through
-            verified account-based access.
-          </p>
-
-          <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
-            <a
-              href="/login"
-              className="rounded-xl border border-black/10 bg-white px-6 py-3 font-semibold text-[#111827] hover:bg-[#f4f1ea]"
-            >
-              Log In
-            </a>
-
-            <a
-              href="/signup"
-              className="rounded-xl bg-[#111827] px-6 py-3 font-semibold text-white hover:bg-black"
-            >
-              Create Account
-            </a>
+    return (
+      <main className="min-h-screen bg-[#f4f1ea]">
+        <Header />
+        <section className="px-6 py-32">
+          <div className="mx-auto max-w-3xl rounded-3xl border border-black/10 bg-white p-10 text-center shadow-sm">
+            <p className="text-sm font-semibold text-[#374151]">
+              Checking secure access...
+            </p>
           </div>
-        </div>
-      </section>
+        </section>
+        <Footer />
+      </main>
+    );
+  }
 
-      <Footer />
-    </main>
-  );
-}
+  if (!loggedIn) {
+    return (
+      <main className="min-h-screen bg-[#f4f1ea]">
+        <Header />
+
+        <section className="px-6 py-32">
+          <div className="mx-auto max-w-3xl rounded-[2rem] border border-black/10 bg-white p-10 text-center shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a7a3f]">
+              Secure Industrial Access
+            </p>
+
+            <h1 className="mt-4 text-4xl font-bold text-[#111827]">
+              Industrial Access Required
+            </h1>
+
+            <p className="mx-auto mt-4 max-w-xl text-[#4b5563]">
+              To view industrial requests, you must create an account or log in
+              first. VALCRONS protects facilities, experts, and operational
+              information through verified account-based access.
+            </p>
+
+            <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+              <a
+                href="/login"
+                className="rounded-xl border border-black/10 bg-white px-6 py-3 font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+              >
+                Log In
+              </a>
+
+              <a
+                href="/signup"
+                className="rounded-xl bg-[#111827] px-6 py-3 font-semibold text-white hover:bg-black"
+              >
+                Create Account
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <Footer />
+      </main>
+    );
+  }
 
   return (
     <>
@@ -154,7 +259,7 @@ if (!loggedIn) {
 
             <div className="max-w-4xl">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#111827]">
-                Industrial Requests
+                Expert Operations Dashboard
               </p>
 
               <h1 className="mt-5 text-5xl font-semibold tracking-[-0.04em] text-[#111827] md:text-7xl">
@@ -162,39 +267,36 @@ if (!loggedIn) {
               </h1>
 
               <p className="mt-6 max-w-2xl text-lg leading-8 text-[#374151]">
-                Review operational requests submitted by industrial facilities
-                seeking qualified expert support.
+                Review verified operational requests, save opportunities, accept
+                projects, and request facility contact through VALCRONS.
               </p>
             </div>
 
-            <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#111827]">
-                  Active Requests
-                </p>
-                <p className="mt-3 text-3xl font-semibold text-[#111827]">
-                  {requests.length}
-                </p>
-              </div>
-
-              <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#111827]">
-                  Urgent
-                </p>
-                <p className="mt-3 text-3xl font-semibold text-[#111827]">
-                  {requests.filter((r) => r.urgency?.includes("Urgent")).length}
-                </p>
-              </div>
-
-              <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#111827]">
-                  Saved
-                </p>
-                <p className="mt-3 text-3xl font-semibold text-[#111827]">
-                  {savedIds.length}
-                </p>
-              </div>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              <StatCard title="Available Requests" value={requests.length} />
+              <StatCard title="Urgent Requests" value={urgentCount} />
+              <StatCard title="Saved Projects" value={actions.saved.length} />
+              <StatCard
+                title="Accepted Projects"
+                value={actions.accepted.length}
+              />
+              <StatCard
+                title="Contact Requests"
+                value={actions.contact_requested.length}
+              />
             </div>
+
+            {(message || errorMessage) && (
+              <div
+                className={`mt-8 rounded-2xl border px-5 py-4 text-sm font-semibold ${
+                  errorMessage
+                    ? "border-red-200 bg-red-50 text-red-700"
+                    : "border-black/10 bg-white text-[#111827]"
+                }`}
+              >
+                {errorMessage || message}
+              </div>
+            )}
 
             <div className="mt-8 grid gap-6">
               {loading && (
@@ -209,6 +311,12 @@ if (!loggedIn) {
 
               {requests.map((request) => {
                 const isExpanded = expandedId === request.id;
+                const saved = hasAction(request.id, "saved");
+                const accepted = hasAction(request.id, "accepted");
+                const contactRequested = hasAction(
+                  request.id,
+                  "contact_requested"
+                );
 
                 return (
                   <article
@@ -218,7 +326,7 @@ if (!loggedIn) {
                     <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
                       <div className="max-w-3xl">
                         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#111827]">
-                          {request.urgency || "Review"}
+                          {priorityLabel(request.urgency)}
                         </p>
 
                         <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-[#111827]">
@@ -230,41 +338,16 @@ if (!loggedIn) {
                         </p>
 
                         <div className="mt-7 grid gap-4 text-sm text-[#374151] sm:grid-cols-4">
-                          <div>
-                            <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
-                              Industry
-                            </p>
-                            <p className="mt-2 font-medium text-[#111827]">
-                              {request.facility_type}
-                            </p>
-                          </div>
-
-                          <div>
-                            <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
-                              Location
-                            </p>
-                            <p className="mt-2 font-medium text-[#111827]">
-                              {request.location}
-                            </p>
-                          </div>
-
-                          <div>
-                            <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
-                              Support Type
-                            </p>
-                            <p className="mt-2 font-medium text-[#111827]">
-                              {request.issue_type}
-                            </p>
-                          </div>
-
-                          <div>
-                            <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
-                              Status
-                            </p>
-                            <p className="mt-2 font-medium text-[#111827]">
-                              {request.status || "pending"}
-                            </p>
-                          </div>
+                          <Info label="Industry" value={request.facility_type} />
+                          <Info label="Location" value={request.location} />
+                          <Info
+                            label="Support Type"
+                            value={request.issue_type}
+                          />
+                          <Info
+                            label="Status"
+                            value={request.status || "pending"}
+                          />
                         </div>
 
                         {isExpanded && (
@@ -274,33 +357,43 @@ if (!loggedIn) {
                             </p>
 
                             <p className="mt-4 text-sm leading-7 text-[#374151]">
-                              {request.problem_description}
+                              {request.problem_description ||
+                                "No additional details provided."}
                             </p>
 
-                            <div className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
-                              <div>
-                                <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
-                                  Company
-                                </p>
-                                <p className="mt-2 font-medium text-[#111827]">
-                                  Hidden until contact
-                                </p>
-                              </div>
+                            <div className="mt-6 grid gap-4 text-sm sm:grid-cols-3">
+                              <Info
+                                label="Company"
+                                value={
+                                  contactRequested
+                                    ? request.company_name || "Not provided"
+                                    : "Hidden until contact request"
+                                }
+                              />
 
-                              <div>
-                                <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
-                                  Phone
-                                </p>
-                                <p className="mt-2 font-medium text-[#111827]">
-                                  Hidden for privacy
-                                </p>
-                              </div>
+                              <Info
+                                label="Contact"
+                                value={
+                                  contactRequested
+                                    ? request.contact_person || "Not provided"
+                                    : "Protected"
+                                }
+                              />
+
+                              <Info
+                                label="Email"
+                                value={
+                                  contactRequested
+                                    ? request.work_email || "Not provided"
+                                    : "Protected"
+                                }
+                              />
                             </div>
                           </div>
                         )}
                       </div>
 
-                      <div className="flex flex-col gap-3 md:min-w-[190px]">
+                      <div className="flex flex-col gap-3 md:min-w-[210px]">
                         <button
                           type="button"
                           onClick={() =>
@@ -308,24 +401,58 @@ if (!loggedIn) {
                           }
                           className="rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm font-semibold text-[#111827] transition hover:bg-white"
                         >
-                          {isExpanded ? "Hide Details" : "View Request"}
+                          {isExpanded ? "Hide Details" : "View Details"}
                         </button>
-
-                        <a
-                          href={`mailto:${request.work_email}?subject=VALCRONS Expert Support Inquiry&body=Hello, I saw your industrial support request on VALCRONS and would like to discuss how I may be able to help.`}
-                          className="rounded-2xl bg-[#07111f] px-5 py-4 text-center text-sm font-semibold text-white transition hover:bg-black"
-                        >
-                          Contact Facility →
-                        </a>
 
                         <button
                           type="button"
-                          onClick={() => saveRequest(request.id)}
-                          className="rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm font-semibold text-[#111827] transition hover:bg-white"
+                          onClick={() =>
+                            addExpertAction(request.id, "contact_requested")
+                          }
+                          disabled={
+                            contactRequested ||
+                            updatingAction ===
+                              `${request.id}-contact_requested`
+                          }
+                          className="rounded-2xl bg-[#07111f] px-5 py-4 text-sm font-semibold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          {savedIds.includes(request.id)
+                          {contactRequested
+                            ? "Contact Requested ✓"
+                            : updatingAction ===
+                              `${request.id}-contact_requested`
+                            ? "Sending..."
+                            : "Request Contact →"}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => addExpertAction(request.id, "accepted")}
+                          disabled={
+                            accepted ||
+                            updatingAction === `${request.id}-accepted`
+                          }
+                          className="rounded-2xl border border-black/10 bg-white px-5 py-4 text-sm font-semibold text-[#111827] transition hover:bg-[#f8f6f1] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {accepted
+                            ? "Accepted ✓"
+                            : updatingAction === `${request.id}-accepted`
+                            ? "Accepting..."
+                            : "Accept Project"}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => addExpertAction(request.id, "saved")}
+                          disabled={
+                            saved || updatingAction === `${request.id}-saved`
+                          }
+                          className="rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm font-semibold text-[#111827] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {saved
                             ? "Saved ✓"
-                            : "Save Request"}
+                            : updatingAction === `${request.id}-saved`
+                            ? "Saving..."
+                            : "Save Project"}
                         </button>
                       </div>
                     </div>
@@ -339,5 +466,42 @@ if (!loggedIn) {
 
       <Footer />
     </>
+  );
+}
+
+function StatCard({ title, value }: { title: string; value: number }) {
+  return (
+    <div className="rounded-[1.6rem] border border-white/50 bg-white/45 p-6 shadow-[0_20px_60px_rgba(17,24,39,0.08)] backdrop-blur-xl">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6b7280]">
+        {title}
+      </p>
+
+      <p className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-[#111827]">
+        {value}
+      </p>
+
+      <p className="mt-3 text-xs font-medium text-[#6b7280]">
+        Expert activity metric
+      </p>
+    </div>
+  );
+}
+
+function Info({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number | null | undefined;
+}) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
+        {label}
+      </p>
+      <p className="mt-2 font-medium text-[#111827]">
+        {value || "Not specified"}
+      </p>
+    </div>
   );
 }
