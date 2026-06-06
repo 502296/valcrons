@@ -42,6 +42,20 @@ location: string | null;
 specialty: string | null;
 };
 
+function parseAttachments(
+value: ContactAttachment[] | string | null
+): ContactAttachment[] {
+if (!value) return [];
+if (Array.isArray(value)) return value;
+
+try {
+const parsed = JSON.parse(value);
+return Array.isArray(parsed) ? parsed : [];
+} catch {
+return [];
+}
+}
+
 export default function MyRequestsPage() {
 const [requests, setRequests] = useState<Request[]>([]);
 const [contactRequests, setContactRequests] = useState<ContactRequest[]>([]);
@@ -60,13 +74,10 @@ const [message, setMessage] = useState("");
 const [errorMessage, setErrorMessage] = useState("");
 
 const activeRequests = requests.filter((r) => r.status !== "closed").length;
-
 const closedRequests = requests.filter((r) => r.status === "closed").length;
-
 const awaitingReview = requests.filter(
 (r) => r.status === "pending" || !r.status
 ).length;
-
 const expertInterest = contactRequests.length;
 const totalRequests = requests.length;
 
@@ -140,7 +151,7 @@ const contactData = (data || []) as ContactRequest[];
 setContactRequests(contactData);
 
 const expertIds = Array.from(
-  new Set(contactData.map((item) => item.expert_id))
+new Set(contactData.map((item) => item.expert_id).filter(Boolean))
 );
 
 if (expertIds.length === 0) {
@@ -149,31 +160,26 @@ return;
 }
 
 const { data: profiles, error: profilesError } = await supabase
-  .from("profiles")
-  .select("id, uid, full_name, email, phone, location, specialty")
-  .or(
-    expertIds
-      .map((expertId) => `id.eq.${expertId},uid.eq.${expertId}`)
-      .join(",")
-  );
-  
-  if (profilesError) {
-  console.error("Profiles load error:", profilesError);
-  setErrorMessage("Expert profiles could not be loaded.");
+.from("profiles")
+.select("id, full_name, email, phone, location, specialty")
+.in("id", expertIds);
+
+if (profilesError) {
+console.error("Profiles load error:", profilesError);
+setErrorMessage("Expert profiles could not be loaded.");
+return;
 }
 
 const profileMap: Record<string, ExpertProfile> = {};
 
 (profiles || []).forEach((profile) => {
-const profileKey = profile.uid || profile.id;
-
-profileMap[profileKey] = {
-  id: profileKey,
-  full_name: profile.full_name,
-  email: profile.email,
-  phone: profile.phone,
-  location: profile.location,
-  specialty: profile.specialty,
+profileMap[profile.id] = {
+id: profile.id,
+full_name: profile.full_name,
+email: profile.email,
+phone: profile.phone,
+location: profile.location,
+specialty: profile.specialty,
 };
 });
 
@@ -432,7 +438,6 @@ const status = request.status || "pending";
 const isClosed = status === "closed";
 const requestContacts = getContactsForRequest(request.id);
 
-
 return (
 <div
 key={request.id}
@@ -480,15 +485,10 @@ value={request.issue_type || "Not specified"}
 label="Priority Details"
 value={request.urgency || "Pending"}
 />
-<Detail
-label="Request ID"
-value={String(request.id)}
-/>
+<Detail label="Request ID" value={String(request.id)} />
 <Detail
 label="Created"
-value={new Date(
-request.created_at
-).toLocaleString()}
+value={new Date(request.created_at).toLocaleString()}
 />
 </div>
 
@@ -684,6 +684,7 @@ Expert Contact Requests
 const expert = expertProfiles[contact.expert_id];
 const isApproved = contact.status === "approved";
 const isDeclined = contact.status === "declined";
+const files = parseAttachments(contact.attachment_names);
 
 return (
 <div
@@ -711,18 +712,14 @@ className="rounded-2xl border border-black/10 bg-[#f8f6f1] p-5"
 {contact.expert_message || "No message provided."}
 </p>
 
-{contact.attachment_names &&
-contact.attachment_names.length > 0 && (
+{files.length > 0 && (
 <div className="mt-4">
 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
 Attachments
 </p>
 
 <div className="mt-2 flex flex-wrap gap-2">
-{(typeof contact.attachment_names === "string"
-  ? JSON.parse(contact.attachment_names)
-  : contact.attachment_names
-).map((file: ContactAttachment) => (
+{files.map((file) => (
 <span
 key={file.name}
 className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-[#111827]"
@@ -737,7 +734,9 @@ className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-[#111827]"
 {isApproved && (
 <div className="mt-4 rounded-xl border border-black/10 bg-white p-4 text-sm text-[#111827]">
 <p className="font-semibold">Approved Contact Details</p>
-<p className="mt-2">Email: {expert?.email || "Not provided"}</p>
+<p className="mt-2">
+Email: {expert?.email || "Not provided"}
+</p>
 <p>Phone: {expert?.phone || "Not provided"}</p>
 </div>
 )}
