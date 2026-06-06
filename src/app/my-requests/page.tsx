@@ -151,7 +151,7 @@ return;
 const { data: profiles } = await supabase
 .from("profiles")
 .select("uid, full_name, email, phone, location, specialty")
-.in("id", expertIds);
+.in("uid", expertIds);
 
 const profileMap: Record<string, ExpertProfile> = {};
 
