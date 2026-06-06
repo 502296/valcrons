@@ -315,7 +315,7 @@ request.id === id ? { ...request, status: "closed" } : request
 setMessage("Request closed successfully.");
 }
 
-async function reopenRequest(id: string) {
+async function reopenRequest(id: number) {
 clearMessages();
 setUpdatingId(id);
 
