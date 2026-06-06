@@ -50,12 +50,12 @@ Record<string, ExpertProfile>
 >({});
 
 const [loading, setLoading] = useState(true);
-const [updatingId, setUpdatingId] = useState<string | null>(null);
+const [updatingId, setUpdatingId] = useState<number | null>(null);
 const [updatingContactId, setUpdatingContactId] = useState<number | null>(
 null
 );
 const [expandedId, setExpandedId] = useState<number | null>(null);
-const [editingId, setEditingId] = useState<string | null>(null);
+const [editingId, setEditingId] = useState<number | null>(null);
 const [message, setMessage] = useState("");
 const [errorMessage, setErrorMessage] = useState("");
 
