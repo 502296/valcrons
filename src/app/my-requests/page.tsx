@@ -28,7 +28,7 @@ id: number;
 request_id: number;
 expert_id: string;
 expert_message: string | null;
-attachment_names: ContactAttachment[] | null;
+attachment_names: ContactAttachment[] | string | null;
 status: string | null;
 created_at: string;
 };
