@@ -31,6 +31,16 @@ export default function ExpertSignupPage() {
     const { data, error: signupError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          role: "expert",
+          full_name: fullName,
+          specialty,
+          location,
+          phone,
+          experience,
+        },
+      },
     });
 
     if (signupError) {
@@ -95,7 +105,10 @@ export default function ExpertSignupPage() {
               securely with companies.
             </p>
 
-            <form onSubmit={handleSignup} className="mt-10 grid gap-6 md:grid-cols-2">
+            <form
+              onSubmit={handleSignup}
+              className="mt-10 grid gap-6 md:grid-cols-2"
+            >
               <input
                 required
                 placeholder="Full name"
