@@ -148,10 +148,15 @@ setExpertProfiles({});
 return;
 }
 
-const { data: profiles } = await supabase
+const { data: profiles, error: profilesError } = await supabase
 .from("profiles")
 .select("uid, full_name, email, phone, location, specialty")
 .in("uid", expertIds);
+
+  if (profilesError) {
+  console.error("Profiles load error:", profilesError);
+  setErrorMessage("Expert profiles could not be loaded.");
+}
 
 const profileMap: Record<string, ExpertProfile> = {};
 
