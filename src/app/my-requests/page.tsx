@@ -7,7 +7,7 @@ import Footer from "@/components/layout/Footer";
 import { supabase } from "@/lib/supabase";
 
 type Request = {
-id: string;
+id: number;
 facility_type: string | null;
 urgency: string | null;
 location: string | null;
