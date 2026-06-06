@@ -54,7 +54,7 @@ const [updatingId, setUpdatingId] = useState<string | null>(null);
 const [updatingContactId, setUpdatingContactId] = useState<number | null>(
 null
 );
-const [expandedId, setExpandedId] = useState<string | null>(null);
+const [expandedId, setExpandedId] = useState<number | null>(null);
 const [editingId, setEditingId] = useState<string | null>(null);
 const [message, setMessage] = useState("");
 const [errorMessage, setErrorMessage] = useState("");
