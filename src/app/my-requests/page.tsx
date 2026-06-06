@@ -490,13 +490,17 @@ function StatCard({
   value: number;
 }) {
   return (
-    <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
+    <div className="rounded-[1.6rem] border border-white/50 bg-white/45 p-6 shadow-[0_20px_60px_rgba(17,24,39,0.08)] backdrop-blur-xl">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6b7280]">
         {title}
       </p>
 
-      <p className="mt-3 text-4xl font-bold text-[#111827]">
+      <p className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-[#111827]">
         {value}
+      </p>
+
+      <p className="mt-3 text-xs font-medium text-[#6b7280]">
+        Live operational metric
       </p>
     </div>
   );
