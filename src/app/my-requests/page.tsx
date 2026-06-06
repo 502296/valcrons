@@ -701,7 +701,10 @@ Attachments
 </p>
 
 <div className="mt-2 flex flex-wrap gap-2">
-{contact.attachment_names.map((file) => (
+{(typeof contact.attachment_names === "string"
+  ? JSON.parse(contact.attachment_names)
+  : contact.attachment_names
+).map((file: ContactAttachment) => (
 <span
 key={file.name}
 className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-[#111827]"
