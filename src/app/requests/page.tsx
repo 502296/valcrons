@@ -20,12 +20,12 @@ type FacilityRequest = {
   status: string | null;
 };
 
-type ActionType = "saved" | "accepted" | "contact_requested";
+type ActionType = "saved" | "accepted" | "contact";
 
 type ExpertActions = {
   saved: number[];
   accepted: number[];
-  contact_requested: number[];
+  contact: number[];
 };
 
 export default function RequestsPage() {
@@ -38,7 +38,7 @@ export default function RequestsPage() {
   const [actions, setActions] = useState<ExpertActions>({
     saved: [],
     accepted: [],
-    contact_requested: [],
+    contact: [],
   });
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -101,7 +101,7 @@ export default function RequestsPage() {
     const nextActions: ExpertActions = {
       saved: [],
       accepted: [],
-      contact_requested: [],
+      contact: [],
     };
 
     (data || []).forEach((item) => {
@@ -111,7 +111,7 @@ export default function RequestsPage() {
       if (
         actionType === "saved" ||
         actionType === "accepted" ||
-        actionType === "contact_requested"
+        actionType === "contact"
       ) {
         nextActions[actionType].push(projectId);
       }
@@ -167,7 +167,7 @@ console.log("VALCRONS action result:", {
 
     if (actionType === "saved") setMessage("Project saved successfully.");
     if (actionType === "accepted") setMessage("Project accepted successfully.");
-    if (actionType === "contact_requested") {
+    if (actionType === "contact") {
       setMessage("Contact request sent to the facility.");
     }
   }
@@ -290,7 +290,7 @@ console.log("VALCRONS action result:", {
                 value={actions.accepted.length}
               />
               <StatCard
-                title="Contact Requests"
+                title="Contact"
                 value={actions.contact_requested.length}
               />
             </div>
@@ -324,7 +324,7 @@ console.log("VALCRONS action result:", {
                 const accepted = hasAction(request.id, "accepted");
                 const contactRequested = hasAction(
                   request.id,
-                  "contact_requested"
+                  "contact"
                 );
 
                 return (
@@ -416,7 +416,7 @@ console.log("VALCRONS action result:", {
                         <button
                           type="button"
                           onClick={() =>
-                            addExpertAction(request.id, "contact_requested")
+                            addExpertAction(request.id, "contact")
                           }
                           disabled={
                             contactRequested ||
