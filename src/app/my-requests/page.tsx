@@ -71,7 +71,7 @@ const user = session.user;
     const { data, error } = await supabase
       .from("facility_requests")
       .select("*")
-      .eq("work_email", userData.user.email)
+      .eq("work_email", user.email)
       .order("created_at", { ascending: false });
 
     if (error) {
