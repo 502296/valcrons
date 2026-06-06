@@ -283,7 +283,7 @@ status === "approved"
 );
 }
 
-async function closeRequest(id: string) {
+async function closeRequest(id: number) {
 clearMessages();
 
 const confirmed = window.confirm(
