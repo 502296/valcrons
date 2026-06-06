@@ -149,10 +149,14 @@ return;
 }
 
 const { data: profiles, error: profilesError } = await supabase
-.from("profiles")
-.select("uid, full_name, email, phone, location, specialty")
-.in("uid", expertIds);
-
+  .from("profiles")
+  .select("id, uid, full_name, email, phone, location, specialty")
+  .or(
+    expertIds
+      .map((expertId) => `id.eq.${expertId},uid.eq.${expertId}`)
+      .join(",")
+  );
+  
   if (profilesError) {
   console.error("Profiles load error:", profilesError);
   setErrorMessage("Expert profiles could not be loaded.");
@@ -161,8 +165,10 @@ const { data: profiles, error: profilesError } = await supabase
 const profileMap: Record<string, ExpertProfile> = {};
 
 (profiles || []).forEach((profile) => {
-profileMap[profile.uid] = {
-  id: profile.uid,
+const profileKey = profile.uid || profile.id;
+
+profileMap[profileKey] = {
+  id: profileKey,
   full_name: profile.full_name,
   email: profile.email,
   phone: profile.phone,
