@@ -20,12 +20,12 @@ type FacilityRequest = {
   status: string | null;
 };
 
-type ActionType = "saved" | "accepted" | "contact";
+type ActionType = "saved" | "accepted" | "contacted";
 
 type ExpertActions = {
   saved: number[];
   accepted: number[];
-  contact: number[];
+  contacted: number[];
 };
 
 export default function RequestsPage() {
@@ -35,11 +35,13 @@ export default function RequestsPage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [expertId, setExpertId] = useState<string | null>(null);
+
   const [actions, setActions] = useState<ExpertActions>({
     saved: [],
     accepted: [],
-    contact: [],
+    contacted: [],
   });
+
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [updatingAction, setUpdatingAction] = useState<string | null>(null);
@@ -101,7 +103,7 @@ export default function RequestsPage() {
     const nextActions: ExpertActions = {
       saved: [],
       accepted: [],
-      contact: [],
+      contacted: [],
     };
 
     (data || []).forEach((item) => {
@@ -111,7 +113,7 @@ export default function RequestsPage() {
       if (
         actionType === "saved" ||
         actionType === "accepted" ||
-        actionType === "contact"
+        actionType === "contacted"
       ) {
         nextActions[actionType].push(projectId);
       }
@@ -131,27 +133,16 @@ export default function RequestsPage() {
     setErrorMessage("");
     setUpdatingAction(`${requestId}-${actionType}`);
 
-    const alreadyExists = hasAction(requestId, actionType);
-
-    if (alreadyExists) {
+    if (hasAction(requestId, actionType)) {
       setUpdatingAction(null);
       return;
     }
 
-   const { error } = await supabase
-  .from("technician_project_actions")
-  .insert({
-    technician_id: expertId,
-    project_id: requestId,
-    action_type: actionType,
-  });
-
-console.log("VALCRONS action result:", {
-  requestId,
-  actionType,
-  expertId,
-  error,
-});
+    const { error } = await supabase.from("technician_project_actions").insert({
+      technician_id: expertId,
+      project_id: requestId,
+      action_type: actionType,
+    });
 
     setUpdatingAction(null);
 
@@ -167,7 +158,7 @@ console.log("VALCRONS action result:", {
 
     if (actionType === "saved") setMessage("Project saved successfully.");
     if (actionType === "accepted") setMessage("Project accepted successfully.");
-    if (actionType === "contact") {
+    if (actionType === "contacted") {
       setMessage("Contact request sent to the facility.");
     }
   }
@@ -290,8 +281,8 @@ console.log("VALCRONS action result:", {
                 value={actions.accepted.length}
               />
               <StatCard
-                title="Contact"
-                value={actions.contact.length}
+                title="Contact Requests"
+                value={actions.contacted.length}
               />
             </div>
 
@@ -322,10 +313,7 @@ console.log("VALCRONS action result:", {
                 const isExpanded = expandedId === request.id;
                 const saved = hasAction(request.id, "saved");
                 const accepted = hasAction(request.id, "accepted");
-                const contactRequested = hasAction(
-                  request.id,
-                  "contact"
-                );
+                const contactRequested = hasAction(request.id, "contacted");
 
                 return (
                   <article
@@ -416,19 +404,17 @@ console.log("VALCRONS action result:", {
                         <button
                           type="button"
                           onClick={() =>
-                            addExpertAction(request.id, "contact")
+                            addExpertAction(request.id, "contacted")
                           }
                           disabled={
                             contactRequested ||
-                            updatingAction ===
-                              `${request.id}-contact`
+                            updatingAction === `${request.id}-contacted`
                           }
                           className="rounded-2xl bg-[#07111f] px-5 py-4 text-sm font-semibold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {contactRequested
                             ? "Contact Requested ✓"
-                            : updatingAction ===
-                              `${request.id}-contact`
+                            : updatingAction === `${request.id}-contacted`
                             ? "Sending..."
                             : "Request Contact →"}
                         </button>
@@ -508,6 +494,7 @@ function Info({
       <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
         {label}
       </p>
+
       <p className="mt-2 font-medium text-[#111827]">
         {value || "Not specified"}
       </p>
