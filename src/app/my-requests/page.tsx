@@ -37,6 +37,8 @@ const awaitingReview = requests.filter(
   (r) => r.status === "pending" || !r.status
 ).length;
 
+const expertInterest = 0
+
 const totalRequests = requests.length;
 
   const [editForm, setEditForm] = useState({
