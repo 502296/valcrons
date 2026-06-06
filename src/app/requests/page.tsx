@@ -194,44 +194,67 @@ setAttachments(selectedFiles);
 }
 
 async function submitContactRequest() {
-if (!expertId || !contactRequest) return;
+  if (!expertId || !contactRequest) return;
 
-const requestId = contactRequest.id;
-const cleanMessage = contactMessage.trim();
+  const requestId = contactRequest.id;
+  const cleanMessage = contactMessage.trim();
 
-if (cleanMessage.length < 20) {
-setErrorMessage("Please write a short professional message first.");
-return;
+  if (cleanMessage.length < 20) {
+    setErrorMessage("Please write a short professional message first.");
+    return;
+  }
+
+  setMessage("");
+  setErrorMessage("");
+  setUpdatingAction(`${requestId}-contacted`);
+
+  const attachmentData = attachments.map((file) => ({
+    name: file.name,
+    size: file.size,
+    type: file.type,
+  }));
+
+  const { error: actionError } = await supabase
+    .from("technician_project_actions")
+    .insert({
+      technician_id: expertId,
+      project_id: requestId,
+      action_type: "contacted",
+      contact_message: cleanMessage,
+      attachment_urls: attachmentData,
+    });
+
+  if (actionError) {
+    setUpdatingAction(null);
+    setErrorMessage("Contact request could not be sent. Please check permissions.");
+    return;
+  }
+
+  const { error: contactError } = await supabase
+    .from("expert_contact_requests")
+    .insert({
+      request_id: requestId,
+      expert_id: expertId,
+      expert_message: cleanMessage,
+      attachment_names: attachmentData,
+      status: "pending",
+    });
+
+  setUpdatingAction(null);
+
+  if (contactError) {
+    setErrorMessage("Contact request was saved, but company inbox could not be updated.");
+    return;
+  }
+
+  setActions((prev) => ({
+    ...prev,
+    contacted: [...prev.contacted, requestId],
+  }));
+
+  setMessage("Contact request sent to the facility.");
+  closeContactModal();
 }
-
-setMessage("");
-setErrorMessage("");
-setUpdatingAction(`${requestId}-contacted`);
-
-const { error } = await supabase.from("technician_project_actions").insert({
-technician_id: expertId,
-project_id: requestId,
-action_type: "contacted",
-contact_message: cleanMessage,
-attachment_urls: attachments,
-});
-
-setUpdatingAction(null);
-
-if (error) {
-setErrorMessage("Contact request could not be sent. Please check permissions.");
-return;
-}
-
-setActions((prev) => ({
-...prev,
-contacted: [...prev.contacted, requestId],
-}));
-
-setMessage("Contact request sent to the facility.");
-closeContactModal();
-}
-
 function getRequestTitle(request: FacilityRequest) {
 const description = request.problem_description || "";
 
