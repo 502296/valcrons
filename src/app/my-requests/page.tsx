@@ -167,7 +167,7 @@ setMessage("");
 setErrorMessage("");
 }
 
-function getContactsForRequest(requestId: string) {
+function getContactsForRequest(requestId: number) {
 return contactRequests.filter(
 (contact) => Number(contact.request_id) === Number(requestId)
 );
