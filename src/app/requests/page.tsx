@@ -220,8 +220,7 @@ async function submitContactRequest() {
       technician_id: expertId,
       project_id: requestId,
       action_type: "contacted",
-      contact_message: cleanMessage,
-      attachment_urls: attachmentData,
+      
     });
 
   if (actionError) {
