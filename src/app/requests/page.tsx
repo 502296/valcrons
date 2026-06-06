@@ -291,7 +291,7 @@ console.log("VALCRONS action result:", {
               />
               <StatCard
                 title="Contact"
-                value={actions.contact_requested.length}
+                value={actions.contact.length}
               />
             </div>
 
@@ -421,14 +421,14 @@ console.log("VALCRONS action result:", {
                           disabled={
                             contactRequested ||
                             updatingAction ===
-                              `${request.id}-contact_requested`
+                              `${request.id}-contact`
                           }
                           className="rounded-2xl bg-[#07111f] px-5 py-4 text-sm font-semibold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {contactRequested
                             ? "Contact Requested ✓"
                             : updatingAction ===
-                              `${request.id}-contact_requested`
+                              `${request.id}-contact`
                             ? "Sending..."
                             : "Request Contact →"}
                         </button>
