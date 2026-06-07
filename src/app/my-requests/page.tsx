@@ -732,12 +732,15 @@ Attachments
 
 <div className="mt-2 flex flex-wrap gap-2">
 {files.map((file) => (
-<span
-key={file.name}
-className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-[#111827]"
->
-{file.name}
-</span>
+  <a
+    key={file.name}
+    href={`https://gethyhjzqyblovtoodhw.supabase.co/storage/v1/object/public/contact-attachments/${file.path}`}
+    target="_blank"
+    rel="noreferrer"
+    className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-[#111827] hover:bg-[#e5e7eb]"
+  >
+    📎 {file.name}
+  </a>
 ))}
 </div>
 </div>
