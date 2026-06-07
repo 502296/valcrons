@@ -130,7 +130,7 @@ export default function NotificationsPage() {
       <main className="min-h-screen bg-[#f4f1ea] px-6 pt-32 pb-24">
         <div className="mx-auto max-w-5xl">
           <Link
-            href="/dashboard"
+            href="/"
             className="mb-8 inline-flex text-sm font-semibold text-[#374151] hover:text-black"
           >
             ← Back
