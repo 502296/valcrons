@@ -91,9 +91,17 @@ problem_description: "",
 });
 
 useEffect(() => {
+const params = new URLSearchParams(window.location.search);
+const requestId = Number(params.get("request"));
+
+if (requestId) {
+setTargetRequestId(requestId);
+setExpandedId(requestId);
+}
+
 loadRequests();
 }, []);
-
+  
 async function loadRequests() {
 setLoading(true);
 
