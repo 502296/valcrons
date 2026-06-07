@@ -9,6 +9,7 @@ type UserRole = "expert" | "company" | "facility" | null;
 export default function Header() {
   const [role, setRole] = useState<UserRole>(null);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     async function loadUser() {
@@ -17,6 +18,7 @@ export default function Header() {
       if (!data.user) {
         setLoggedIn(false);
         setRole(null);
+        setUnreadCount(0);
         return;
       }
 
@@ -25,10 +27,18 @@ export default function Header() {
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
-        .eq("id", data.user.id)
-        .single();
+        .or(`id.eq.${data.user.id},uid.eq.${data.user.id}`)
+        .maybeSingle();
 
       setRole((profile?.role as UserRole) || null);
+
+      const { count } = await supabase
+        .from("notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", data.user.id)
+        .eq("is_read", false);
+
+      setUnreadCount(count || 0);
     }
 
     loadUser();
@@ -116,6 +126,20 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
+          {loggedIn && (
+            <Link
+              href="/notifications"
+              className="relative rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+            >
+              🔔
+              {unreadCount > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#111827] px-1.5 text-[10px] font-bold text-white">
+                  {unreadCount}
+                </span>
+              )}
+            </Link>
+          )}
+
           {!loggedIn ? (
             <>
               <Link
