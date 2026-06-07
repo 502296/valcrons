@@ -18,11 +18,11 @@ issue_type?: string | null;
 };
 
 type ContactAttachment = {
-name: string;
-size?: number;
-type?: string;
+  name: string;
+  path?: string;
+  size?: number;
+  type?: string;
 };
-
 type ContactRequest = {
 id: number;
 request_id: number;
