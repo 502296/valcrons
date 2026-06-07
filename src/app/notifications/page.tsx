@@ -60,8 +60,28 @@ export default function NotificationsPage() {
       return;
     }
 
-    setNotifications((data || []) as NotificationItem[]);
-    setLoading(false);
+   const unreadItems = (data || []).filter((item) => !item.is_read);
+
+if (unreadItems.length > 0) {
+  await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("user_id", session.user.id)
+    .eq("is_read", false);
+
+  setNotifications(
+    (data || []).map((item) => ({
+      ...item,
+      is_read: true,
+    })) as NotificationItem[]
+  );
+
+  window.dispatchEvent(new Event("valcrons-notifications-updated"));
+} else {
+  setNotifications((data || []) as NotificationItem[]);
+}
+
+setLoading(false);
   }
 
   async function markAsRead(id: number) {
