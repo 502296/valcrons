@@ -24,13 +24,37 @@ export default function Header() {
 
       setLoggedIn(true);
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .or(`id.eq.${data.user.id},uid.eq.${data.user.id}`)
-        .maybeSingle();
+     let profile = null;
 
-      setRole((profile?.role as UserRole) || null);
+const byId = await supabase
+  .from("profiles")
+  .select("role")
+  .eq("id", data.user.id)
+  .maybeSingle();
+
+profile = byId.data;
+
+if (!profile) {
+  const byUid = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("uid", data.user.id)
+    .maybeSingle();
+
+  profile = byUid.data;
+}
+
+if (!profile && data.user.email) {
+  const byEmail = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("email", data.user.email)
+    .maybeSingle();
+
+  profile = byEmail.data;
+}
+
+setRole((profile?.role as UserRole) || null);
 
       const { count } = await supabase
         .from("notifications")
