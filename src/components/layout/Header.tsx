@@ -76,7 +76,7 @@ export default function Header() {
       .from("notifications")
       .select("*", { count: "exact", head: true })
       .eq("user_id", activeUserId)
-      .eq("is_read", false);
+      .or("is_read.eq.false,is_read.is.null")
 
     if (error) {
       setUnreadCount(0);
