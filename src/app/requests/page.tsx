@@ -208,12 +208,24 @@ async function submitContactRequest() {
   setErrorMessage("");
   setUpdatingAction(`${requestId}-contacted`);
 
-  const attachmentData = attachments.map((file) => ({
-    name: file.name,
-    size: file.size,
-    type: file.type,
-  }));
+ const attachmentData = [];
 
+for (const file of attachments) {
+  const filePath = `${expertId}/${Date.now()}-${file.name}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("contact-attachments")
+    .upload(filePath, file);
+
+  if (!uploadError) {
+    attachmentData.push({
+      name: file.name,
+      path: filePath,
+      type: file.type,
+      size: file.size,
+    });
+  }
+}
   const { error: actionError } = await supabase
     .from("technician_project_actions")
     .insert({
