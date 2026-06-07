@@ -239,6 +239,28 @@ async function submitContactRequest() {
       status: "pending",
     });
 
+  if (!contactError && contactRequest.work_email) {
+  const { data: companyProfile } = await supabase
+    .from("profiles")
+    .select("id, uid")
+    .eq("email", contactRequest.work_email)
+    .maybeSingle();
+
+  const companyUserId = companyProfile?.uid || companyProfile?.id;
+
+  if (companyUserId) {
+    await supabase.from("notifications").insert({
+      user_id: companyUserId,
+      title: "New Expert Contact Request",
+      message:
+        "An expert has requested contact regarding your industrial support request.",
+      type: "contact_request",
+      related_request_id: requestId,
+      is_read: false,
+    });
+  }
+}
+
   const { data: companyProfile } = await supabase
   .from("profiles")
   .select("id, uid")
