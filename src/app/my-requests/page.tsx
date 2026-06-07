@@ -72,6 +72,7 @@ const [expandedId, setExpandedId] = useState<number | null>(null);
 const [editingId, setEditingId] = useState<number | null>(null);
 const [message, setMessage] = useState("");
 const [errorMessage, setErrorMessage] = useState("");
+const [targetRequestId, setTargetRequestId] = useState<number | null>(null);
 
 const activeRequests = requests.filter((r) => r.status !== "closed").length;
 const closedRequests = requests.filter((r) => r.status === "closed").length;
