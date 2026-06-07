@@ -60,36 +60,41 @@ export default function NotificationsPage() {
       return;
     }
 
-    const loadedNotifications = (data || []) as NotificationItem[];
-    const unreadItems = loadedNotifications.filter((item) => item.is_read !== true);
+    setNotifications((data || []) as NotificationItem[]);
+    setLoading(false);
+  }
 
-    if (unreadItems.length > 0) {
-      const { error: updateError } = await supabase
+  async function openNotification(item: NotificationItem) {
+    setErrorMessage("");
+    setMessage("");
+
+    if (item.is_read !== true) {
+      const { error } = await supabase
         .from("notifications")
         .update({ is_read: true })
-        .eq("user_id", session.user.id)
-        .or("is_read.eq.false,is_read.is.null");
+        .eq("id", item.id);
 
-      if (updateError) {
-        setErrorMessage("Notifications were loaded, but could not be marked as read.");
-        setNotifications(loadedNotifications);
-        setLoading(false);
+      if (error) {
+        setErrorMessage("Notification could not be marked as read.");
         return;
       }
 
-      setNotifications(
-        loadedNotifications.map((item) => ({
-          ...item,
-          is_read: true,
-        }))
+      setNotifications((prev) =>
+        prev.map((notification) =>
+          notification.id === item.id
+            ? { ...notification, is_read: true }
+            : notification
+        )
       );
 
       notifyHeaderBadgeUpdate();
-    } else {
-      setNotifications(loadedNotifications);
     }
 
-    setLoading(false);
+    if (item.related_request_id) {
+      router.push(
+        `/my-requests?request=${item.related_request_id}&from=notifications`
+      );
+    }
   }
 
   async function markAllAsRead() {
@@ -122,14 +127,6 @@ export default function NotificationsPage() {
 
     setMessage("All notifications marked as read.");
     notifyHeaderBadgeUpdate();
-  }
-
-  function openNotification(item: NotificationItem) {
-    if (item.related_request_id) {
-      router.push(
-        `/my-requests?request=${item.related_request_id}&from=notifications`
-      );
-    }
   }
 
   const unreadCount = notifications.filter((item) => item.is_read !== true).length;
