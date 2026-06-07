@@ -732,15 +732,30 @@ Attachments
 
 <div className="mt-2 flex flex-wrap gap-2">
 {files.map((file) => (
-  <a
-    key={file.name}
-    href={`https://gethyhjzqyblovtoodhw.supabase.co/storage/v1/object/public/contact-attachments/${file.path}`}
-    target="_blank"
-    rel="noreferrer"
-    className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-[#111827] hover:bg-[#e5e7eb]"
-  >
-    📎 {file.name}
-  </a>
+ <button
+  key={file.name}
+  type="button"
+  onClick={async () => {
+    if (!file.path) {
+      alert("File path is missing.");
+      return;
+    }
+
+    const { data, error } = await supabase.storage
+      .from("contact-attachments")
+      .createSignedUrl(file.path, 300);
+
+    if (error || !data?.signedUrl) {
+      alert("File could not be opened.");
+      return;
+    }
+
+    window.open(data.signedUrl, "_blank");
+  }}
+  className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-[#111827] hover:bg-[#e5e7eb]"
+>
+  📎 {file.name}
+</button>
 ))}
 </div>
 </div>
