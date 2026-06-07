@@ -29,9 +29,10 @@ contacted: number[];
 };
 
 type AttachmentInfo = {
-name: string;
-size: number;
-type: string;
+  file: File;
+  name: string;
+  size: number;
+  type: string;
 };
 
 export default function RequestsPage() {
