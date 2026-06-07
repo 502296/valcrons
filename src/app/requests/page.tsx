@@ -217,7 +217,7 @@ for (const file of attachments) {
 
   const { error: uploadError } = await supabase.storage
     .from("contact-attachments")
-    .upload(filePath, file);
+    .upload(filePath, file.file);
 
   if (!uploadError) {
     attachmentData.push({
