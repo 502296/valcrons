@@ -60,59 +60,36 @@ export default function NotificationsPage() {
       return;
     }
 
-   const unreadItems = (data || []).filter((item) => !item.is_read);
+    const loadedNotifications = (data || []) as NotificationItem[];
+    const unreadItems = loadedNotifications.filter((item) => item.is_read !== true);
 
-if (unreadItems.length > 0) {
-  await supabase
-    .from("notifications")
-    .update({ is_read: true })
-    .eq("user_id", session.user.id)
-    .eq("is_read", false);
+    if (unreadItems.length > 0) {
+      const { error: updateError } = await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("user_id", session.user.id)
+        .or("is_read.eq.false,is_read.is.null");
 
-  setNotifications(
-    (data || []).map((item) => ({
-      ...item,
-      is_read: true,
-    })) as NotificationItem[]
-  );
+      if (updateError) {
+        setErrorMessage("Notifications were loaded, but could not be marked as read.");
+        setNotifications(loadedNotifications);
+        setLoading(false);
+        return;
+      }
 
-  window.dispatchEvent(new Event("valcrons-notifications-updated"));
-} else {
-  setNotifications((data || []) as NotificationItem[]);
-}
+      setNotifications(
+        loadedNotifications.map((item) => ({
+          ...item,
+          is_read: true,
+        }))
+      );
 
-setLoading(false);
-  }
-
-  async function markAsRead(id: number) {
-    setErrorMessage("");
-    setMessage("");
-
-    const { error } = await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .eq("id", id);
-
-    if (error) {
-      setErrorMessage("Notification could not be updated.");
-      return;
+      notifyHeaderBadgeUpdate();
+    } else {
+      setNotifications(loadedNotifications);
     }
 
-    setNotifications((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, is_read: true } : item))
-    );
-
-    notifyHeaderBadgeUpdate();
-  }
-
-  async function openNotification(item: NotificationItem) {
-    if (!item.is_read) {
-      await markAsRead(item.id);
-    }
-
-    if (item.related_request_id) {
-      router.push(`/my-requests?request=${item.related_request_id}&from=notifications`);
-    }
+    setLoading(false);
   }
 
   async function markAllAsRead() {
@@ -129,19 +106,33 @@ setLoading(false);
       .from("notifications")
       .update({ is_read: true })
       .eq("user_id", session.user.id)
-      .eq("is_read", false);
+      .or("is_read.eq.false,is_read.is.null");
 
     if (error) {
       setErrorMessage("Notifications could not be updated.");
       return;
     }
 
-    setNotifications((prev) => prev.map((item) => ({ ...item, is_read: true })));
+    setNotifications((prev) =>
+      prev.map((item) => ({
+        ...item,
+        is_read: true,
+      }))
+    );
+
     setMessage("All notifications marked as read.");
     notifyHeaderBadgeUpdate();
   }
 
-  const unreadCount = notifications.filter((item) => !item.is_read).length;
+  function openNotification(item: NotificationItem) {
+    if (item.related_request_id) {
+      router.push(
+        `/my-requests?request=${item.related_request_id}&from=notifications`
+      );
+    }
+  }
+
+  const unreadCount = notifications.filter((item) => item.is_read !== true).length;
 
   return (
     <>
@@ -264,15 +255,6 @@ setLoading(false);
                           className="rounded-xl bg-[#2563eb] px-4 py-3 text-center text-sm font-semibold text-white hover:bg-[#1d4ed8]"
                         >
                           View Request
-                        </button>
-                      )}
-
-                      {!item.is_read && (
-                        <button
-                          onClick={() => markAsRead(item.id)}
-                          className="rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm font-semibold text-[#2563eb] hover:bg-blue-50"
-                        >
-                          Mark as Read
                         </button>
                       )}
                     </div>
