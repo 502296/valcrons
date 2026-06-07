@@ -11,67 +11,103 @@ export default function Header() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  useEffect(() => {
-    async function loadUser() {
+  async function loadUser() {
+    const { data } = await supabase.auth.getUser();
+
+    if (!data.user) {
+      setLoggedIn(false);
+      setRole(null);
+      setUnreadCount(0);
+      return;
+    }
+
+    setLoggedIn(true);
+
+    let profile = null;
+
+    const byId = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    profile = byId.data;
+
+    if (!profile) {
+      const byUid = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("uid", data.user.id)
+        .maybeSingle();
+
+      profile = byUid.data;
+    }
+
+    if (!profile && data.user.email) {
+      const byEmail = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("email", data.user.email)
+        .maybeSingle();
+
+      profile = byEmail.data;
+    }
+
+    setRole((profile?.role as UserRole) || null);
+
+    await loadUnreadNotifications(data.user.id);
+  }
+
+  async function loadUnreadNotifications(userId?: string) {
+    let activeUserId = userId;
+
+    if (!activeUserId) {
       const { data } = await supabase.auth.getUser();
 
       if (!data.user) {
-        setLoggedIn(false);
-        setRole(null);
         setUnreadCount(0);
         return;
       }
 
-      setLoggedIn(true);
-
-     let profile = null;
-
-const byId = await supabase
-  .from("profiles")
-  .select("role")
-  .eq("id", data.user.id)
-  .maybeSingle();
-
-profile = byId.data;
-
-if (!profile) {
-  const byUid = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("uid", data.user.id)
-    .maybeSingle();
-
-  profile = byUid.data;
-}
-
-if (!profile && data.user.email) {
-  const byEmail = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("email", data.user.email)
-    .maybeSingle();
-
-  profile = byEmail.data;
-}
-
-setRole((profile?.role as UserRole) || null);
-
-      const { count } = await supabase
-        .from("notifications")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", data.user.id)
-        .eq("is_read", false);
-
-      setUnreadCount(count || 0);
+      activeUserId = data.user.id;
     }
 
+    const { count, error } = await supabase
+      .from("notifications")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", activeUserId)
+      .eq("is_read", false);
+
+    if (error) {
+      setUnreadCount(0);
+      return;
+    }
+
+    setUnreadCount(count || 0);
+  }
+
+  useEffect(() => {
     loadUser();
+
+    const handleNotificationsUpdate = () => {
+      loadUnreadNotifications();
+    };
+
+    window.addEventListener(
+      "valcrons-notifications-updated",
+      handleNotificationsUpdate
+    );
 
     const { data: listener } = supabase.auth.onAuthStateChange(() => {
       loadUser();
     });
 
     return () => {
+      window.removeEventListener(
+        "valcrons-notifications-updated",
+        handleNotificationsUpdate
+      );
+
       listener.subscription.unsubscribe();
     };
   }, []);
@@ -114,7 +150,10 @@ setRole((profile?.role as UserRole) || null);
               <Link href="/#safety" className="hover:text-black">
                 Safety
               </Link>
-              <Link href="/requests" className="font-semibold text-[#111827] hover:text-black">
+              <Link
+                href="/requests"
+                className="font-semibold text-[#111827] hover:text-black"
+              >
                 Browse Requests
               </Link>
             </>
@@ -122,7 +161,10 @@ setRole((profile?.role as UserRole) || null);
 
           {loggedIn && role === "expert" && (
             <>
-              <Link href="/requests" className="font-semibold text-[#111827] hover:text-black">
+              <Link
+                href="/requests"
+                className="font-semibold text-[#111827] hover:text-black"
+              >
                 Browse Requests
               </Link>
               <Link href="/saved-requests" className="hover:text-black">
@@ -136,7 +178,10 @@ setRole((profile?.role as UserRole) || null);
 
           {loggedIn && (role === "company" || role === "facility") && (
             <>
-              <Link href="/request-support" className="font-semibold text-[#111827] hover:text-black">
+              <Link
+                href="/request-support"
+                className="font-semibold text-[#111827] hover:text-black"
+              >
                 Post Request
               </Link>
               <Link href="/my-requests" className="hover:text-black">
