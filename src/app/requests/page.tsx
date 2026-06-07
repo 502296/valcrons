@@ -242,11 +242,11 @@ async function submitContactRequest() {
   if (!contactError && contactRequest.work_email) {
   const { data: companyProfile } = await supabase
     .from("profiles")
-    .select("id, uid")
+    .select("id")
     .eq("email", contactRequest.work_email)
     .maybeSingle();
 
-  const companyUserId = companyProfile?.uid || companyProfile?.id;
+  const companyUserId = companyProfile?.id;
 
   if (companyUserId) {
     await supabase.from("notifications").insert({
