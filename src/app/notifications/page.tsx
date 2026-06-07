@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -18,6 +19,8 @@ type NotificationItem = {
 };
 
 export default function NotificationsPage() {
+  const router = useRouter();
+
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -26,6 +29,10 @@ export default function NotificationsPage() {
   useEffect(() => {
     loadNotifications();
   }, []);
+
+  function notifyHeaderBadgeUpdate() {
+    window.dispatchEvent(new Event("valcrons-notifications-updated"));
+  }
 
   async function loadNotifications() {
     setLoading(true);
@@ -58,6 +65,9 @@ export default function NotificationsPage() {
   }
 
   async function markAsRead(id: number) {
+    setErrorMessage("");
+    setMessage("");
+
     const { error } = await supabase
       .from("notifications")
       .update({ is_read: true })
@@ -71,9 +81,24 @@ export default function NotificationsPage() {
     setNotifications((prev) =>
       prev.map((item) => (item.id === id ? { ...item, is_read: true } : item))
     );
+
+    notifyHeaderBadgeUpdate();
+  }
+
+  async function openNotification(item: NotificationItem) {
+    if (!item.is_read) {
+      await markAsRead(item.id);
+    }
+
+    if (item.related_request_id) {
+      router.push(`/my-requests?request=${item.related_request_id}&from=notifications`);
+    }
   }
 
   async function markAllAsRead() {
+    setErrorMessage("");
+    setMessage("");
+
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -91,11 +116,9 @@ export default function NotificationsPage() {
       return;
     }
 
-    setNotifications((prev) =>
-      prev.map((item) => ({ ...item, is_read: true }))
-    );
-
+    setNotifications((prev) => prev.map((item) => ({ ...item, is_read: true })));
     setMessage("All notifications marked as read.");
+    notifyHeaderBadgeUpdate();
   }
 
   const unreadCount = notifications.filter((item) => !item.is_read).length;
@@ -107,7 +130,7 @@ export default function NotificationsPage() {
       <main className="min-h-screen bg-[#f4f1ea] px-6 pt-32 pb-24">
         <div className="mx-auto max-w-5xl">
           <Link
-            href="/"
+            href="/dashboard"
             className="mb-8 inline-flex text-sm font-semibold text-[#374151] hover:text-black"
           >
             ← Back
@@ -132,9 +155,9 @@ export default function NotificationsPage() {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="rounded-2xl bg-[#111827] px-6 py-3 text-sm font-semibold text-white hover:bg-black"
+                className="rounded-2xl bg-[#2563eb] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#1d4ed8]"
               >
-                Mark All Read
+                Mark All As Read
               </button>
             )}
           </div>
@@ -142,10 +165,7 @@ export default function NotificationsPage() {
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             <StatCard title="Total" value={notifications.length} />
             <StatCard title="Unread" value={unreadCount} />
-            <StatCard
-              title="Read"
-              value={notifications.length - unreadCount}
-            />
+            <StatCard title="Read" value={notifications.length - unreadCount} />
           </div>
 
           {(message || errorMessage) && (
@@ -153,7 +173,7 @@ export default function NotificationsPage() {
               className={`mt-8 rounded-2xl border px-5 py-4 text-sm font-semibold ${
                 errorMessage
                   ? "border-red-200 bg-red-50 text-red-700"
-                  : "border-black/10 bg-white text-[#111827]"
+                  : "border-blue-100 bg-blue-50 text-blue-800"
               }`}
             >
               {errorMessage || message}
@@ -168,8 +188,7 @@ export default function NotificationsPage() {
             <div className="mt-10 rounded-3xl border border-black/10 bg-white p-10 text-[#111827] shadow-sm">
               <h2 className="text-2xl font-semibold">No notifications yet.</h2>
               <p className="mt-3 max-w-xl text-sm leading-7 text-[#374151]">
-                When companies or experts take action, important updates will
-                appear here.
+                When companies or experts take action, important updates will appear here.
               </p>
             </div>
           ) : (
@@ -177,26 +196,34 @@ export default function NotificationsPage() {
               {notifications.map((item) => (
                 <div
                   key={item.id}
-                  className={`rounded-[2rem] border p-6 shadow-sm ${
+                  className={`rounded-[2rem] border p-6 shadow-sm transition ${
                     item.is_read
-                      ? "border-black/10 bg-white/70"
-                      : "border-black/10 bg-white"
+                      ? "border-black/10 bg-white/80"
+                      : "border-blue-200 bg-blue-50"
                   }`}
                 >
                   <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                     <div>
                       <div className="flex flex-wrap items-center gap-3">
-                        <h3 className="text-xl font-bold text-[#111827]">
+                        {!item.is_read && (
+                          <span className="h-3 w-3 rounded-full bg-[#2563eb]" />
+                        )}
+
+                        <h3
+                          className={`text-xl text-[#111827] ${
+                            item.is_read ? "font-semibold" : "font-bold"
+                          }`}
+                        >
                           {item.title || "Notification"}
                         </h3>
 
                         {!item.is_read && (
-                          <span className="rounded-full bg-[#111827] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
+                          <span className="rounded-full bg-[#2563eb] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
                             New
                           </span>
                         )}
 
-                        <span className="rounded-full border border-black/10 bg-[#f8f6f1] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#111827]">
+                        <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#111827]">
                           {item.type || "general"}
                         </span>
                       </div>
@@ -212,18 +239,18 @@ export default function NotificationsPage() {
 
                     <div className="flex min-w-[170px] flex-col gap-3">
                       {item.related_request_id && (
-                        <Link
-                          href={`/my-requests?request=${item.related_request_id}`}
-                          className="rounded-xl bg-[#111827] px-4 py-3 text-center text-sm font-semibold text-white hover:bg-black"
+                        <button
+                          onClick={() => openNotification(item)}
+                          className="rounded-xl bg-[#2563eb] px-4 py-3 text-center text-sm font-semibold text-white hover:bg-[#1d4ed8]"
                         >
                           View Request
-                        </Link>
+                        </button>
                       )}
 
                       {!item.is_read && (
                         <button
                           onClick={() => markAsRead(item.id)}
-                          className="rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                          className="rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm font-semibold text-[#2563eb] hover:bg-blue-50"
                         >
                           Mark as Read
                         </button>
