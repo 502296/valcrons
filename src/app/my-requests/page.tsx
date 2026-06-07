@@ -440,7 +440,10 @@ No requests have been submitted yet.
 </div>
 ) : (
 <div className="mt-10 grid gap-6">
-{requests.map((request) => {
+{(targetRequestId
+  ? requests.filter((request) => request.id === targetRequestId)
+  : requests
+).map((request) => {
 const isExpanded = expandedId === request.id;
 const isEditing = editingId === request.id;
 const status = request.status || "pending";
