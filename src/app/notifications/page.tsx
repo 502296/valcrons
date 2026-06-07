@@ -213,7 +213,7 @@ export default function NotificationsPage() {
                     <div className="flex min-w-[170px] flex-col gap-3">
                       {item.related_request_id && (
                         <Link
-                          href="/my-requests"
+                          href={`/my-requests?request=${item.related_request_id}`}
                           className="rounded-xl bg-[#111827] px-4 py-3 text-center text-sm font-semibold text-white hover:bg-black"
                         >
                           View Request
