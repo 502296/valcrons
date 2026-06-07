@@ -183,15 +183,16 @@ setAttachments([]);
 }
 
 function handleAttachments(files: FileList | null) {
-if (!files) return;
+  if (!files) return;
 
-const selectedFiles = Array.from(files).slice(0, 4).map((file) => ({
-name: file.name,
-size: file.size,
-type: file.type || "unknown",
-}));
+  const selectedFiles = Array.from(files).slice(0, 4).map((file) => ({
+    file,
+    name: file.name,
+    size: file.size,
+    type: file.type || "unknown",
+  }));
 
-setAttachments(selectedFiles);
+  setAttachments(selectedFiles);
 }
 
 async function submitContactRequest() {
