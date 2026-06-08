@@ -5,16 +5,16 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function GET() {
   try {
-    const result = await resend.emails.send({
-      from: "VALCRONS <onboarding@resend.dev>",
+    const data = await resend.emails.send({
+      from: "onboarding@resend.dev",
       to: "ali.kathem.edu@gmail.com",
-      subject: "VALCRONS Test Email",
-      html: "<h1>VALCRONS Test Email</h1><p>Email system is working.</p>",
+      subject: "Test from VALCRONS",
+      html: "<p>Email test from VALCRONS is working.</p>",
     });
 
     return NextResponse.json({
       success: true,
-      result,
+      data,
     });
   } catch (error) {
     return NextResponse.json(
