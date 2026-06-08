@@ -328,7 +328,7 @@ const urgentCount = requests.filter((request) =>
 ).length;
 
 if (checkingAuth) {
-  return null;
+return null;
 }
 
 if (!loggedIn) {
@@ -368,11 +368,13 @@ return (
         </div>
       </div>
     </section>
+
+    <Footer />
   </main>
 );
 }
 return (
-  <>
+<>
 
 
     <section className="px-6 py-28">
@@ -658,39 +660,36 @@ return (
 );
 }
 function StatCard({ title, value }: { title: string; value: number }) {
-  return (
-    <div className="rounded-[1.6rem] border border-white/50 bg-white/45 p-6 shadow-[0_20px_60px_rgba(17,24,39,0.08)] backdrop-blur-xl">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6b7280]">
-        {title}
-      </p>
+return (
 
-      <p className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-[#111827]">
-        {value}
-      </p>
 
-      <p className="mt-3 text-xs font-medium text-[#6b7280]">
-        Expert activity metric
-      </p>
-    </div>
-  );
+{title}
+
+  <p className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-[#111827]">
+    {value}
+  </p>
+
+  <p className="mt-3 text-xs font-medium text-[#6b7280]">
+    Expert activity metric
+  </p>
+</div>
+);
 }
-
 function Info({
-  label,
-  value,
+label,
+value,
 }: {
-  label: string;
-  value: string | number | null | undefined;
+label: string;
+value: string | number | null | undefined;
 }) {
-  return (
-    <div>
-      <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
-        {label}
-      </p>
+return (
 
-      <p className="mt-2 font-medium text-[#111827]">
-        {value || "Not specified"}
-      </p>
-    </div>
-  );
+
+{label}
+
+  <p className="mt-2 font-medium text-[#111827]">
+    {value || "Not specified"}
+  </p>
+</div>
+);
 }
