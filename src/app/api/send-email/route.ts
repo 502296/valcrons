@@ -1,21 +1,25 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: Request) {
   try {
+    const apiKey = process.env.RESEND_API_KEY;
+
+    if (!apiKey) {
+      return NextResponse.json(
+        { success: false, error: "Missing RESEND_API_KEY" },
+        { status: 500 }
+      );
+    }
+
+    const resend = new Resend(apiKey);
+
     const { to, subject, message } = await request.json();
 
     if (!to || !subject || !message) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Missing required fields",
-        },
-        {
-          status: 400,
-        }
+        { success: false, error: "Missing required fields" },
+        { status: 400 }
       );
     }
 
@@ -35,23 +39,11 @@ export async function POST(request: Request) {
       `,
     });
 
-    console.log("VALCRONS EMAIL SENT:", result);
-
-    return NextResponse.json({
-      success: true,
-      result,
-    });
+    return NextResponse.json({ success: true, result });
   } catch (error) {
-    console.error("VALCRONS EMAIL ERROR:", error);
-
     return NextResponse.json(
-      {
-        success: false,
-        error: String(error),
-      },
-      {
-        status: 500,
-      }
+      { success: false, error: String(error) },
+      { status: 500 }
     );
   }
 }
