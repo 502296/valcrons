@@ -328,11 +328,7 @@ const urgentCount = requests.filter((request) =>
 ).length;
 
 if (checkingAuth) {
-  return (
-    <p className="text-sm font-semibold text-[#374151]">
-      Checking secure access...
-    </p>
-  );
+  return null;
 }
 
 if (!loggedIn) {
