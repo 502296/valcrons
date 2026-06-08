@@ -658,36 +658,39 @@ return (
 );
 }
 function StatCard({ title, value }: { title: string; value: number }) {
-return (
+  return (
+    <div className="rounded-[1.6rem] border border-white/50 bg-white/45 p-6 shadow-[0_20px_60px_rgba(17,24,39,0.08)] backdrop-blur-xl">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6b7280]">
+        {title}
+      </p>
 
+      <p className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-[#111827]">
+        {value}
+      </p>
 
-{title}
-
-  <p className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-[#111827]">
-    {value}
-  </p>
-
-  <p className="mt-3 text-xs font-medium text-[#6b7280]">
-    Expert activity metric
-  </p>
-</div>
-);
+      <p className="mt-3 text-xs font-medium text-[#6b7280]">
+        Expert activity metric
+      </p>
+    </div>
+  );
 }
+
 function Info({
-label,
-value,
+  label,
+  value,
 }: {
-label: string;
-value: string | number | null | undefined;
+  label: string;
+  value: string | number | null | undefined;
 }) {
-return (
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-[0.18em] text-[#111827]">
+        {label}
+      </p>
 
-
-{label}
-
-  <p className="mt-2 font-medium text-[#111827]">
-    {value || "Not specified"}
-  </p>
-</div>
-);
+      <p className="mt-2 font-medium text-[#111827]">
+        {value || "Not specified"}
+      </p>
+    </div>
+  );
 }
