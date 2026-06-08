@@ -43,10 +43,10 @@ const [loggedIn, setLoggedIn] = useState(false);
 const [checkingAuth, setCheckingAuth] = useState(true);
 const [expertId, setExpertId] = useState<string | null>(null);
 
-const [actions, setActions] = useState({
-saved: [],
-accepted: [],
-contacted: [],
+const [actions, setActions] = useState<ExpertActions>({
+  saved: [],
+  accepted: [],
+  contacted: [],
 });
 
 const [message, setMessage] = useState("");
