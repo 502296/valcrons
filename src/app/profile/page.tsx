@@ -79,24 +79,6 @@ export default function ProfilePage() {
     setLoading(false);
   }
 
-  function completionScore() {
-    const fields = [
-      form.full_name,
-      profile?.email,
-      form.phone,
-      form.location,
-      form.avatar_url,
-      form.bio,
-      profile?.role === "company" || profile?.role === "facility"
-        ? form.company_name
-        : form.specialty,
-      profile?.role === "expert" ? form.certifications : "company",
-    ];
-
-    const completed = fields.filter((field) => field && String(field).trim()).length;
-    return Math.round((completed / fields.length) * 100);
-  }
-
   async function uploadAvatar(file: File) {
     if (!profile) return;
 
@@ -215,7 +197,6 @@ export default function ProfilePage() {
   }
 
   const isCompany = profile.role === "company" || profile.role === "facility";
-  const score = completionScore();
 
   return (
     <>
@@ -223,21 +204,14 @@ export default function ProfilePage() {
 
       <main className="min-h-screen bg-[#f4f1ea] px-6 pt-32 pb-24">
         <div className="mx-auto max-w-6xl">
-          <Link
-            href="/"
-            className="mb-8 inline-flex text-sm font-semibold text-[#374151] hover:text-black"
-          >
-            ← Back
-          </Link>
-
           <section className="overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-sm">
             <div className="bg-[#111827] px-8 py-10 text-white">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#c8a96b]">
                 VALCRONS PROFESSIONAL PROFILE
               </p>
 
-              <div className="mt-8 flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
-                <div className="flex flex-col gap-6 md:flex-row md:items-center">
+              <div className="mt-8 flex flex-col gap-8 md:flex-row md:items-center">
+                <div className="flex flex-col items-start gap-3">
                   <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-3xl border border-white/20 bg-white/10">
                     {form.avatar_url ? (
                       <img
@@ -252,38 +226,41 @@ export default function ProfilePage() {
                     )}
                   </div>
 
-                  <div>
-                    <h1 className="text-4xl font-bold tracking-[-0.04em]">
-                      {isCompany
-                        ? form.company_name || "Company Profile"
-                        : form.full_name || "Expert Profile"}
-                    </h1>
+                  <label className="inline-flex cursor-pointer items-center rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/15">
+                    {uploading
+                      ? "Uploading..."
+                      : isCompany
+                      ? "Change Logo"
+                      : "Change Photo"}
 
-                    <p className="mt-3 text-white/70">
-                      {isCompany
-                        ? form.full_name || "Facility account"
-                        : form.specialty || "Industrial expert"}
-                    </p>
-
-                    <p className="mt-2 text-sm font-semibold text-[#c8a96b]">
-                      {form.location || "Location not provided"}
-                    </p>
-                  </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadAvatar(file);
+                      }}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
 
-                <div className="rounded-3xl border border-white/10 bg-white/10 p-5 min-w-[220px]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
-                    Profile Completion
+                <div>
+                  <h1 className="text-4xl font-bold tracking-[-0.04em]">
+                    {isCompany
+                      ? form.company_name || "Company Profile"
+                      : form.full_name || "Expert Profile"}
+                  </h1>
+
+                  <p className="mt-3 text-white/70">
+                    {isCompany
+                      ? form.full_name || "Facility account"
+                      : form.specialty || "Industrial expert"}
                   </p>
 
-                  <p className="mt-3 text-4xl font-bold">{score}%</p>
-
-                  <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/10">
-                    <div
-                      className="h-full rounded-full bg-[#c8a96b]"
-                      style={{ width: `${score}%` }}
-                    />
-                  </div>
+                  <p className="mt-2 text-sm font-semibold text-[#c8a96b]">
+                    {form.location || "Location not provided"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -300,30 +277,6 @@ export default function ProfilePage() {
                   {error}
                 </div>
               )}
-
-              <div className="mb-8 rounded-2xl border border-black/10 bg-[#f8f6f1] p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9a7a3f]">
-                  Profile Image / Logo
-                </p>
-
-              <label className="mt-4 inline-flex cursor-pointer items-center justify-center rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#1d4ed8]">
-  {uploading ? "Uploading..." : "Upload Profile Image"}
-
-  <input
-    type="file"
-    accept="image/*"
-    onChange={(e) => {
-      const file = e.target.files?.[0];
-      if (file) uploadAvatar(file);
-    }}
-    className="hidden"
-  />
-</label>
-
-                <p className="mt-3 text-xs text-[#6b7280]">
-                  {uploading ? "Uploading image..." : "Upload a professional image or company logo."}
-                </p>
-              </div>
 
               {!editing ? (
                 <div className="grid gap-6 md:grid-cols-2">
@@ -440,12 +393,6 @@ export default function ProfilePage() {
               </div>
             </div>
           </section>
-
-          <section className="mt-8 grid gap-6 md:grid-cols-3">
-            <Card title={isCompany ? "Active Requests" : "Saved Requests"} value="0" />
-            <Card title={isCompany ? "Pending Reviews" : "Contacted Facilities"} value="0" />
-            <Card title={isCompany ? "Closed Requests" : "Accepted Work"} value="0" />
-          </section>
         </div>
       </main>
 
@@ -525,18 +472,6 @@ function TextArea({
         onChange={(e) => onChange(e.target.value)}
         className="mt-3 w-full resize-none rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm leading-7 text-[#111827] outline-none focus:border-[#9a7a3f]"
       />
-    </div>
-  );
-}
-
-function Card({ title, value }: { title: string; value: string }) {
-  return (
-    <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9a7a3f]">
-        {title}
-      </p>
-
-      <p className="mt-3 text-3xl font-bold text-[#111827]">{value}</p>
     </div>
   );
 }
