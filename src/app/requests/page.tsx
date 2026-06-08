@@ -292,18 +292,7 @@ if (companyUserId) {
     related_request_id: requestId,
     is_read: false,
   });
-  await fetch("/api/send-email", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    to: contactRequest.work_email,
-    subject: "New Expert Contact Request",
-    message:
-      "An expert has submitted a contact request for your industrial support request. Please log in to VALCRONS to review the expert profile and respond.",
-  }),
-});await fetch("/api/send-email", {
+  const emailResponse = await fetch("/api/send-email", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -315,6 +304,8 @@ if (companyUserId) {
       "An expert has submitted a contact request for your industrial support request. Please log in to VALCRONS to review the expert profile and respond.",
   }),
 });
+
+console.log("VALCRONS EMAIL RESPONSE", await emailResponse.json());
 }
   setUpdatingAction(null);
 
