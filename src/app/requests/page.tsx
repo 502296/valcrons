@@ -619,14 +619,21 @@ File upload storage will be upgraded later; this version records
 selected file names for the facility review.
 </p>
 
-<input
-type="file"
-multiple
-accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-onChange={(e) => handleAttachments(e.target.files)}
-className="mt-4 block w-full text-sm text-[#374151]"
-/>
+<label className="mt-5 flex cursor-pointer items-center justify-center rounded-2xl border border-[#2563eb]/20 bg-[#2563eb] px-5 py-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1d4ed8]">
+  Upload Resume / Certifications
 
+  <input
+    type="file"
+    multiple
+    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+    onChange={(e) => handleAttachments(e.target.files)}
+    className="hidden"
+  />
+</label>
+
+<p className="mt-3 text-xs text-[#6b7280]">
+  Supported files: PDF, DOC, DOCX, JPG, PNG
+</p>
 {attachments.length > 0 && (
 <div className="mt-4 space-y-2">
 {attachments.map((file) => (
