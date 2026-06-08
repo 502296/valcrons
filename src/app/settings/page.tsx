@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -64,6 +65,7 @@ export default function SettingsPage() {
       confirmPassword: "",
     });
 
+    setShowPasswordForm(false);
     setMessage("Password updated successfully.");
 
     setTimeout(() => {
@@ -74,6 +76,16 @@ export default function SettingsPage() {
   async function signOutEverywhere() {
     await supabase.auth.signOut();
     window.location.href = "/login";
+  }
+
+  function cancelPasswordChange() {
+    setShowPasswordForm(false);
+    setError("");
+    setMessage("");
+    setPasswordForm({
+      newPassword: "",
+      confirmPassword: "",
+    });
   }
 
   if (loading) {
@@ -115,8 +127,8 @@ export default function SettingsPage() {
 
               <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65">
                 Manage secure access to your VALCRONS account. Keep your login
-                protected when working with facility requests, expert communication,
-                and operational records.
+                protected when working with facility requests, expert
+                communication, and operational records.
               </p>
             </div>
 
@@ -139,46 +151,66 @@ export default function SettingsPage() {
                     Security
                   </p>
 
-                  <h2 className="mt-3 text-2xl font-bold text-[#111827]">
-                    Change Password
-                  </h2>
+                  <div className="mt-3 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold text-[#111827]">
+                        Password
+                      </h2>
 
-                  <p className="mt-3 max-w-2xl text-sm leading-7 text-[#4b5563]">
-                    Use a strong password to protect access to your professional
-                    profile, company requests, and VALCRONS account activity.
-                  </p>
+                      <p className="mt-3 max-w-2xl text-sm leading-7 text-[#4b5563]">
+                        Your password protects access to your professional
+                        profile, company requests, and VALCRONS account
+                        activity.
+                      </p>
+                    </div>
 
-                  <div className="mt-8 grid gap-5 md:grid-cols-2">
-                    <PasswordField
-                      label="New Password"
-                      value={passwordForm.newPassword}
-                      onChange={(value) =>
-                        setPasswordForm({
-                          ...passwordForm,
-                          newPassword: value,
-                        })
+                    <button
+                      onClick={() =>
+                        showPasswordForm
+                          ? cancelPasswordChange()
+                          : setShowPasswordForm(true)
                       }
-                    />
-
-                    <PasswordField
-                      label="Confirm New Password"
-                      value={passwordForm.confirmPassword}
-                      onChange={(value) =>
-                        setPasswordForm({
-                          ...passwordForm,
-                          confirmPassword: value,
-                        })
-                      }
-                    />
+                      className="w-full rounded-xl bg-[#111827] px-6 py-3 text-sm font-semibold text-white hover:bg-black md:w-auto"
+                    >
+                      {showPasswordForm ? "Cancel" : "Change Password"}
+                    </button>
                   </div>
 
-                  <button
-                    onClick={updatePassword}
-                    disabled={savingPassword}
-                    className="mt-8 rounded-xl bg-[#111827] px-6 py-3 text-sm font-semibold text-white hover:bg-black disabled:opacity-60"
-                  >
-                    {savingPassword ? "Updating..." : "Update Password"}
-                  </button>
+                  {showPasswordForm && (
+                    <div className="mt-8 rounded-2xl border border-black/10 bg-white p-5">
+                      <div className="grid gap-5 md:grid-cols-2">
+                        <PasswordField
+                          label="New Password"
+                          value={passwordForm.newPassword}
+                          onChange={(value) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              newPassword: value,
+                            })
+                          }
+                        />
+
+                        <PasswordField
+                          label="Confirm New Password"
+                          value={passwordForm.confirmPassword}
+                          onChange={(value) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              confirmPassword: value,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <button
+                        onClick={updatePassword}
+                        disabled={savingPassword}
+                        className="mt-6 rounded-xl bg-[#111827] px-6 py-3 text-sm font-semibold text-white hover:bg-black disabled:opacity-60"
+                      >
+                        {savingPassword ? "Updating..." : "Update Password"}
+                      </button>
+                    </div>
+                  )}
                 </section>
 
                 <section className="rounded-[1.75rem] border border-black/10 bg-white p-6">
@@ -186,21 +218,25 @@ export default function SettingsPage() {
                     Account Access
                   </p>
 
-                  <h2 className="mt-3 text-2xl font-bold text-[#111827]">
-                    Sign Out
-                  </h2>
+                  <div className="mt-3 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold text-[#111827]">
+                        Sign Out
+                      </h2>
 
-                  <p className="mt-3 max-w-2xl text-sm leading-7 text-[#4b5563]">
-                    Sign out of your current VALCRONS session. Recommended when
-                    using a shared or public device.
-                  </p>
+                      <p className="mt-3 max-w-2xl text-sm leading-7 text-[#4b5563]">
+                        Sign out of your current VALCRONS session. Recommended
+                        when using a shared or public device.
+                      </p>
+                    </div>
 
-                  <button
-                    onClick={signOutEverywhere}
-                    className="mt-8 rounded-xl border border-black/10 bg-white px-6 py-3 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
-                  >
-                    Sign Out
-                  </button>
+                    <button
+                      onClick={signOutEverywhere}
+                      className="w-full rounded-xl border border-black/10 bg-white px-6 py-3 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea] md:w-auto"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
                 </section>
               </div>
             </div>
