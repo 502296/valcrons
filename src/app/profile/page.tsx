@@ -306,15 +306,19 @@ export default function ProfilePage() {
                   Profile Image / Logo
                 </p>
 
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) uploadAvatar(file);
-                  }}
-                  className="mt-4 block w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm"
-                />
+              <label className="mt-4 inline-flex cursor-pointer items-center justify-center rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#1d4ed8]">
+  {uploading ? "Uploading..." : "Upload Profile Image"}
+
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => {
+      const file = e.target.files?.[0];
+      if (file) uploadAvatar(file);
+    }}
+    className="hidden"
+  />
+</label>
 
                 <p className="mt-3 text-xs text-[#6b7280]">
                   {uploading ? "Uploading image..." : "Upload a professional image or company logo."}
