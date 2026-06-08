@@ -10,7 +10,8 @@ export async function GET() {
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
-  export async function POST(request: Request) {
+  console.log("POST ROUTE HIT");
+
   try {
     const { to, subject, message } = await request.json();
 
