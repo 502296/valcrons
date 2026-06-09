@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 type ContactAttachment = {
@@ -42,29 +43,29 @@ function parseAttachments(value: ContactAttachment[] | string | null): ContactAt
   }
 }
 
-export default function ExpertSummaryPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function ExpertSummaryPage() {
+  const params = useParams();
+
   const [summary, setSummary] = useState<ExpertSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     loadSummary();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!loading && summary) {
-      setTimeout(() => window.print(), 500);
+      const timer = setTimeout(() => window.print(), 500);
+      return () => clearTimeout(timer);
     }
   }, [loading, summary]);
 
   async function loadSummary() {
     setLoading(true);
 
-    const contactId = Number(params.id);
+    const contactId = Number(params?.id);
 
     if (!contactId) {
       setErrorMessage("Invalid expert summary link.");
@@ -167,23 +168,8 @@ export default function ExpertSummaryPage({
             <Info label="Location" value={summary.expert_location || "Not provided"} />
             <Info label="Status" value={summary.contact_status || "pending"} />
 
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#6b7280]">
-                Email
-              </p>
-              <p className="mt-1 font-semibold text-[#2563eb]">
-                {summary.expert_email || "Not provided"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#6b7280]">
-                Phone
-              </p>
-              <p className="mt-1 font-semibold text-[#2563eb]">
-                {summary.expert_phone || "Not provided"}
-              </p>
-            </div>
+            <Info label="Email" value={summary.expert_email || "Not provided"} blue />
+            <Info label="Phone" value={summary.expert_phone || "Not provided"} blue />
           </div>
         </section>
 
@@ -204,6 +190,20 @@ export default function ExpertSummaryPage({
             />
           </div>
         </section>
+
+        {summary.request_description && (
+          <section className="mt-8">
+            <h2 className="text-sm font-bold uppercase tracking-[0.22em]">
+              Facility Problem Description
+            </h2>
+
+            <div className="mt-4 rounded-2xl border border-black/10 bg-white p-5">
+              <p className="whitespace-pre-line text-sm leading-7 text-[#374151]">
+                {summary.request_description}
+              </p>
+            </div>
+          </section>
+        )}
 
         <section className="mt-8">
           <h2 className="text-sm font-bold uppercase tracking-[0.22em]">
@@ -247,13 +247,24 @@ export default function ExpertSummaryPage({
   );
 }
 
-function Info({ label, value }: { label: string; value: string }) {
+function Info({
+  label,
+  value,
+  blue = false,
+}: {
+  label: string;
+  value: string;
+  blue?: boolean;
+}) {
   return (
     <div>
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#6b7280]">
         {label}
       </p>
-      <p className="mt-1 font-semibold text-[#111827]">{value}</p>
+
+      <p className={`mt-1 font-semibold ${blue ? "text-[#2563eb]" : "text-[#111827]"}`}>
+        {value}
+      </p>
     </div>
   );
 }
