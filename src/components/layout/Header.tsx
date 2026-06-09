@@ -167,8 +167,8 @@ export default function Header() {
               >
                 Browse Requests
               </Link>
-              <Link href="/saved-requests" className="hover:text-black">
-                Saved Requests
+             <Link href="/my-projects" className="hover:text-black">
+                My Projects
               </Link>
               <Link href="/profile" className="hover:text-black">
                 Profile
