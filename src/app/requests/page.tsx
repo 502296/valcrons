@@ -37,6 +37,8 @@ type AttachmentInfo = {
 };
 
 export default function RequestsPage() {
+  const searchParams = useSearchParams();
+  const requestFromUrl = searchParams.get("request");
   const [requests, setRequests] = useState<FacilityRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
