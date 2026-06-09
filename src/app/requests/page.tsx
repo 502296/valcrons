@@ -288,28 +288,74 @@ export default function RequestsPage() {
         });
       }
 
-      const emailResponse = await fetch("/api/send-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          to: contactRequest.work_email,
-          subject: "New Expert Contact Request",
-          message:
-            "An expert has submitted a contact request for your industrial support request. Please log in to VALCRONS to review the expert profile and respond.",
-        }),
-      });
+      const { data: expertProfile } = await supabase
+  .from("profiles")
+  .select("full_name, email, phone, location, specialty")
+  .eq("id", expertId)
+  .maybeSingle();
 
-      const emailResult = await emailResponse.json();
+const reviewUrl =
+  typeof window !== "undefined"
+    ? `${window.location.origin}/my-requests?request=${requestId}&from=notifications`
+    : "";
 
-      if (!emailResponse.ok || !emailResult.success) {
-        setUpdatingAction(null);
-        setErrorMessage(
-          "Contact request was saved, but the email notification could not be sent."
-        );
-        return;
-      }
+const emailResponse = await fetch("/api/send-email", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+
+  body: JSON.stringify({
+    to: contactRequest.work_email,
+
+    subject:
+      "VALCRONS | New Industrial Expert Available for Review",
+
+    message: cleanMessage,
+
+    expertName:
+      expertProfile?.full_name ||
+      "Industrial Expert",
+
+    expertSpecialty:
+      expertProfile?.specialty ||
+      "Not provided",
+
+    expertLocation:
+      expertProfile?.location ||
+      "Not provided",
+
+    requestTitle:
+      contactRequest.facility_type ||
+      contactRequest.issue_type ||
+      "Industrial Support Request",
+
+    requestLocation:
+      contactRequest.location ||
+      "Not provided",
+
+    attachmentCount:
+      attachmentData.length > 0
+        ? `${attachmentData.length} file${
+            attachmentData.length > 1 ? "s" : ""
+          } submitted`
+        : "No files submitted",
+
+    reviewUrl,
+  }),
+});
+
+const emailResult = await emailResponse.json();
+
+if (!emailResponse.ok || !emailResult.success) {
+  setUpdatingAction(null);
+
+  setErrorMessage(
+    "Contact request was saved, but the email notification could not be sent."
+  );
+
+  return;
+}
     }
 
     setActions((prev) => ({
