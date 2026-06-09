@@ -557,10 +557,11 @@ if (!emailResponse.ok || !emailResult.success) {
               const contactRequested = hasAction(request.id, "contacted");
 
               return (
-                <article
-                  key={request.id}
-                  className="rounded-[2rem] border border-black/10 bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-md md:p-10"
-                >
+               <article
+                key={request.id}
+                  id={`request-${request.id}`}
+                    className="rounded-[2rem] border border-black/10 bg-white p-8"
+                  >
                   <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
                     <div className="max-w-3xl">
                       <div
