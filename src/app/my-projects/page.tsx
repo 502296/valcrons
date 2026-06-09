@@ -221,11 +221,12 @@ export default function MyProjectsPage() {
 
                   if (!project) return null;
 
-                  return (
-                    <div
-                      key={action.id}
-                      className="rounded-[2rem] border border-black/10 bg-[#fbfaf7] p-6"
-                    >
+                 return (
+              <Link
+              key={action.id}
+              href={`/requests?request=${project.id}`}
+               className="block rounded-[2rem] border border-black/10 bg-[#fbfaf7] p-6 transition-all duration-200 hover:-translate-y-1 hover:border-[#9a7a3f]/40 hover:shadow-lg"
+            >
                       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <div>
                           <div
@@ -270,7 +271,7 @@ export default function MyProjectsPage() {
                           </p>
                         </div>
                       )}
-                    </div>
+                   </Link>
                   );
                 })}
               </div>
