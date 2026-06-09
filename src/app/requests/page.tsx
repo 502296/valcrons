@@ -36,8 +36,6 @@ type AttachmentInfo = {
 };
 
 export default function RequestsPage() {
-  const searchParams = useSearchParams();
-  const requestFromUrl = searchParams.get("request");
   const [requests, setRequests] = useState<FacilityRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -60,7 +58,10 @@ export default function RequestsPage() {
   const [contactMessage, setContactMessage] = useState("");
   const [attachments, setAttachments] = useState<AttachmentInfo[]>([]);
 
-  useEffect(() => {
+ useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const requestFromUrl = params.get("request");
+
   if (!requestFromUrl) return;
 
   const requestId = Number(requestFromUrl);
@@ -68,7 +69,7 @@ export default function RequestsPage() {
   if (!Number.isNaN(requestId)) {
     setExpandedId(requestId);
   }
-}, [requestFromUrl]);
+}, []);
 
   useEffect(() => {
     async function init() {
