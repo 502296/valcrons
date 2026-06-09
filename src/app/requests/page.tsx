@@ -67,7 +67,7 @@ export default function RequestsPage() {
   const requestId = Number(requestFromUrl);
 
   if (!Number.isNaN(requestId)) {
-    setExpandedRequestId(requestId);
+    setExpandedId(requestId);
   }
 }, [requestFromUrl]);
 
