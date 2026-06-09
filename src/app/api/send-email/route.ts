@@ -1,3 +1,5 @@
+// src/app/api/send-email/route.ts
+
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
@@ -14,16 +16,22 @@ export async function POST(request: Request) {
 
     const resend = new Resend(apiKey);
 
-    const { to, subject, message } = await request.json();
+    const body = await request.json();
+    const { to, subject, message } = body;
+
+    console.log("EMAIL API HIT:", body);
 
     if (!to || !subject || !message) {
       return NextResponse.json(
-        { success: false, error: "Missing required fields" },
+        {
+          success: false,
+          error: "Missing required fields: to, subject, message",
+        },
         { status: 400 }
       );
     }
 
-    const result = await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: "VALCRONS <onboarding@resend.dev>",
       to,
       subject,
@@ -39,8 +47,22 @@ export async function POST(request: Request) {
       `,
     });
 
-    return NextResponse.json({ success: true, result });
+    if (error) {
+      console.error("RESEND ERROR:", error);
+
+      return NextResponse.json(
+        { success: false, error },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data,
+    });
   } catch (error) {
+    console.error("EMAIL SERVER ERROR:", error);
+
     return NextResponse.json(
       { success: false, error: String(error) },
       { status: 500 }
