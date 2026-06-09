@@ -49,6 +49,7 @@ export default function ExpertSummaryPage() {
   const [summary, setSummary] = useState<ExpertSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [generatedAt] = useState(() => new Date());
 
   useEffect(() => {
     loadSummary();
@@ -155,6 +156,11 @@ export default function ExpertSummaryPage() {
           <p className="mt-3 text-sm text-[#6b7280]">
             Generated for facility review and internal operational coordination.
           </p>
+
+          <div className="mt-5 grid gap-3 rounded-2xl border border-black/10 bg-[#f8f6f1] p-4 text-sm sm:grid-cols-2">
+            <Info label="Report ID" value={`EXP-${summary.contact_id}`} />
+            <Info label="Generated" value={generatedAt.toLocaleString()} />
+          </div>
         </header>
 
         <section className="mt-8">
@@ -167,7 +173,6 @@ export default function ExpertSummaryPage() {
             <Info label="Specialty" value={summary.expert_specialty || "Not provided"} />
             <Info label="Location" value={summary.expert_location || "Not provided"} />
             <Info label="Status" value={summary.contact_status || "pending"} />
-
             <Info label="Email" value={summary.expert_email || "Not provided"} blue />
             <Info label="Phone" value={summary.expert_phone || "Not provided"} blue />
           </div>
@@ -232,6 +237,28 @@ export default function ExpertSummaryPage() {
             ) : (
               <p className="text-sm text-[#6b7280]">No attachments submitted.</p>
             )}
+          </div>
+        </section>
+
+        <section className="mt-10 rounded-2xl border border-black/10 bg-[#f8f6f1] p-5">
+          <h2 className="text-sm font-bold uppercase tracking-[0.22em]">
+            Internal Review
+          </h2>
+
+          <div className="mt-4 grid gap-3 text-sm font-medium text-[#111827] sm:grid-cols-3">
+            <p>☐ Contact Approved</p>
+            <p>☐ Further Review Required</p>
+            <p>☐ Not Selected</p>
+          </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div className="border-t border-black/20 pt-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
+              Reviewed By
+            </div>
+
+            <div className="border-t border-black/20 pt-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
+              Review Date
+            </div>
           </div>
         </section>
 
