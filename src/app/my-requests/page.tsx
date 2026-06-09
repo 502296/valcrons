@@ -45,7 +45,7 @@ type ExpertProfile = {
 
 function parseAttachments(value: ContactAttachment[] | string | null): ContactAttachment[] {
   if (!value) return [];
-  if (Array.isArray(value)) return [];
+  if (Array.isArray(value)) return value;
 
   try {
     const parsed = JSON.parse(value);
@@ -89,11 +89,7 @@ export default function MyRequestsPage() {
     const requestId = Number(params.get("request"));
     const from = params.get("from");
 
-    if (from === "notifications") {
-      setBackHref("/notifications");
-    } else {
-      setBackHref("/");
-    }
+    setBackHref(from === "notifications" ? "/notifications" : "/");
 
     if (requestId) {
       setTargetRequestId(requestId);
@@ -116,12 +112,10 @@ export default function MyRequestsPage() {
       return;
     }
 
-    const user = session.user;
-
     const { data, error } = await supabase
       .from("facility_requests")
       .select("*")
-      .eq("work_email", user.email)
+      .eq("work_email", session.user.email)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -131,8 +125,8 @@ export default function MyRequestsPage() {
     }
 
     const companyRequests = data || [];
-
     setRequests(companyRequests);
+
     await loadContactRequests(companyRequests);
     setLoading(false);
   }
@@ -160,9 +154,7 @@ export default function MyRequestsPage() {
     const contactData = (data || []) as ContactRequest[];
     setContactRequests(contactData);
 
-    const expertIds = Array.from(
-      new Set(contactData.map((item) => item.expert_id).filter(Boolean))
-    );
+    const expertIds = Array.from(new Set(contactData.map((item) => item.expert_id).filter(Boolean)));
 
     if (expertIds.length === 0) {
       setExpertProfiles({});
@@ -175,7 +167,6 @@ export default function MyRequestsPage() {
       .in("id", expertIds);
 
     if (profilesError) {
-      console.error("Profiles load error:", profilesError);
       setErrorMessage("Expert profiles could not be loaded.");
       return;
     }
@@ -202,18 +193,14 @@ export default function MyRequestsPage() {
   }
 
   function getContactsForRequest(requestId: number) {
-    return contactRequests.filter(
-      (contact) => Number(contact.request_id) === Number(requestId)
-    );
+    return contactRequests.filter((contact) => Number(contact.request_id) === Number(requestId));
   }
 
   function priorityLabel(value: string | null) {
     const text = (value || "").toLowerCase();
-
     if (text.includes("urgent")) return "URGENT";
     if (text.includes("high")) return "HIGH PRIORITY";
     if (text.includes("normal")) return "NORMAL";
-    if (text.includes("review")) return "REVIEW";
     return "PENDING";
   }
 
@@ -244,13 +231,7 @@ export default function MyRequestsPage() {
 
     const { error } = await supabase
       .from("facility_requests")
-      .update({
-        facility_type: editForm.facility_type,
-        urgency: editForm.urgency,
-        location: editForm.location,
-        issue_type: editForm.issue_type,
-        problem_description: editForm.problem_description,
-      })
+      .update(editForm)
       .eq("id", id);
 
     setUpdatingId(null);
@@ -261,28 +242,14 @@ export default function MyRequestsPage() {
     }
 
     setRequests((prev) =>
-      prev.map((request) =>
-        request.id === id
-          ? {
-              ...request,
-              facility_type: editForm.facility_type,
-              urgency: editForm.urgency,
-              location: editForm.location,
-              issue_type: editForm.issue_type,
-              problem_description: editForm.problem_description,
-            }
-          : request
-      )
+      prev.map((request) => (request.id === id ? { ...request, ...editForm } : request))
     );
 
     setEditingId(null);
     setMessage("Request updated successfully.");
   }
 
-  async function updateContactRequestStatus(
-    contactId: number,
-    status: "approved" | "declined"
-  ) {
+  async function updateContactRequestStatus(contactId: number, status: "approved" | "declined") {
     clearMessages();
     setUpdatingContactId(contactId);
 
@@ -299,9 +266,7 @@ export default function MyRequestsPage() {
     }
 
     setContactRequests((prev) =>
-      prev.map((contact) =>
-        contact.id === contactId ? { ...contact, status } : contact
-      )
+      prev.map((contact) => (contact.id === contactId ? { ...contact, status } : contact))
     );
 
     setMessage(status === "approved" ? "Expert contact approved." : "Expert contact declined.");
@@ -331,9 +296,7 @@ export default function MyRequestsPage() {
     }
 
     setRequests((prev) =>
-      prev.map((request) =>
-        request.id === id ? { ...request, status: "closed" } : request
-      )
+      prev.map((request) => (request.id === id ? { ...request, status: "closed" } : request))
     );
 
     setMessage("Request closed successfully.");
@@ -356,9 +319,7 @@ export default function MyRequestsPage() {
     }
 
     setRequests((prev) =>
-      prev.map((request) =>
-        request.id === id ? { ...request, status: "pending" } : request
-      )
+      prev.map((request) => (request.id === id ? { ...request, status: "pending" } : request))
     );
 
     setMessage("Request reopened successfully.");
@@ -368,53 +329,52 @@ export default function MyRequestsPage() {
     <>
       <Header />
 
-      <main className="min-h-screen bg-[#f4f1ea] px-6 pt-32 pb-24">
-        <div className="mx-auto max-w-6xl">
-          <Link
-            href={backHref}
-            className="mb-8 inline-flex text-sm font-semibold text-[#374151] hover:text-black"
-          >
+      <main className="min-h-screen bg-[#f4f1ea] px-6 pb-24 pt-32 text-[#111827]">
+        <div className="mx-auto max-w-7xl">
+          <Link href={backHref} className="mb-8 inline-flex text-sm font-semibold text-[#374151] hover:text-black">
             ← Back
           </Link>
 
-          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#111827]">
-                Facility Command Center
-              </p>
+          <section className="rounded-[2.5rem] border border-white/60 bg-white/55 p-8 shadow-[0_30px_90px_rgba(17,24,39,0.10)] backdrop-blur-xl md:p-10">
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#9a7a3f]">
+                  Facility Command Center
+                </p>
 
-              <h1 className="mt-4 text-5xl font-semibold tracking-[-0.04em] text-[#111827]">
-                My Requests
-              </h1>
+                <h1 className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-[#111827] md:text-7xl">
+                  My Requests
+                </h1>
 
-              <p className="mt-4 max-w-2xl text-lg leading-8 text-[#374151]">
-                Review, track, edit, close, reopen, and approve expert contact
-                requests submitted to your facility.
-              </p>
-
-              <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                <StatCard title="Active Requests" value={activeRequests} />
-                <StatCard title="Awaiting Review" value={awaitingReview} />
-                <StatCard title="Closed Requests" value={closedRequests} />
-                <StatCard title="Expert Interest" value={expertInterest} />
-                <StatCard title="Total Requests" value={totalRequests} />
+                <p className="mt-4 max-w-2xl text-lg leading-8 text-[#374151]">
+                  Review expert contact requests, compare qualifications, approve contact,
+                  print candidate information, and manage your facility support pipeline.
+                </p>
               </div>
+
+              <Link
+                href="/request-support"
+                className="rounded-2xl bg-[#111827] px-6 py-4 text-sm font-semibold text-white shadow-sm hover:bg-black"
+              >
+                Post New Request →
+              </Link>
             </div>
 
-            <Link
-              href="/request-support"
-              className="rounded-2xl bg-[#111827] px-6 py-3 text-sm font-semibold text-white hover:bg-black"
-            >
-              Post New Request →
-            </Link>
-          </div>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              <StatCard title="Active Requests" value={activeRequests} />
+              <StatCard title="Awaiting Review" value={awaitingReview} />
+              <StatCard title="Closed Requests" value={closedRequests} />
+              <StatCard title="Expert Interest" value={expertInterest} />
+              <StatCard title="Total Requests" value={totalRequests} />
+            </div>
+          </section>
 
           {(message || errorMessage) && (
             <div
               className={`mt-8 rounded-2xl border px-5 py-4 text-sm font-semibold ${
                 errorMessage
                   ? "border-red-200 bg-red-50 text-red-700"
-                  : "border-black/10 bg-white text-[#111827]"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-700"
               }`}
             >
               {errorMessage || message}
@@ -422,173 +382,167 @@ export default function MyRequestsPage() {
           )}
 
           {loading ? (
-            <div className="mt-10 rounded-3xl border border-black/10 bg-white p-8 text-[#111827] shadow-sm">
+            <div className="mt-10 rounded-3xl border border-black/10 bg-white p-8 shadow-sm">
               Loading requests...
             </div>
           ) : requests.length === 0 ? (
-            <div className="mt-10 rounded-3xl border border-black/10 bg-white p-8 text-[#111827] shadow-sm">
+            <div className="mt-10 rounded-3xl border border-black/10 bg-white p-8 shadow-sm">
               No requests have been submitted yet.
             </div>
           ) : (
             <div className="mt-10 grid gap-6">
-              {(targetRequestId
-                ? requests.filter((request) => request.id === targetRequestId)
-                : requests
-              ).map((request) => {
-                const isExpanded = expandedId === request.id;
-                const isEditing = editingId === request.id;
-                const status = request.status || "pending";
-                const isClosed = status === "closed";
-                const requestContacts = getContactsForRequest(request.id);
+              {(targetRequestId ? requests.filter((request) => request.id === targetRequestId) : requests).map(
+                (request) => {
+                  const isExpanded = expandedId === request.id;
+                  const isEditing = editingId === request.id;
+                  const status = request.status || "pending";
+                  const isClosed = status === "closed";
+                  const requestContacts = getContactsForRequest(request.id);
 
-                return (
-                  <div
-                    key={request.id}
-                    className={`rounded-[2rem] border p-6 shadow-sm ${
-                      isClosed ? "border-black/10 bg-white/70" : "border-black/10 bg-white"
-                    }`}
-                  >
-                    <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-                      <div className="max-w-3xl flex-1">
-                        <div className="flex flex-wrap items-center gap-3">
-                          <h3 className="text-2xl font-bold text-[#111827]">
-                            {request.facility_type || "Industrial Request"}
-                          </h3>
+                  return (
+                    <article
+                      key={request.id}
+                      className={`rounded-[2rem] border p-6 shadow-sm ${
+                        isClosed ? "border-black/10 bg-white/70" : "border-black/10 bg-white"
+                      }`}
+                    >
+                      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <h3 className="text-2xl font-bold text-[#111827]">
+                              {request.facility_type || "Industrial Request"}
+                            </h3>
 
-                          <span className="rounded-full bg-[#111827] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white">
-                            {statusLabel(status)}
-                          </span>
-
-                          {requestContacts.length > 0 && (
-                            <span className="rounded-full border border-black/10 bg-[#f8f6f1] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#111827]">
-                              {requestContacts.length} Expert Contact
+                            <span className="rounded-full bg-[#111827] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white">
+                              {statusLabel(status)}
                             </span>
+
+                            {requestContacts.length > 0 && (
+                              <span className="rounded-full border border-[#2563eb]/20 bg-[#eff6ff] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#2563eb]">
+                                {requestContacts.length} Expert Contact
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="mt-2 text-sm font-medium text-[#6b7280]">
+                            {request.location || "Location not specified"}
+                          </p>
+
+                          <p className="mt-4 max-w-4xl leading-relaxed text-[#374151]">
+                            {request.problem_description || "No problem description provided."}
+                          </p>
+
+                          {isExpanded && !isEditing && (
+                            <>
+                              <div className="mt-6 grid gap-4 rounded-2xl border border-black/10 bg-[#f8f6f1] p-5 text-sm md:grid-cols-2">
+                                <Detail label="Support Type" value={request.issue_type || "Not specified"} />
+                                <Detail label="Priority Details" value={request.urgency || "Pending"} />
+                                <Detail label="Request ID" value={String(request.id)} />
+                                <Detail label="Created" value={new Date(request.created_at).toLocaleString()} />
+                              </div>
+
+                              <ContactRequestsPanel
+                                contacts={requestContacts}
+                                expertProfiles={expertProfiles}
+                                updatingContactId={updatingContactId}
+                                onApprove={(id) => updateContactRequestStatus(id, "approved")}
+                                onDecline={(id) => updateContactRequestStatus(id, "declined")}
+                              />
+                            </>
+                          )}
+
+                          {isEditing && (
+                            <div className="mt-6 grid gap-4 rounded-2xl border border-black/10 bg-[#f8f6f1] p-5 md:grid-cols-2">
+                              <Field label="Industry" value={editForm.facility_type} onChange={(value) => setEditForm({ ...editForm, facility_type: value })} />
+                              <Field label="Location" value={editForm.location} onChange={(value) => setEditForm({ ...editForm, location: value })} />
+                              <Field label="Priority" value={editForm.urgency} onChange={(value) => setEditForm({ ...editForm, urgency: value })} />
+                              <Field label="Support Type" value={editForm.issue_type} onChange={(value) => setEditForm({ ...editForm, issue_type: value })} />
+
+                              <div className="md:col-span-2">
+                                <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
+                                  Problem Description
+                                </label>
+
+                                <textarea
+                                  rows={5}
+                                  value={editForm.problem_description}
+                                  onChange={(e) => setEditForm({ ...editForm, problem_description: e.target.value })}
+                                  className="mt-3 w-full resize-none rounded-2xl border border-black/10 bg-white px-5 py-4 text-sm leading-7 text-[#111827] outline-none focus:border-[#2563eb]"
+                                />
+                              </div>
+                            </div>
                           )}
                         </div>
 
-                        <p className="mt-2 text-sm font-medium text-[#6b7280]">
-                          {request.location || "Location not specified"}
-                        </p>
+                        <div className="flex min-w-[180px] flex-col gap-3">
+                          <span className="rounded-full border border-black/10 bg-[#111827] px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.14em] text-white">
+                            {priorityLabel(request.urgency)}
+                          </span>
 
-                        <p className="mt-4 max-w-3xl leading-relaxed text-[#374151]">
-                          {request.problem_description || "No problem description provided."}
-                        </p>
-
-                        {isExpanded && !isEditing && (
-                          <>
-                            <div className="mt-6 grid gap-4 rounded-2xl border border-black/10 bg-[#f8f6f1] p-5 text-sm text-[#374151] md:grid-cols-2">
-                              <Detail label="Support Type" value={request.issue_type || "Not specified"} />
-                              <Detail label="Priority Details" value={request.urgency || "Pending"} />
-                              <Detail label="Request ID" value={String(request.id)} />
-                              <Detail label="Created" value={new Date(request.created_at).toLocaleString()} />
-                            </div>
-
-                            <ContactRequestsPanel
-                              contacts={requestContacts}
-                              expertProfiles={expertProfiles}
-                              updatingContactId={updatingContactId}
-                              onApprove={(id) => updateContactRequestStatus(id, "approved")}
-                              onDecline={(id) => updateContactRequestStatus(id, "declined")}
-                            />
-                          </>
-                        )}
-
-                        {isEditing && (
-                          <div className="mt-6 grid gap-4 rounded-2xl border border-black/10 bg-[#f8f6f1] p-5 md:grid-cols-2">
-                            <Field label="Industry" value={editForm.facility_type} onChange={(value) => setEditForm({ ...editForm, facility_type: value })} />
-                            <Field label="Location" value={editForm.location} onChange={(value) => setEditForm({ ...editForm, location: value })} />
-                            <Field label="Priority" value={editForm.urgency} onChange={(value) => setEditForm({ ...editForm, urgency: value })} />
-                            <Field label="Support Type" value={editForm.issue_type} onChange={(value) => setEditForm({ ...editForm, issue_type: value })} />
-
-                            <div className="md:col-span-2">
-                              <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
-                                Problem Description
-                              </label>
-
-                              <textarea
-                                rows={5}
-                                value={editForm.problem_description}
-                                onChange={(e) =>
-                                  setEditForm({
-                                    ...editForm,
-                                    problem_description: e.target.value,
-                                  })
-                                }
-                                className="mt-3 w-full resize-none rounded-2xl border border-black/10 bg-white px-5 py-4 text-sm leading-7 text-[#111827] outline-none focus:border-[#111827]"
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex min-w-[170px] flex-col gap-3 md:items-end">
-                        <span className="rounded-full border border-black/10 bg-[#111827] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white">
-                          {priorityLabel(request.urgency)}
-                        </span>
-
-                        {!isEditing && (
-                          <>
-                            <button
-                              onClick={() => setExpandedId(isExpanded ? null : request.id)}
-                              className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
-                            >
-                              {isExpanded ? "Hide Details" : "View Details"}
-                            </button>
-
-                            {!isClosed && (
+                          {!isEditing && (
+                            <>
                               <button
-                                onClick={() => startEdit(request)}
-                                className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                                onClick={() => setExpandedId(isExpanded ? null : request.id)}
+                                className="rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
                               >
-                                Edit Request
+                                {isExpanded ? "Hide Details" : "View Details"}
                               </button>
-                            )}
-                          </>
-                        )}
 
-                        {isEditing && (
-                          <>
+                              {!isClosed && (
+                                <button
+                                  onClick={() => startEdit(request)}
+                                  className="rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                                >
+                                  Edit Request
+                                </button>
+                              )}
+                            </>
+                          )}
+
+                          {isEditing && (
+                            <>
+                              <button
+                                onClick={() => saveEdit(request.id)}
+                                disabled={updatingId === request.id}
+                                className="rounded-xl bg-[#111827] px-4 py-3 text-sm font-semibold text-white hover:bg-black disabled:opacity-60"
+                              >
+                                {updatingId === request.id ? "Saving..." : "Save Changes"}
+                              </button>
+
+                              <button
+                                onClick={() => setEditingId(null)}
+                                className="rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          )}
+
+                          {!isEditing && !isClosed && (
                             <button
-                              onClick={() => saveEdit(request.id)}
+                              onClick={() => closeRequest(request.id)}
                               disabled={updatingId === request.id}
-                              className="w-full rounded-xl bg-[#111827] px-4 py-2 text-sm font-semibold text-white hover:bg-black disabled:opacity-60"
+                              className="rounded-xl bg-[#111827] px-4 py-3 text-sm font-semibold text-white hover:bg-black disabled:opacity-60"
                             >
-                              {updatingId === request.id ? "Saving..." : "Save Changes"}
+                              {updatingId === request.id ? "Closing..." : "Close Request"}
                             </button>
+                          )}
 
+                          {!isEditing && isClosed && (
                             <button
-                              onClick={() => setEditingId(null)}
-                              className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                              onClick={() => reopenRequest(request.id)}
+                              disabled={updatingId === request.id}
+                              className="rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea] disabled:opacity-60"
                             >
-                              Cancel
+                              {updatingId === request.id ? "Reopening..." : "Reopen Request"}
                             </button>
-                          </>
-                        )}
-
-                        {!isEditing && !isClosed && (
-                          <button
-                            onClick={() => closeRequest(request.id)}
-                            disabled={updatingId === request.id}
-                            className="w-full rounded-xl bg-[#111827] px-4 py-2 text-sm font-semibold text-white hover:bg-black disabled:opacity-60"
-                          >
-                            {updatingId === request.id ? "Closing..." : "Close Request"}
-                          </button>
-                        )}
-
-                        {!isEditing && isClosed && (
-                          <button
-                            onClick={() => reopenRequest(request.id)}
-                            disabled={updatingId === request.id}
-                            className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea] disabled:opacity-60"
-                          >
-                            {updatingId === request.id ? "Reopening..." : "Reopen Request"}
-                          </button>
-                        )}
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    </article>
+                  );
+                }
+              )}
             </div>
           )}
         </div>
@@ -615,32 +569,34 @@ function ContactRequestsPanel({
   if (contacts.length === 0) {
     return (
       <div className="mt-5 rounded-2xl border border-black/10 bg-white p-5">
-        <p className="text-sm font-semibold text-[#374151]">
-          No expert contact requests yet.
-        </p>
+        <p className="text-sm font-semibold text-[#374151]">No expert contact requests yet.</p>
       </div>
     );
   }
 
   return (
-    <div className="mt-5 rounded-2xl border border-black/10 bg-white p-5">
+    <div className="mt-6 rounded-[1.7rem] border border-black/10 bg-white p-5">
       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#111827]">
         Expert Contact Requests
       </p>
 
-      <div className="mt-5 grid gap-4">
+      <div className="mt-5 grid gap-5">
         {contacts.map((contact) => {
           const expert = expertProfiles[contact.expert_id];
+          const files = parseAttachments(contact.attachment_names);
           const isApproved = contact.status === "approved";
           const isDeclined = contact.status === "declined";
-          const files = parseAttachments(contact.attachment_names);
 
           return (
-            <div key={contact.id} className="rounded-2xl border border-black/10 bg-[#f8f6f1] p-5">
-              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                <div>
+            <div
+              key={contact.id}
+              id={`expert-contact-${contact.id}`}
+              className="rounded-[1.5rem] border border-black/10 bg-[#f8f6f1] p-5"
+            >
+              <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-3">
-                    <h4 className="text-lg font-bold text-[#111827]">
+                    <h4 className="text-2xl font-bold tracking-[-0.03em] text-[#111827]">
                       {expert?.full_name || "Industrial Expert"}
                     </h4>
 
@@ -649,22 +605,59 @@ function ContactRequestsPanel({
                     </span>
                   </div>
 
-                  <p className="mt-2 text-sm font-medium text-[#6b7280]">
-                    {expert?.specialty || "Specialty not provided"}
-                    {expert?.location ? ` • ${expert.location}` : ""}
-                  </p>
+                  <div className="mt-4 grid gap-3 rounded-2xl border border-black/10 bg-white p-4 text-sm md:grid-cols-2">
+                    <ContactInfo label="Specialty" value={expert?.specialty || "Not provided"} />
+                    <ContactInfo label="Location" value={expert?.location || "Not provided"} />
 
-                  <p className="mt-4 whitespace-pre-line text-sm leading-7 text-[#374151]">
-                    {contact.expert_message || "No message provided."}
-                  </p>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
+                        Email
+                      </p>
+                      {expert?.email ? (
+                        <a
+                          href={`mailto:${expert.email}`}
+                          className="mt-1 inline-flex font-semibold text-[#2563eb] hover:underline"
+                        >
+                          {expert.email}
+                        </a>
+                      ) : (
+                        <p className="mt-1 font-semibold text-[#111827]">Not provided</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
+                        Phone
+                      </p>
+                      {expert?.phone ? (
+                        <a
+                          href={`tel:${expert.phone}`}
+                          className="mt-1 inline-flex font-semibold text-[#2563eb] hover:underline"
+                        >
+                          {expert.phone}
+                        </a>
+                      ) : (
+                        <p className="mt-1 font-semibold text-[#111827]">Not provided</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-black/10 bg-white p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
+                      Expert Message
+                    </p>
+                    <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[#374151]">
+                      {contact.expert_message || "No message provided."}
+                    </p>
+                  </div>
 
                   {files.length > 0 && (
-                    <div className="mt-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
+                    <div className="mt-4 rounded-2xl border border-black/10 bg-white p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
                         Attachments
                       </p>
 
-                      <div className="mt-2 flex flex-wrap gap-2">
+                      <div className="mt-3 flex flex-wrap gap-2">
                         {files.map((file) => (
                           <button
                             key={file.name}
@@ -694,17 +687,9 @@ function ContactRequestsPanel({
                       </div>
                     </div>
                   )}
-
-                  {isApproved && (
-                    <div className="mt-4 rounded-xl border border-black/10 bg-white p-4 text-sm text-[#111827]">
-                      <p className="font-semibold">Approved Contact Details</p>
-                      <p className="mt-2">Email: {expert?.email || "Not provided"}</p>
-                      <p>Phone: {expert?.phone || "Not provided"}</p>
-                    </div>
-                  )}
                 </div>
 
-                <div className="flex min-w-[170px] flex-col gap-3">
+                <div className="flex min-w-[190px] flex-col gap-3">
                   <button
                     onClick={() => onApprove(contact.id)}
                     disabled={isApproved || isDeclined || updatingContactId === contact.id}
@@ -717,10 +702,36 @@ function ContactRequestsPanel({
                       : "Approve Contact"}
                   </button>
 
+                  {expert?.email && (
+                    <a
+                      href={`mailto:${expert.email}`}
+                      className="rounded-xl border border-[#2563eb]/20 bg-[#eff6ff] px-4 py-3 text-center text-sm font-semibold text-[#2563eb] hover:bg-[#dbeafe]"
+                    >
+                      Email Expert
+                    </a>
+                  )}
+
+                  {expert?.phone && (
+                    <a
+                      href={`tel:${expert.phone}`}
+                      className="rounded-xl border border-[#2563eb]/20 bg-white px-4 py-3 text-center text-sm font-semibold text-[#2563eb] hover:bg-[#eff6ff]"
+                    >
+                      Call Expert
+                    </a>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                  >
+                    Print Info
+                  </button>
+
                   <button
                     onClick={() => onDecline(contact.id)}
                     disabled={isApproved || isDeclined || updatingContactId === contact.id}
-                    className="rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {isDeclined ? "Declined" : "Decline"}
                   </button>
@@ -740,20 +751,27 @@ function contactStatusLabel(value: string | null) {
   return "PENDING REVIEW";
 }
 
+function ContactInfo({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
+        {label}
+      </p>
+      <p className="mt-1 font-semibold text-[#111827]">{value}</p>
+    </div>
+  );
+}
+
 function StatCard({ title, value }: { title: string; value: number }) {
   return (
-    <div className="rounded-[1.6rem] border border-white/50 bg-white/45 p-6 shadow-[0_20px_60px_rgba(17,24,39,0.08)] backdrop-blur-xl">
+    <div className="rounded-[1.6rem] border border-white/50 bg-white/55 p-6 shadow-[0_20px_60px_rgba(17,24,39,0.08)] backdrop-blur-xl">
       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6b7280]">
         {title}
       </p>
-
       <p className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-[#111827]">
         {value}
       </p>
-
-      <p className="mt-3 text-xs font-medium text-[#6b7280]">
-        Live operational metric
-      </p>
+      <p className="mt-3 text-xs font-medium text-[#6b7280]">Live operational metric</p>
     </div>
   );
 }
@@ -761,10 +779,9 @@ function StatCard({ title, value }: { title: string; value: number }) {
 function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
         {label}
       </p>
-
       <p className="mt-1 font-semibold text-[#111827]">{value}</p>
     </div>
   );
@@ -781,14 +798,14 @@ function Field({
 }) {
   return (
     <div>
-      <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
+      <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
         {label}
       </label>
 
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-3 w-full rounded-2xl border border-black/10 bg-white px-5 py-4 text-sm text-[#111827] outline-none focus:border-[#111827]"
+        className="mt-3 w-full rounded-2xl border border-black/10 bg-white px-5 py-4 text-sm text-[#111827] outline-none focus:border-[#2563eb]"
       />
     </div>
   );
