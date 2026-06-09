@@ -720,13 +720,13 @@ function ContactRequestsPanel({
                     </a>
                   )}
 
-                  <button
-                    type="button"
-                    onClick={() => window.print()}
-                    className="rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
-                  >
-                    Print Info
-                  </button>
+                 <Link
+  href={`/expert-summary/${contact.id}`}
+  target="_blank"
+  className="rounded-xl border border-black/10 bg-white px-4 py-3 text-center text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+>
+  Print Expert Summary
+</Link>
 
                   <button
                     onClick={() => onDecline(contact.id)}
