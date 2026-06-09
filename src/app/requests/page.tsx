@@ -62,6 +62,16 @@ export default function RequestsPage() {
   const [attachments, setAttachments] = useState<AttachmentInfo[]>([]);
 
   useEffect(() => {
+  if (!requestFromUrl) return;
+
+  const requestId = Number(requestFromUrl);
+
+  if (!Number.isNaN(requestId)) {
+    setExpandedRequestId(requestId);
+  }
+}, [requestFromUrl]);
+
+  useEffect(() => {
     async function init() {
       const {
         data: { session },
