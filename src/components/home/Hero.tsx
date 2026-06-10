@@ -14,7 +14,7 @@ export default function Hero() {
 
       <div className="relative z-10 mx-auto flex min-h-[82vh] max-w-7xl items-center px-6">
         <div className="max-w-2xl">
-          <p className="mb-5 text-xs font-semibold uppercase tracking-[0.28em] text-[#9a7a3f]">
+          <p className="mb-5 text-xs font-semibold uppercase tracking-[0.28em] text-[#8b6a2b]">
             The Industry&apos;s Most Trusted Network
           </p>
 
