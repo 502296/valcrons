@@ -22,7 +22,7 @@ export default function Hero() {
             When Operations Can&apos;t Stop.
           </h1>
 
-          <p className="mb-10 max-w-xl text-lg leading-8 text-[#4b5563]">
+          <p className="mb-10 max-w-xl text-lg leading-8 font-medium text-[#111827]">
             Connect with verified industrial experts when operations are at risk.
 
 VALCRONS enables facilities to quickly find qualified engineers and technicians, review expert qualifications, and establish direct contact for maintenance, reliability, controls, electrical, and operational support.
