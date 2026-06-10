@@ -10,7 +10,7 @@ type UserRole = "expert" | "company" | "facility" | null;
 const PUBLIC_NAV_LINKS = [
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Experts", href: "/experts" },
-  { label: "Industries", href: "/industries" },
+  { label: "Industries", href: "/#industries" },
   { label: "Safety", href: "/safety" },
 ];
 
