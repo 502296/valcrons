@@ -23,8 +23,9 @@ export default function Hero() {
           </h1>
 
           <p className="mb-10 max-w-xl text-lg leading-8 text-[#4b5563]">
-            Valcrons connects industrial facilities with verified experts to
-            solve critical problems and reduce costly downtime.
+            Connect with verified industrial experts when operations are at risk.
+
+VALCRONS enables facilities to quickly find qualified engineers and technicians, review expert qualifications, and establish direct contact for maintenance, reliability, controls, electrical, and operational support.
           </p>
 
           <div className="flex flex-col gap-4 sm:flex-row">
