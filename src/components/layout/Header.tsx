@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 
 type UserRole = "expert" | "company" | "facility" | null;
@@ -121,14 +122,13 @@ export default function Header() {
     <header className="fixed left-0 top-0 z-50 w-full border-b border-black/5 bg-white/80 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
        <Link href="/" className="flex items-center gap-4">
-  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0b1d33] shadow-sm">
-    <div className="relative flex h-9 w-9 items-center justify-center">
-      <div className="absolute inset-0 rounded-full border-b-4 border-[#d4af37]" />
-      <span className="text-3xl font-black text-[#d4af37]">
-        V
-      </span>
-    </div>
-  </div>
+  <Image
+  src="/valcrons-logo.png"
+  alt="VALCRONS Logo"
+  width={60}
+  height={60}
+  className="h-14 w-14 object-contain"
+/>
 
   <div>
     <div className="text-2xl font-black tracking-[0.24em] text-[#111827]">
