@@ -556,7 +556,10 @@ if (!emailResponse.ok || !emailResult.success) {
               </div>
             )}
 
-            {requests.map((request) => {
+            {(expandedId
+            ? requests.filter((request) => request.id === expandedId)
+            : requests
+          ).map((request) => {
               const isExpanded = expandedId === request.id;
               const saved = hasAction(request.id, "saved");
               const accepted = hasAction(request.id, "accepted");
