@@ -249,28 +249,80 @@ export default function MyRequestsPage() {
     setMessage("Request updated successfully.");
   }
 
-  async function updateContactRequestStatus(contactId: number, status: "approved" | "declined") {
-    clearMessages();
-    setUpdatingContactId(contactId);
+ async function updateContactRequestStatus(contactId: number, status: "approved" | "declined") {
+  clearMessages();
+  setUpdatingContactId(contactId);
 
-    const { error } = await supabase
-      .from("expert_contact_requests")
-      .update({ status })
-      .eq("id", contactId);
+  const contactRequest = contactRequests.find((contact) => contact.id === contactId);
 
+  if (!contactRequest) {
+    setErrorMessage("Contact request could not be found.");
     setUpdatingContactId(null);
-
-    if (error) {
-      setErrorMessage("Contact request could not be updated.");
-      return;
-    }
-
-    setContactRequests((prev) =>
-      prev.map((contact) => (contact.id === contactId ? { ...contact, status } : contact))
-    );
-
-    setMessage(status === "approved" ? "Expert contact approved." : "Expert contact declined.");
+    return;
   }
+
+  const expert = expertProfiles[contactRequest.expert_id];
+
+  const { error } = await supabase
+    .from("expert_contact_requests")
+    .update({ status })
+    .eq("id", contactId);
+
+  if (error) {
+    setErrorMessage("Contact request could not be updated.");
+    setUpdatingContactId(null);
+    return;
+  }
+
+  const notificationTitle =
+    status === "approved"
+      ? "Contact Request Approved"
+      : "Contact Request Declined";
+
+  const notificationMessage =
+    status === "approved"
+      ? "Your contact request has been approved by the facility. You can now follow up with the company."
+      : "Your contact request was declined by the facility.";
+
+  await supabase.from("notifications").insert({
+    user_id: contactRequest.expert_id,
+    title: notificationTitle,
+    message: notificationMessage,
+    type: status === "approved" ? "contact_approved" : "contact_declined",
+    related_request_id: contactRequest.request_id,
+    is_read: false,
+  });
+
+  window.dispatchEvent(new Event("valcrons-notifications-updated"));
+
+  if (expert?.email) {
+    await fetch("/api/send-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        to: expert.email,
+        subject:
+          status === "approved"
+            ? "VALCRONS | Your Contact Request Was Approved"
+            : "VALCRONS | Contact Request Update",
+        message:
+          status === "approved"
+            ? `Your VALCRONS contact request has been approved. Please log in to review the facility request and follow up.`
+            : `Your VALCRONS contact request was declined by the facility.`,
+      }),
+    });
+  }
+
+  setContactRequests((prev) =>
+    prev.map((contact) => (contact.id === contactId ? { ...contact, status } : contact))
+  );
+
+  setUpdatingContactId(null);
+
+  setMessage(status === "approved" ? "Expert contact approved." : "Expert contact declined.");
+}
 
   async function closeRequest(id: number) {
     clearMessages();
