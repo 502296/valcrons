@@ -7,6 +7,13 @@ import { supabase } from "@/lib/supabase";
 
 type UserRole = "expert" | "company" | "facility" | null;
 
+const PUBLIC_NAV_LINKS = [
+  { label: "How It Works", href: "/#how-it-works" },
+  { label: "Experts", href: "/experts" },
+  { label: "Industries", href: "/industries" },
+  { label: "Safety", href: "/safety" },
+];
+
 export default function Header() {
   const [role, setRole] = useState<UserRole>(null);
   const [loggedIn, setLoggedIn] = useState(false);
@@ -77,7 +84,7 @@ export default function Header() {
       .from("notifications")
       .select("*", { count: "exact", head: true })
       .eq("user_id", activeUserId)
-      .or("is_read.eq.false,is_read.is.null")
+      .or("is_read.eq.false,is_read.is.null");
 
     if (error) {
       setUnreadCount(0);
@@ -121,41 +128,36 @@ export default function Header() {
   return (
     <header className="fixed left-0 top-0 z-50 w-full border-b border-black/5 bg-white/80 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-       <Link href="/" className="flex items-center gap-4">
-  <Image
-  src="/valcrons-logo.png"
-  alt="VALCRONS Logo"
-  width={60}
-  height={60}
-  className="h-14 w-14 object-contain"
-/>
+        <Link href="/" className="flex items-center gap-4">
+          <Image
+            src="/valcrons-logo.png"
+            alt="VALCRONS Logo"
+            width={60}
+            height={60}
+            className="h-14 w-14 object-contain"
+            priority
+          />
 
-  <div>
-    <div className="text-2xl font-black tracking-[0.24em] text-[#111827]">
-      VALCRONS
-    </div>
+          <div>
+            <div className="text-2xl font-black tracking-[0.24em] text-[#111827]">
+              VALCRONS
+            </div>
 
-    <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#6b7280]">
-      Industrial Expertise Network
-    </div>
-  </div>
-</Link>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#6b7280]">
+              Industrial Expertise Network
+            </div>
+          </div>
+        </Link>
 
         <nav className="hidden items-center gap-8 text-sm font-medium text-[#374151] md:flex">
           {!loggedIn && (
             <>
-              <Link href="/#how-it-works" className="hover:text-black">
-                How It Works
-              </Link>
-              <Link href="/#experts" className="hover:text-black">
-                Experts
-              </Link>
-              <Link href="/#industries" className="hover:text-black">
-                Industries
-              </Link>
-              <Link href="/#safety" className="hover:text-black">
-                Safety
-              </Link>
+              {PUBLIC_NAV_LINKS.map((link) => (
+                <Link key={link.href} href={link.href} className="hover:text-black">
+                  {link.label}
+                </Link>
+              ))}
+
               <Link
                 href="/requests"
                 className="font-semibold text-[#111827] hover:text-black"
@@ -173,9 +175,11 @@ export default function Header() {
               >
                 Browse Requests
               </Link>
-             <Link href="/my-projects" className="hover:text-black">
+
+              <Link href="/my-projects" className="hover:text-black">
                 My Projects
               </Link>
+
               <Link href="/profile" className="hover:text-black">
                 Profile
               </Link>
@@ -190,9 +194,11 @@ export default function Header() {
               >
                 Post Request
               </Link>
+
               <Link href="/my-requests" className="hover:text-black">
                 My Requests
               </Link>
+
               <Link href="/profile" className="hover:text-black">
                 Profile
               </Link>
@@ -204,6 +210,7 @@ export default function Header() {
           {loggedIn && (
             <Link
               href="/notifications"
+              aria-label="Notifications"
               className="relative rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
             >
               🔔
