@@ -18,10 +18,13 @@ type NotificationItem = {
   created_at: string;
 };
 
+type UserRole = "expert" | "company" | "facility" | null;
+
 export default function NotificationsPage() {
   const router = useRouter();
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [userRole, setUserRole] = useState<UserRole>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -32,6 +35,33 @@ export default function NotificationsPage() {
 
   function notifyHeaderBadgeUpdate() {
     window.dispatchEvent(new Event("valcrons-notifications-updated"));
+  }
+
+  function getNotificationTargetPath(item: NotificationItem) {
+    if (!item.related_request_id) return "/notifications";
+
+    const type = (item.type || "").toLowerCase();
+
+    // إشعارات الخبير: موافقة/رفض الشركة
+    if (type === "contact_approved" || type === "contact_declined") {
+      return `/requests?request=${item.related_request_id}&from=notifications`;
+    }
+
+    // إشعارات الشركة: خبير أرسل طلب تواصل
+    if (
+      type === "contact_request" ||
+      type === "expert_contact_request" ||
+      type === "new_contact_request"
+    ) {
+      return `/my-requests?request=${item.related_request_id}&from=notifications`;
+    }
+
+    // fallback دائم حسب نوع الحساب
+    if (userRole === "expert") {
+      return `/requests?request=${item.related_request_id}&from=notifications`;
+    }
+
+    return `/my-requests?request=${item.related_request_id}&from=notifications`;
   }
 
   async function loadNotifications() {
@@ -47,6 +77,14 @@ export default function NotificationsPage() {
       window.location.href = "/login";
       return;
     }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", session.user.id)
+      .single();
+
+    setUserRole((profile?.role as UserRole) || null);
 
     const { data, error } = await supabase
       .from("notifications")
@@ -81,20 +119,14 @@ export default function NotificationsPage() {
 
       setNotifications((prev) =>
         prev.map((notification) =>
-          notification.id === item.id
-            ? { ...notification, is_read: true }
-            : notification
+          notification.id === item.id ? { ...notification, is_read: true } : notification
         )
       );
 
       notifyHeaderBadgeUpdate();
     }
 
-    if (item.related_request_id) {
-      router.push(
-        `/my-requests?request=${item.related_request_id}&from=notifications`
-      );
-    }
+    router.push(getNotificationTargetPath(item));
   }
 
   async function markAllAsRead() {
@@ -135,7 +167,7 @@ export default function NotificationsPage() {
     <>
       <Header />
 
-      <main className="min-h-screen bg-[#f4f1ea] px-6 pt-32 pb-24">
+      <main className="min-h-screen bg-[#f4f1ea] px-6 pb-24 pt-32">
         <div className="mx-auto max-w-5xl">
           <Link
             href="/"
@@ -205,9 +237,7 @@ export default function NotificationsPage() {
                 <div
                   key={item.id}
                   className={`rounded-[2rem] border p-6 shadow-sm transition ${
-                    item.is_read
-                      ? "border-black/10 bg-white/80"
-                      : "border-blue-200 bg-blue-50"
+                    item.is_read ? "border-black/10 bg-white/80" : "border-blue-200 bg-blue-50"
                   }`}
                 >
                   <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
@@ -279,9 +309,7 @@ function StatCard({ title, value }: { title: string; value: number }) {
         {value}
       </p>
 
-      <p className="mt-3 text-xs font-medium text-[#6b7280]">
-        Notification metric
-      </p>
+      <p className="mt-3 text-xs font-medium text-[#6b7280]">Notification metric</p>
     </div>
   );
 }
