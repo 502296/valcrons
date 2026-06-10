@@ -120,20 +120,26 @@ export default function Header() {
   return (
     <header className="fixed left-0 top-0 z-50 w-full border-b border-black/5 bg-white/80 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#111827] font-bold text-[#c8a96b]">
-            V
-          </div>
+       <Link href="/" className="flex items-center gap-4">
+  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0b1d33] shadow-sm">
+    <div className="relative flex h-9 w-9 items-center justify-center">
+      <div className="absolute inset-0 rounded-full border-b-4 border-[#d4af37]" />
+      <span className="text-3xl font-black text-[#d4af37]">
+        V
+      </span>
+    </div>
+  </div>
 
-          <div>
-            <div className="text-xl font-bold tracking-[0.18em] text-[#111827]">
-              VALCRONS
-            </div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#9a7a3f]">
-              Industrial Expertise Network
-            </div>
-          </div>
-        </Link>
+  <div>
+    <div className="text-2xl font-black tracking-[0.24em] text-[#111827]">
+      VALCRONS
+    </div>
+
+    <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#6b7280]">
+      Industrial Expertise Network
+    </div>
+  </div>
+</Link>
 
         <nav className="hidden items-center gap-8 text-sm font-medium text-[#374151] md:flex">
           {!loggedIn && (
