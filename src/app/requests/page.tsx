@@ -58,25 +58,6 @@ export default function RequestsPage() {
   const [contactMessage, setContactMessage] = useState("");
   const [attachments, setAttachments] = useState<AttachmentInfo[]>([]);
 
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const requestFromUrl = params.get("request");
-
-  if (!requestFromUrl) return;
-
-  const requestId = Number(requestFromUrl);
-
-  if (!Number.isNaN(requestId)) {
-    setExpandedId(requestId);
-
-    setTimeout(() => {
-      document
-        .getElementById(`request-${requestId}`)
-        ?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 600);
-  }
-}, [requests]);
-
   useEffect(() => {
     async function init() {
       const {
@@ -94,21 +75,38 @@ useEffect(() => {
       setExpertId(session.user.id);
       setCheckingAuth(false);
 
-      await loadRequests();
+      const params = new URLSearchParams(window.location.search);
+      const requestFromUrl = params.get("request");
+      const requestId = requestFromUrl ? Number(requestFromUrl) : null;
+
+      if (requestId && !Number.isNaN(requestId)) {
+        setExpandedId(requestId);
+        await loadRequests(requestId);
+      } else {
+        await loadRequests();
+      }
+
       await loadExpertActions(session.user.id);
     }
 
     init();
   }, []);
 
-  async function loadRequests() {
+  async function loadRequests(targetId?: number) {
     setLoading(true);
     setErrorMessage("");
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("facility_requests")
       .select("*")
+      .neq("status", "closed")
       .order("created_at", { ascending: false });
+
+    if (targetId) {
+      query = query.eq("id", targetId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       setErrorMessage("Requests could not be loaded. Please try again.");
@@ -116,7 +114,7 @@ useEffect(() => {
       return;
     }
 
-    setRequests((data || []).filter((request) => request.status !== "closed"));
+    setRequests(data || []);
     setLoading(false);
   }
 
@@ -308,73 +306,53 @@ useEffect(() => {
       }
 
       const { data: expertProfile } = await supabase
-  .from("profiles")
-  .select("full_name, email, phone, location, specialty")
-  .eq("id", expertId)
-  .maybeSingle();
+        .from("profiles")
+        .select("full_name, email, phone, location, specialty")
+        .eq("id", expertId)
+        .maybeSingle();
 
-const reviewUrl =
-  typeof window !== "undefined"
-    ? `${window.location.origin}/my-requests?request=${requestId}&from=notifications`
-    : "";
+      const reviewUrl =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/my-requests?request=${requestId}&from=notifications`
+          : "";
 
-const emailResponse = await fetch("/api/send-email", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
+      const emailResponse = await fetch("/api/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
 
-  body: JSON.stringify({
-    to: contactRequest.work_email,
+        body: JSON.stringify({
+          to: contactRequest.work_email,
+          subject: "VALCRONS | New Industrial Expert Available for Review",
+          message: cleanMessage,
+          expertName: expertProfile?.full_name || "Industrial Expert",
+          expertSpecialty: expertProfile?.specialty || "Not provided",
+          expertLocation: expertProfile?.location || "Not provided",
+          requestTitle:
+            contactRequest.facility_type ||
+            contactRequest.issue_type ||
+            "Industrial Support Request",
+          requestLocation: contactRequest.location || "Not provided",
+          attachmentCount:
+            attachmentData.length > 0
+              ? `${attachmentData.length} file${
+                  attachmentData.length > 1 ? "s" : ""
+                } submitted`
+              : "No files submitted",
+          reviewUrl,
+        }),
+      });
 
-    subject:
-      "VALCRONS | New Industrial Expert Available for Review",
+      const emailResult = await emailResponse.json();
 
-    message: cleanMessage,
-
-    expertName:
-      expertProfile?.full_name ||
-      "Industrial Expert",
-
-    expertSpecialty:
-      expertProfile?.specialty ||
-      "Not provided",
-
-    expertLocation:
-      expertProfile?.location ||
-      "Not provided",
-
-    requestTitle:
-      contactRequest.facility_type ||
-      contactRequest.issue_type ||
-      "Industrial Support Request",
-
-    requestLocation:
-      contactRequest.location ||
-      "Not provided",
-
-    attachmentCount:
-      attachmentData.length > 0
-        ? `${attachmentData.length} file${
-            attachmentData.length > 1 ? "s" : ""
-          } submitted`
-        : "No files submitted",
-
-    reviewUrl,
-  }),
-});
-
-const emailResult = await emailResponse.json();
-
-if (!emailResponse.ok || !emailResult.success) {
-  setUpdatingAction(null);
-
-  setErrorMessage(
-    "Contact request was saved, but the email notification could not be sent."
-  );
-
-  return;
-}
+      if (!emailResponse.ok || !emailResult.success) {
+        setUpdatingAction(null);
+        setErrorMessage(
+          "Contact request was saved, but the email notification could not be sent."
+        );
+        return;
+      }
     }
 
     setActions((prev) => ({
@@ -428,6 +406,10 @@ if (!emailResponse.ok || !emailResult.success) {
       ).length,
     [requests]
   );
+
+  const visibleRequests = expandedId
+    ? requests.filter((request) => request.id === expandedId)
+    : requests;
 
   if (checkingAuth) {
     return (
@@ -513,7 +495,7 @@ if (!emailResponse.ok || !emailResult.success) {
 
               <button
                 type="button"
-                onClick={loadRequests}
+                onClick={() => loadRequests()}
                 className="rounded-2xl border border-black/10 bg-[#111827] px-6 py-4 text-sm font-semibold text-white shadow-sm transition hover:bg-black"
               >
                 Refresh Requests
@@ -556,21 +538,18 @@ if (!emailResponse.ok || !emailResult.success) {
               </div>
             )}
 
-            {(expandedId
-            ? requests.filter((request) => request.id === expandedId)
-            : requests
-          ).map((request) => {
+            {visibleRequests.map((request) => {
               const isExpanded = expandedId === request.id;
               const saved = hasAction(request.id, "saved");
               const accepted = hasAction(request.id, "accepted");
               const contactRequested = hasAction(request.id, "contacted");
 
               return (
-               <article
-                key={request.id}
+                <article
+                  key={request.id}
                   id={`request-${request.id}`}
-                    className="rounded-[2rem] border border-black/10 bg-white p-8"
-                  >
+                  className="rounded-[2rem] border border-black/10 bg-white p-8"
+                >
                   <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
                     <div className="max-w-3xl">
                       <div
