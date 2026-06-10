@@ -58,7 +58,7 @@ export default function RequestsPage() {
   const [contactMessage, setContactMessage] = useState("");
   const [attachments, setAttachments] = useState<AttachmentInfo[]>([]);
 
- useEffect(() => {
+useEffect(() => {
   const params = new URLSearchParams(window.location.search);
   const requestFromUrl = params.get("request");
 
@@ -68,8 +68,14 @@ export default function RequestsPage() {
 
   if (!Number.isNaN(requestId)) {
     setExpandedId(requestId);
+
+    setTimeout(() => {
+      document
+        .getElementById(`request-${requestId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 600);
   }
-}, []);
+}, [requests]);
 
   useEffect(() => {
     async function init() {
