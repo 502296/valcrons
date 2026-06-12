@@ -62,7 +62,6 @@ export default function Header() {
     }
 
     setRole((profile?.role as UserRole) || null);
-
     await loadUnreadNotifications(data.user.id);
   }
 
@@ -126,24 +125,24 @@ export default function Header() {
   }
 
   return (
-    <header className="fixed left-0 top-0 z-50 w-full border-b border-black/5 bg-white/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-4">
+    <header className="fixed left-0 top-0 z-50 w-full border-b border-black/5 bg-white/85 backdrop-blur-xl">
+      <div className="mx-auto flex h-[74px] max-w-7xl items-center justify-between gap-3 px-4 sm:h-20 sm:px-6">
+        <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-4">
           <Image
             src="/valcrons-logo.png"
             alt="VALCRONS Logo"
             width={60}
             height={60}
-            className="h-14 w-14 object-contain"
+            className="h-10 w-10 shrink-0 object-contain sm:h-14 sm:w-14"
             priority
           />
 
-          <div>
-            <div className="text-2xl font-black tracking-[0.24em] text-[#111827]">
+          <div className="min-w-0">
+            <div className="text-[19px] font-black leading-none tracking-[0.22em] text-[#111827] sm:text-2xl sm:tracking-[0.24em]">
               VALCRONS
             </div>
 
-            <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#6b7280]">
+            <div className="mt-1 text-[8px] font-semibold uppercase leading-tight tracking-[0.26em] text-[#6b7280] sm:text-[10px] sm:tracking-[0.32em]">
               Industrial Expertise Network
             </div>
           </div>
@@ -169,10 +168,7 @@ export default function Header() {
 
           {loggedIn && role === "expert" && (
             <>
-              <Link
-                href="/requests"
-                className="font-semibold text-[#111827] hover:text-black"
-              >
+              <Link href="/requests" className="font-semibold text-[#111827] hover:text-black">
                 Browse Requests
               </Link>
 
@@ -188,10 +184,7 @@ export default function Header() {
 
           {loggedIn && (role === "company" || role === "facility") && (
             <>
-              <Link
-                href="/request-support"
-                className="font-semibold text-[#111827] hover:text-black"
-              >
+              <Link href="/request-support" className="font-semibold text-[#111827] hover:text-black">
                 Post Request
               </Link>
 
@@ -206,12 +199,12 @@ export default function Header() {
           )}
         </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           {loggedIn && (
             <Link
               href="/notifications"
               aria-label="Notifications"
-              className="relative rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+              className="relative rounded-xl border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea] sm:px-4 sm:py-3"
             >
               🔔
               {unreadCount > 0 && (
@@ -226,22 +219,23 @@ export default function Header() {
             <>
               <Link
                 href="/login"
-                className="hidden text-sm font-medium text-[#374151] hover:text-black sm:block"
+                className="rounded-xl border border-black/10 bg-white px-3 py-2 text-xs font-semibold text-[#111827] shadow-sm transition hover:bg-[#f4f1ea] sm:px-4 sm:py-3 sm:text-sm"
               >
                 Log In
               </Link>
 
               <Link
                 href="/signup"
-                className="rounded-xl bg-[#111827] px-5 py-3 text-sm font-semibold text-white hover:bg-black"
+                className="rounded-xl bg-[#111827] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-black sm:px-5 sm:py-3 sm:text-sm"
               >
-                Request Access
+                <span className="sm:hidden">Join</span>
+                <span className="hidden sm:inline">Request Access</span>
               </Link>
             </>
           ) : (
             <button
               onClick={handleLogout}
-              className="rounded-xl bg-[#111827] px-5 py-3 text-sm font-semibold text-white hover:bg-black"
+              className="rounded-xl bg-[#111827] px-3 py-2 text-xs font-semibold text-white hover:bg-black sm:px-5 sm:py-3 sm:text-sm"
             >
               Logout
             </button>
