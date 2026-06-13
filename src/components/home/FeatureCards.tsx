@@ -37,11 +37,11 @@ export default function FeatureCards() {
           </h2>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-[1.5rem] border border-[#c8a96b]/20 bg-white p-6 shadow-[0_12px_40px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]"
+              className="rounded-2xl border border-[#c8a96b]/20 bg-white p-4  shadow-[0_12px_40px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]"
             >
               <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-[#111827] text-[#c8a96b] shadow-lg">
                 {feature.icon}
