@@ -49,11 +49,11 @@ export default function Industries() {
           </h2>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
           {industries.map((industry) => (
             <div
               key={industry.title}
-              className="group rounded-[1.5rem] border border-[#c8a96b]/20 bg-white p-5 shadow-[0_12px_40px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]"
+              className="group rounded-[1.5rem] border border-[#c8a96b]/20 bg-white p-4 shadow-[0_12px_40px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]"
             >
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#111827] text-[#c8a96b] shadow-lg transition group-hover:scale-105">
                 {industry.icon}
