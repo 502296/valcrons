@@ -33,13 +33,13 @@ export default function HowItWorks() {
           </h2>
         </div>
 
-        <div className="relative grid gap-4 md:grid-cols-4">
+        <div className="relative grid grid-cols-2 gap-3 md:grid-cols-4">
           <div className="absolute left-0 top-6 hidden h-px w-full bg-gradient-to-r from-transparent via-[#c8a96b]/40 to-transparent md:block" />
 
           {steps.map((step, index) => (
             <div
               key={step.title}
-              className="relative rounded-[1.5rem] border border-[#c8a96b]/20 bg-[#f7f7f4] p-6 shadow-[0_12px_40px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]"
+              className="relative rounded-[1.5rem] border border-[#c8a96b]/20 bg-[#f7f7f4] p-4 shadow-[0_12px_40px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]"
             >
               <div className="relative z-10 mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-[#111827] text-sm font-bold text-[#c8a96b] shadow-[0_8px_24px_rgba(0,0,0,0.16)]">
                 {index + 1}
