@@ -215,26 +215,22 @@ export default function RequestsPage() {
     setAttachments(selectedFiles);
   }
 
-  async function submitContactRequest() {
-    if (!expertId || !contactRequest) return;
+ async function submitContactRequest() {
+  if (!expertId || !contactRequest) return;
 
-    const requestId = contactRequest.id;
-    const cleanMessage = contactMessage.trim();
+  const requestId = contactRequest.id;
+  const cleanMessage = contactMessage.trim();
 
-    if (cleanMessage.length < 20) {
-      setErrorMessage("Please write a short professional message first.");
-      return;
-    }
+  if (cleanMessage.length < 20) {
+    setErrorMessage("Please write a short professional message first.");
+    return;
+  }
 
-    if (hasAction(requestId, "contacted")) {
-      setErrorMessage("You already submitted a contact request for this project.");
-      return;
-    }
+  setMessage("");
+  setErrorMessage("");
+  setUpdatingAction(`${requestId}-contacted`);
 
-    setMessage("");
-    setErrorMessage("");
-    setUpdatingAction(`${requestId}-contacted`);
-
+  try {
     const attachmentData = [];
 
     for (const file of attachments) {
@@ -254,20 +250,6 @@ export default function RequestsPage() {
       }
     }
 
-    const { error: actionError } = await supabase
-      .from("technician_project_actions")
-      .insert({
-        technician_id: expertId,
-        project_id: requestId,
-        action_type: "contacted",
-      });
-
-    if (actionError) {
-      setUpdatingAction(null);
-      setErrorMessage("Contact request could not be sent. Please check permissions.");
-      return;
-    }
-
     const { error: contactError } = await supabase
       .from("expert_contact_requests")
       .insert({
@@ -279,10 +261,22 @@ export default function RequestsPage() {
       });
 
     if (contactError) {
-      setUpdatingAction(null);
       setErrorMessage("Contact request could not be saved.");
+      setUpdatingAction(null);
       return;
     }
+
+    await supabase.from("technician_project_actions").upsert(
+      {
+        technician_id: expertId,
+        project_id: requestId,
+        action_type: "contacted",
+      },
+      {
+        onConflict: "technician_id,project_id,action_type",
+        ignoreDuplicates: true,
+      }
+    );
 
     if (contactRequest.work_email) {
       const { data: companyProfile } = await supabase
@@ -303,6 +297,8 @@ export default function RequestsPage() {
           related_request_id: requestId,
           is_read: false,
         });
+
+        window.dispatchEvent(new Event("valcrons-notifications-updated"));
       }
 
       const { data: expertProfile } = await supabase
@@ -316,12 +312,11 @@ export default function RequestsPage() {
           ? `${window.location.origin}/my-requests?request=${requestId}&from=notifications`
           : "";
 
-      const emailResponse = await fetch("/api/send-email", {
+      fetch("/api/send-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-
         body: JSON.stringify({
           to: contactRequest.work_email,
           subject: "VALCRONS | New Industrial Expert Available for Review",
@@ -342,29 +337,25 @@ export default function RequestsPage() {
               : "No files submitted",
           reviewUrl,
         }),
-      });
-
-      const emailResult = await emailResponse.json();
-
-      if (!emailResponse.ok || !emailResult.success) {
-        setUpdatingAction(null);
-        setErrorMessage(
-          "Contact request was saved, but the email notification could not be sent."
-        );
-        return;
-      }
+      }).catch(() => {});
     }
 
     setActions((prev) => ({
       ...prev,
-      contacted: [...prev.contacted, requestId],
+      contacted: prev.contacted.includes(requestId)
+        ? prev.contacted
+        : [...prev.contacted, requestId],
     }));
 
     setUpdatingAction(null);
-    setMessage("Contact request sent to the facility.");
     closeContactModal();
+    setMessage("Contact request sent to the facility.");
+  } catch {
+    setUpdatingAction(null);
+    setErrorMessage("Contact request could not be sent. Please try again.");
   }
-
+}
+  
   function getRequestTitle(request: FacilityRequest) {
     const description = request.problem_description || "";
 
