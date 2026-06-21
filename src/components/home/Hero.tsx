@@ -37,6 +37,13 @@ export default function Hero() {
             </a>
 
             <a
+              href="/signup?role=expert"
+              className="rounded-xl border border-[#9a7a3f]/40 bg-[#9a7a3f] px-7 py-4 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-[#806431]"
+            >
+              Join as an Expert
+            </a>
+
+            <a
               href="#how-it-works"
               className="rounded-xl border border-black/10 bg-white/85 px-7 py-4 text-center text-sm font-semibold text-[#111827] backdrop-blur transition hover:bg-white"
             >
