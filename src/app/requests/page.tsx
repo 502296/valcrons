@@ -215,7 +215,7 @@ export default function RequestsPage() {
     setAttachments(selectedFiles);
   }
 
- async function submitContactRequest() {
+async function submitContactRequest() {
   if (!expertId || !contactRequest) return;
 
   const requestId = contactRequest.id;
@@ -231,10 +231,16 @@ export default function RequestsPage() {
   setUpdatingAction(`${requestId}-contacted`);
 
   try {
-    const attachmentData = [];
+    const attachmentData: {
+      name: string;
+      path: string;
+      type: string;
+      size: number;
+    }[] = [];
 
     for (const file of attachments) {
-      const filePath = `${expertId}/${Date.now()}-${file.name}`;
+      const safeName = file.name.replace(/\s+/g, "-");
+      const filePath = `${expertId}/${Date.now()}-${safeName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("contact-attachments")
@@ -261,6 +267,7 @@ export default function RequestsPage() {
       });
 
     if (contactError) {
+      console.error("Contact request insert error:", contactError);
       setErrorMessage("Contact request could not be saved.");
       setUpdatingAction(null);
       return;
@@ -278,17 +285,31 @@ export default function RequestsPage() {
       }
     );
 
+    let companyUserId: string | null = null;
+
     if (contactRequest.work_email) {
-      const { data: companyProfile } = await supabase
+      const cleanCompanyEmail = contactRequest.work_email.trim().toLowerCase();
+
+      const { data: companyProfile, error: companyProfileError } = await supabase
         .from("profiles")
-        .select("id, uid")
-        .eq("email", contactRequest.work_email)
+        .select("id, uid, email")
+        .ilike("email", cleanCompanyEmail)
         .maybeSingle();
 
-      const companyUserId = companyProfile?.uid || companyProfile?.id;
+      if (companyProfileError) {
+        console.error("Company profile lookup error:", companyProfileError);
+      }
 
-      if (companyUserId) {
-        await supabase.from("notifications").insert({
+      companyUserId =
+        companyProfile?.uid ||
+        companyProfile?.id ||
+        null;
+    }
+
+    if (companyUserId) {
+      const { error: notificationError } = await supabase
+        .from("notifications")
+        .insert({
           user_id: companyUserId,
           title: "New Expert Contact Request",
           message:
@@ -298,9 +319,14 @@ export default function RequestsPage() {
           is_read: false,
         });
 
-        window.dispatchEvent(new Event("valcrons-notifications-updated"));
+      if (notificationError) {
+        console.error("Company notification insert error:", notificationError);
       }
+    } else {
+      console.error("Company user ID not found for:", contactRequest.work_email);
+    }
 
+    if (contactRequest.work_email) {
       const { data: expertProfile } = await supabase
         .from("profiles")
         .select("full_name, email, phone, location, specialty")
@@ -312,7 +338,7 @@ export default function RequestsPage() {
           ? `${window.location.origin}/my-requests?request=${requestId}&from=notifications`
           : "";
 
-      fetch("/api/send-email", {
+      await fetch("/api/send-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -337,7 +363,9 @@ export default function RequestsPage() {
               : "No files submitted",
           reviewUrl,
         }),
-      }).catch(() => {});
+      }).catch((emailError) => {
+        console.error("Email send error:", emailError);
+      });
     }
 
     setActions((prev) => ({
@@ -350,7 +378,8 @@ export default function RequestsPage() {
     setUpdatingAction(null);
     closeContactModal();
     setMessage("Contact request sent to the facility.");
-  } catch {
+  } catch (error) {
+    console.error("Submit contact request error:", error);
     setUpdatingAction(null);
     setErrorMessage("Contact request could not be sent. Please try again.");
   }
