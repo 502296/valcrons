@@ -290,20 +290,38 @@ async function submitContactRequest() {
     if (contactRequest.work_email) {
       const cleanCompanyEmail = contactRequest.work_email.trim().toLowerCase();
 
-      const { data: companyProfile, error: companyProfileError } = await supabase
-        .from("profiles")
-        .select("id, uid, email")
-        .ilike("email", cleanCompanyEmail)
-        .maybeSingle();
+     const {
+  data: companyProfiles,
+  error: companyProfileError,
+} = await supabase
+  .from("profiles")
+  .select("id, uid, email, role")
+  .ilike("email", cleanCompanyEmail)
+  .limit(5);
 
-      if (companyProfileError) {
-        console.error("Company profile lookup error:", companyProfileError);
-      }
+if (companyProfileError) {
+  console.error(
+    "Company profile lookup error:",
+    companyProfileError
+  );
+}
 
-      companyUserId =
-        companyProfile?.uid ||
-        companyProfile?.id ||
-        null;
+const companyProfile =
+  companyProfiles?.find(
+    (profile) => profile.role === "company"
+  ) ||
+  companyProfiles?.find(
+    (profile) => profile.role === "facility"
+  ) ||
+  companyProfiles?.[0];
+
+companyUserId =
+  companyProfile?.uid ||
+  companyProfile?.id ||
+  null;
+
+console.log("Company profiles found:", companyProfiles);
+console.log("Selected company user ID:", companyUserId);
     }
 
     if (companyUserId) {
