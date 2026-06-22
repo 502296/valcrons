@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 
 type Profile = {
   id: string;
+  uid?: string | null;
   full_name: string | null;
   role: string | null;
   email: string | null;
@@ -22,6 +23,7 @@ export default function RequestSupportPage() {
 
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -40,21 +42,28 @@ export default function RequestSupportPage() {
 
   useEffect(() => {
     async function checkUserAndLoadProfile() {
-      const { data: userData } = await supabase.auth.getUser();
+      const { data: userData, error: userError } = await supabase.auth.getUser();
 
-      if (!userData.user) {
+      if (userError || !userData.user) {
         setLoggedIn(false);
         setCheckingAuth(false);
         return;
       }
 
-      setLoggedIn(true);
+      const authUserId = userData.user.id;
 
-      const { data: profile } = await supabase
+      setLoggedIn(true);
+      setCurrentUserId(authUserId);
+
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", userData.user.id)
-        .single();
+        .eq("id", authUserId)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error("Profile load error:", profileError);
+      }
 
       if (profile) {
         const p = profile as Profile;
@@ -89,27 +98,37 @@ export default function RequestSupportPage() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     setErrorMessage("");
+
+    if (!currentUserId) {
+      setErrorMessage("Secure company account could not be verified. Please log in again.");
+      return;
+    }
+
     setIsSubmitting(true);
 
+    const cleanWorkEmail = formData.workEmail.trim().toLowerCase();
+
     const { error } = await supabase.from("facility_requests").insert({
-      company_name: formData.companyName,
-      contact_person: formData.contactPerson,
-      work_email: formData.workEmail,
-      phone_number: formData.phoneNumber,
-      location: formData.facilityLocation,
+      company_user_id: currentUserId,
+      company_name: formData.companyName.trim(),
+      contact_person: formData.contactPerson.trim(),
+      work_email: cleanWorkEmail,
+      phone_number: formData.phoneNumber.trim(),
+      location: formData.facilityLocation.trim(),
       facility_type: formData.industry,
       urgency: formData.priorityLevel,
       issue_type: formData.supportType,
-      problem_description: formData.issueDescription,
+      problem_description: formData.issueDescription.trim(),
       status: "pending",
     });
 
     setIsSubmitting(false);
 
     if (error) {
+      console.error("Facility request insert error:", error);
       setErrorMessage("Request could not be submitted. Please try again.");
-      console.error(error);
       return;
     }
 
@@ -290,9 +309,7 @@ export default function RequestSupportPage() {
                   <select
                     required
                     value={formData.priorityLevel}
-                    onChange={(e) =>
-                      updateField("priorityLevel", e.target.value)
-                    }
+                    onChange={(e) => updateField("priorityLevel", e.target.value)}
                     className="mt-3 w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm text-[#111827] outline-none focus:border-[#9a7a3f]"
                   >
                     <option value="">Select priority</option>
@@ -329,9 +346,7 @@ export default function RequestSupportPage() {
                   required
                   rows={7}
                   value={formData.issueDescription}
-                  onChange={(e) =>
-                    updateField("issueDescription", e.target.value)
-                  }
+                  onChange={(e) => updateField("issueDescription", e.target.value)}
                   placeholder="Describe the issue, affected equipment, urgency, symptoms, downtime impact, and what support is needed."
                   className="mt-3 w-full resize-none rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm leading-7 text-[#111827] placeholder:text-[#374151] outline-none focus:border-[#9a7a3f]"
                 />
@@ -396,6 +411,7 @@ function FormInput({
       <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#111827]">
         {label}
       </label>
+
       <input
         required={required}
         type={type}
