@@ -285,64 +285,29 @@ async function submitContactRequest() {
       }
     );
 
-    let companyUserId: string | null = null;
+   if (contactRequest.work_email) {
+  const { data: companyProfile } = await supabase
+    .from("profiles")
+    .select("id, uid")
+    .eq("email", contactRequest.work_email)
+    .maybeSingle();
 
-    if (contactRequest.work_email) {
-      const cleanCompanyEmail = contactRequest.work_email.trim().toLowerCase();
+  const companyUserId = companyProfile?.uid || companyProfile?.id;
 
-     const {
-  data: companyProfiles,
-  error: companyProfileError,
-} = await supabase
-  .from("profiles")
-  .select("id, uid, email, role")
-  .ilike("email", cleanCompanyEmail)
-  .limit(5);
+  if (companyUserId) {
+    await supabase.from("notifications").insert({
+      user_id: companyUserId,
+      title: "New Expert Contact Request",
+      message:
+        "An expert has requested contact regarding your industrial support request.",
+      type: "contact_request",
+      related_request_id: requestId,
+      is_read: false,
+    });
 
-if (companyProfileError) {
-  console.error(
-    "Company profile lookup error:",
-    companyProfileError
-  );
+    window.dispatchEvent(new Event("valcrons-notifications-updated"));
+  }
 }
-
-const companyProfile =
-  companyProfiles?.find(
-    (profile) => profile.role === "company"
-  ) ||
-  companyProfiles?.find(
-    (profile) => profile.role === "facility"
-  ) ||
-  companyProfiles?.[0];
-
-companyUserId =
-  companyProfile?.uid ||
-  companyProfile?.id ||
-  null;
-
-console.log("Company profiles found:", companyProfiles);
-console.log("Selected company user ID:", companyUserId);
-    }
-
-    if (companyUserId) {
-      const { error: notificationError } = await supabase
-        .from("notifications")
-        .insert({
-          user_id: companyUserId,
-          title: "New Expert Contact Request",
-          message:
-            "An expert has requested contact regarding your industrial support request.",
-          type: "contact_request",
-          related_request_id: requestId,
-          is_read: false,
-        });
-
-      if (notificationError) {
-        console.error("Company notification insert error:", notificationError);
-      }
-    } else {
-      console.error("Company user ID not found for:", contactRequest.work_email);
-    }
 
     if (contactRequest.work_email) {
       const { data: expertProfile } = await supabase
