@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 type FacilityRequest = {
   id: number;
   created_at: string;
+  company_user_id: string | null;
   company_name: string | null;
   contact_person: string | null;
   work_email: string | null;
@@ -35,6 +36,13 @@ type AttachmentInfo = {
   type: string;
 };
 
+type AttachmentRecord = {
+  name: string;
+  path: string;
+  type: string;
+  size: number;
+};
+
 export default function RequestsPage() {
   const [requests, setRequests] = useState<FacilityRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +62,9 @@ export default function RequestsPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [updatingAction, setUpdatingAction] = useState<string | null>(null);
 
-  const [contactRequest, setContactRequest] = useState<FacilityRequest | null>(null);
+  const [contactRequest, setContactRequest] = useState<FacilityRequest | null>(
+    null
+  );
   const [contactMessage, setContactMessage] = useState("");
   const [attachments, setAttachments] = useState<AttachmentInfo[]>([]);
 
@@ -109,12 +119,13 @@ export default function RequestsPage() {
     const { data, error } = await query;
 
     if (error) {
+      console.error("Requests load error:", error);
       setErrorMessage("Requests could not be loaded. Please try again.");
       setLoading(false);
       return;
     }
 
-    setRequests(data || []);
+    setRequests((data || []) as FacilityRequest[]);
     setLoading(false);
   }
 
@@ -124,7 +135,10 @@ export default function RequestsPage() {
       .select("project_id, action_type")
       .eq("technician_id", userId);
 
-    if (error) return;
+    if (error) {
+      console.error("Expert actions load error:", error);
+      return;
+    }
 
     const nextActions: ExpertActions = {
       saved: [],
@@ -173,6 +187,7 @@ export default function RequestsPage() {
     setUpdatingAction(null);
 
     if (error) {
+      console.error("Expert action insert error:", error);
       setErrorMessage("Action could not be saved. Please check permissions.");
       return;
     }
@@ -215,38 +230,67 @@ export default function RequestsPage() {
     setAttachments(selectedFiles);
   }
 
-async function submitContactRequest() {
-  if (!expertId || !contactRequest) return;
+  async function resolveCompanyUserId(request: FacilityRequest) {
+    if (request.company_user_id) {
+      return request.company_user_id;
+    }
 
-  const requestId = contactRequest.id;
-  const cleanMessage = contactMessage.trim();
+    if (!request.work_email) {
+      return null;
+    }
 
-  if (cleanMessage.length < 20) {
-    setErrorMessage("Please write a short professional message first.");
-    return;
+    const cleanEmail = request.work_email.trim().toLowerCase();
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, uid, email, role")
+      .ilike("email", cleanEmail)
+      .limit(5);
+
+    if (error) {
+      console.error("Company profile fallback lookup error:", error);
+      return null;
+    }
+
+    const companyProfile =
+      data?.find((profile) => profile.role === "company") ||
+      data?.find((profile) => profile.role === "facility") ||
+      data?.[0];
+
+    return companyProfile?.uid || companyProfile?.id || null;
   }
 
-  setMessage("");
-  setErrorMessage("");
-  setUpdatingAction(`${requestId}-contacted`);
+  async function submitContactRequest() {
+    if (!expertId || !contactRequest) return;
 
-  try {
-    const attachmentData: {
-      name: string;
-      path: string;
-      type: string;
-      size: number;
-    }[] = [];
+    const requestId = contactRequest.id;
+    const cleanMessage = contactMessage.trim();
 
-    for (const file of attachments) {
-      const safeName = file.name.replace(/\s+/g, "-");
-      const filePath = `${expertId}/${Date.now()}-${safeName}`;
+    if (cleanMessage.length < 20) {
+      setErrorMessage("Please write a short professional message first.");
+      return;
+    }
 
-      const { error: uploadError } = await supabase.storage
-        .from("contact-attachments")
-        .upload(filePath, file.file);
+    setMessage("");
+    setErrorMessage("");
+    setUpdatingAction(`${requestId}-contacted`);
 
-      if (!uploadError) {
+    try {
+      const attachmentData: AttachmentRecord[] = [];
+
+      for (const file of attachments) {
+        const safeName = file.name.replace(/\s+/g, "-");
+        const filePath = `${expertId}/${Date.now()}-${safeName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("contact-attachments")
+          .upload(filePath, file.file);
+
+        if (uploadError) {
+          console.error("Attachment upload error:", uploadError);
+          continue;
+        }
+
         attachmentData.push({
           name: file.name,
           path: filePath,
@@ -254,125 +298,126 @@ async function submitContactRequest() {
           size: file.size,
         });
       }
-    }
 
-    const { error: contactError } = await supabase
-      .from("expert_contact_requests")
-      .insert({
-        request_id: requestId,
-        expert_id: expertId,
-        expert_message: cleanMessage,
-        attachment_names: attachmentData,
-        status: "pending",
-      });
+      const { error: contactError } = await supabase
+        .from("expert_contact_requests")
+        .insert({
+          request_id: requestId,
+          expert_id: expertId,
+          expert_message: cleanMessage,
+          attachment_names: attachmentData,
+          status: "pending",
+        });
 
-    if (contactError) {
-      console.error("Contact request insert error:", contactError);
-      setErrorMessage("Contact request could not be saved.");
-      setUpdatingAction(null);
-      return;
-    }
-
-    await supabase.from("technician_project_actions").upsert(
-      {
-        technician_id: expertId,
-        project_id: requestId,
-        action_type: "contacted",
-      },
-      {
-        onConflict: "technician_id,project_id,action_type",
-        ignoreDuplicates: true,
+      if (contactError) {
+        console.error("Contact request insert error:", contactError);
+        setErrorMessage("Contact request could not be saved.");
+        setUpdatingAction(null);
+        return;
       }
-    );
 
-   if (contactRequest.work_email) {
-  const { data: companyProfile } = await supabase
-    .from("profiles")
-    .select("id, uid")
-    .eq("email", contactRequest.work_email)
-    .maybeSingle();
-
-  const companyUserId = companyProfile?.uid || companyProfile?.id;
-
-  if (companyUserId) {
-    await supabase.from("notifications").insert({
-      user_id: companyUserId,
-      title: "New Expert Contact Request",
-      message:
-        "An expert has requested contact regarding your industrial support request.",
-      type: "contact_request",
-      related_request_id: requestId,
-      is_read: false,
-    });
-
-    window.dispatchEvent(new Event("valcrons-notifications-updated"));
-  }
-}
-
-    if (contactRequest.work_email) {
-      const { data: expertProfile } = await supabase
-        .from("profiles")
-        .select("full_name, email, phone, location, specialty")
-        .eq("id", expertId)
-        .maybeSingle();
-
-      const reviewUrl =
-        typeof window !== "undefined"
-          ? `${window.location.origin}/my-requests?request=${requestId}&from=notifications`
-          : "";
-
-      await fetch("/api/send-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      await supabase.from("technician_project_actions").upsert(
+        {
+          technician_id: expertId,
+          project_id: requestId,
+          action_type: "contacted",
         },
-        body: JSON.stringify({
-          to: contactRequest.work_email,
-          subject: "VALCRONS | New Industrial Expert Available for Review",
-          message: cleanMessage,
-          expertName: expertProfile?.full_name || "Industrial Expert",
-          expertSpecialty: expertProfile?.specialty || "Not provided",
-          expertLocation: expertProfile?.location || "Not provided",
-          requestTitle:
-            contactRequest.facility_type ||
-            contactRequest.issue_type ||
-            "Industrial Support Request",
-          requestLocation: contactRequest.location || "Not provided",
-          attachmentCount:
-            attachmentData.length > 0
-              ? `${attachmentData.length} file${
-                  attachmentData.length > 1 ? "s" : ""
-                } submitted`
-              : "No files submitted",
-          reviewUrl,
-        }),
-      }).catch((emailError) => {
-        console.error("Email send error:", emailError);
-      });
+        {
+          onConflict: "technician_id,project_id,action_type",
+          ignoreDuplicates: true,
+        }
+      );
+
+      const companyUserId = await resolveCompanyUserId(contactRequest);
+
+      if (companyUserId) {
+        const { error: notificationError } = await supabase
+          .from("notifications")
+          .insert({
+            user_id: companyUserId,
+            title: "New Expert Contact Request",
+            message:
+              "An expert has requested contact regarding your industrial support request.",
+            type: "contact_request",
+            related_request_id: requestId,
+            is_read: false,
+          });
+
+        if (notificationError) {
+          console.error("Company notification insert error:", notificationError);
+        } else {
+          window.dispatchEvent(new Event("valcrons-notifications-updated"));
+        }
+      } else {
+        console.error("Company user ID not found for request:", requestId);
+      }
+
+      if (contactRequest.work_email) {
+        const { data: expertProfile } = await supabase
+          .from("profiles")
+          .select("full_name, email, phone, location, specialty")
+          .eq("id", expertId)
+          .maybeSingle();
+
+        const reviewUrl =
+          typeof window !== "undefined"
+            ? `${window.location.origin}/my-requests?request=${requestId}&from=notifications`
+            : "";
+
+        await fetch("/api/send-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to: contactRequest.work_email,
+            subject: "VALCRONS | New Industrial Expert Available for Review",
+            message: cleanMessage,
+            expertName: expertProfile?.full_name || "Industrial Expert",
+            expertSpecialty: expertProfile?.specialty || "Not provided",
+            expertLocation: expertProfile?.location || "Not provided",
+            requestTitle:
+              contactRequest.facility_type ||
+              contactRequest.issue_type ||
+              "Industrial Support Request",
+            requestLocation: contactRequest.location || "Not provided",
+            attachmentCount:
+              attachmentData.length > 0
+                ? `${attachmentData.length} file${
+                    attachmentData.length > 1 ? "s" : ""
+                  } submitted`
+                : "No files submitted",
+            reviewUrl,
+          }),
+        }).catch((emailError) => {
+          console.error("Email send error:", emailError);
+        });
+      }
+
+      setActions((prev) => ({
+        ...prev,
+        contacted: prev.contacted.includes(requestId)
+          ? prev.contacted
+          : [...prev.contacted, requestId],
+      }));
+
+      setUpdatingAction(null);
+      closeContactModal();
+      setMessage("Contact request sent to the facility.");
+    } catch (error) {
+      console.error("Submit contact request error:", error);
+      setUpdatingAction(null);
+      setErrorMessage("Contact request could not be sent. Please try again.");
     }
-
-    setActions((prev) => ({
-      ...prev,
-      contacted: prev.contacted.includes(requestId)
-        ? prev.contacted
-        : [...prev.contacted, requestId],
-    }));
-
-    setUpdatingAction(null);
-    closeContactModal();
-    setMessage("Contact request sent to the facility.");
-  } catch (error) {
-    console.error("Submit contact request error:", error);
-    setUpdatingAction(null);
-    setErrorMessage("Contact request could not be sent. Please try again.");
   }
-}
-  
+
   function getRequestTitle(request: FacilityRequest) {
     const description = request.problem_description || "";
 
     if (description.length > 8) {
-      return description.length > 72 ? `${description.slice(0, 72)}...` : description;
+      return description.length > 72
+        ? `${description.slice(0, 72)}...`
+        : description;
     }
 
     return request.issue_type || "Industrial support request";
@@ -443,9 +488,9 @@ async function submitContactRequest() {
             </h1>
 
             <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[#4b5563] md:text-base">
-              To view industrial requests, you must create an account or log in first.
-              VALCRONS protects facilities, experts, and operational information through
-              verified account-based access.
+              To view industrial requests, you must create an account or log in
+              first. VALCRONS protects facilities, experts, and operational
+              information through verified account-based access.
             </p>
 
             <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
@@ -491,8 +536,9 @@ async function submitContactRequest() {
                 </h1>
 
                 <p className="mt-6 max-w-2xl text-lg leading-8 text-[#374151]">
-                  Review verified operational requests, save opportunities, accept projects,
-                  and request facility contact through VALCRONS.
+                  Review verified operational requests, save opportunities,
+                  accept projects, and request facility contact through
+                  VALCRONS.
                 </p>
               </div>
 
@@ -683,8 +729,8 @@ async function submitContactRequest() {
             </h2>
 
             <p className="mt-3 text-sm leading-7 text-[#4b5563]">
-              Write a short professional message for the facility. This improves your chance
-              of being approved for direct contact.
+              Write a short professional message for the facility. This improves
+              your chance of being approved for direct contact.
             </p>
 
             <textarea
@@ -702,8 +748,8 @@ async function submitContactRequest() {
               </p>
 
               <p className="mt-2 text-sm leading-6 text-[#6b7280]">
-                Add resume, certifications, safety training, or portfolio files. Up to four
-                files can be attached.
+                Add resume, certifications, safety training, or portfolio files.
+                Up to four files can be attached.
               </p>
 
               <label className="mt-5 flex cursor-pointer items-center justify-center rounded-2xl border border-[#2563eb]/20 bg-[#2563eb] px-5 py-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1d4ed8]">
@@ -798,7 +844,9 @@ function Info({
         {label}
       </p>
 
-      <p className="mt-2 font-medium text-[#111827]">{value || "Not specified"}</p>
+      <p className="mt-2 font-medium text-[#111827]">
+        {value || "Not specified"}
+      </p>
     </div>
   );
 }
