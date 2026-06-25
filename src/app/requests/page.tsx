@@ -53,7 +53,6 @@ export default function RequestsPage() {
 
   const [actions, setActions] = useState<ExpertActions>({
     saved: [],
-    accepted: [],
     contacted: [],
   });
 
@@ -61,9 +60,7 @@ export default function RequestsPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [updatingAction, setUpdatingAction] = useState<string | null>(null);
 
-  const [contactRequest, setContactRequest] = useState<FacilityRequest | null>(
-    null
-  );
+  const [contactRequest, setContactRequest] = useState<FacilityRequest | null>(null);
   const [contactMessage, setContactMessage] = useState("");
   const [attachments, setAttachments] = useState<AttachmentInfo[]>([]);
 
@@ -148,10 +145,7 @@ export default function RequestsPage() {
       const actionType = item.action_type as ActionType;
       const projectId = Number(item.project_id);
 
-      if (
-        actionType === "saved" ||
-        actionType === "contacted"
-      ) {
+      if (actionType === "saved" || actionType === "contacted") {
         nextActions[actionType].push(projectId);
       }
     });
@@ -194,7 +188,9 @@ export default function RequestsPage() {
       [actionType]: [...prev[actionType], requestId],
     }));
 
-    if (actionType === "saved") setMessage("Project saved successfully.");
+    if (actionType === "saved") {
+      setMessage("Project saved successfully.");
+    }
   }
 
   function openContactModal(request: FacilityRequest) {
@@ -227,13 +223,8 @@ export default function RequestsPage() {
   }
 
   async function resolveCompanyUserId(request: FacilityRequest) {
-    if (request.company_user_id) {
-      return request.company_user_id;
-    }
-
-    if (!request.work_email) {
-      return null;
-    }
+    if (request.company_user_id) return request.company_user_id;
+    if (!request.work_email) return null;
 
     const cleanEmail = request.work_email.trim().toLowerCase();
 
@@ -344,8 +335,6 @@ export default function RequestsPage() {
         } else {
           window.dispatchEvent(new Event("valcrons-notifications-updated"));
         }
-      } else {
-        console.error("Company user ID not found for request:", requestId);
       }
 
       if (contactRequest.work_email) {
@@ -362,9 +351,7 @@ export default function RequestsPage() {
 
         await fetch("/api/send-email", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             to: contactRequest.work_email,
             subject: "VALCRONS | New Industrial Expert Available for Review",
@@ -472,7 +459,6 @@ export default function RequestsPage() {
     return (
       <main className="min-h-screen bg-[#f8f6f1] text-[#111827]">
         <Header />
-
         <section className="px-6 pb-28 pt-36">
           <div className="mx-auto max-w-3xl rounded-[2rem] border border-black/10 bg-white p-10 text-center shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a7a3f]">
@@ -506,7 +492,6 @@ export default function RequestsPage() {
             </div>
           </div>
         </section>
-
         <Footer />
       </main>
     );
@@ -530,9 +515,11 @@ export default function RequestsPage() {
                 <h1 className="mt-5 text-5xl font-semibold tracking-[-0.05em] text-[#111827] md:text-7xl">
                   Active industrial support requests.
                 </h1>
+
                 <p className="mt-6 max-w-2xl text-lg leading-8 text-[#374151]">
-                 Review verified operational requests, save opportunities, and connect with industrial facilities through VALCRONS.
-               </p>
+                  Review verified operational requests, save opportunities, and
+                  connect with industrial facilities through VALCRONS.
+                </p>
               </div>
 
               <button
@@ -544,7 +531,7 @@ export default function RequestsPage() {
               </button>
             </div>
 
-            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard title="Available Requests" value={requests.length} />
               <StatCard title="Urgent Requests" value={urgentCount} />
               <StatCard title="Saved Projects" value={actions.saved.length} />
@@ -672,7 +659,7 @@ export default function RequestsPage() {
                         className="rounded-2xl bg-[#2563eb] px-5 py-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {contactRequested ? "Contact Requested ✓" : "Request Contact →"}
-                      </button
+                      </button>
 
                       <button
                         type="button"
