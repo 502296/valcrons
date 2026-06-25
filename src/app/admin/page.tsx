@@ -255,8 +255,11 @@ export default function AdminPage() {
   }
 
   setProfiles((prev) => prev.filter((item) => item.id !== profile.id));
-  addActivity(`Deleted user ${profile.email || profile.full_name || profile.id}`);
   setMessage("User deleted successfully.");
+    await addActivity(
+  "User Deleted",
+  profile.email || "Unknown user"
+);
 }
 
   async function updateRequestStatus(requestId: number, status: RequestStatus) {
