@@ -6,9 +6,10 @@ import Footer from "@/components/layout/Footer";
 import BackButton from "@/components/layout/BackButton";
 import { supabase } from "@/lib/supabase";
 
+const ADMIN_EMAIL = "ali.kathem.edu@gmail.com";
+
 type Profile = {
   id: string | null;
-  uid?: string | null;
   email: string | null;
   full_name: string | null;
   role: string | null;
@@ -60,35 +61,19 @@ export default function AdminPage() {
         data: { session },
       } = await supabase.auth.getSession();
 
-      if (!session?.user?.email) {
+      const userEmail = session?.user?.email || "";
+      const isAdminByEmail = userEmail === ADMIN_EMAIL;
+
+      if (!session?.user || !isAdminByEmail) {
         setAuthorized(false);
         setCheckingAuth(false);
         setLoading(false);
         return;
       }
 
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("is_admin, account_status")
-        .eq("email", session.user.email)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Admin profile check error:", error);
-      }
-
-      const isAllowed =
-        profile?.is_admin === true &&
-        (profile?.account_status || "active") === "active";
-
-      setAuthorized(isAllowed);
+      setAuthorized(true);
       setCheckingAuth(false);
-
-      if (isAllowed) {
-        await loadAdminData();
-      } else {
-        setLoading(false);
-      }
+      await loadAdminData();
     }
 
     init();
@@ -103,7 +88,7 @@ export default function AdminPage() {
       supabase
         .from("profiles")
         .select(
-          "id, uid, email, full_name, role, company_name, location, phone, specialty, account_status, is_admin"
+          "id, email, full_name, role, company_name, location, phone, specialty, account_status, is_admin"
         )
         .order("email", { ascending: true }),
 
@@ -123,6 +108,7 @@ export default function AdminPage() {
     if (profilesResult.error) {
       console.error("Profiles load error:", profilesResult.error);
       setErrorMessage("Users could not be loaded.");
+      setProfiles([]);
     } else {
       setProfiles((profilesResult.data || []) as Profile[]);
     }
@@ -130,6 +116,7 @@ export default function AdminPage() {
     if (requestsResult.error) {
       console.error("Requests load error:", requestsResult.error);
       setErrorMessage("Requests could not be loaded.");
+      setRequests([]);
     } else {
       setRequests((requestsResult.data || []) as FacilityRequest[]);
     }
@@ -137,6 +124,7 @@ export default function AdminPage() {
     if (contactResult.error) {
       console.error("Contact requests load error:", contactResult.error);
       setErrorMessage("Contact requests could not be loaded.");
+      setContactRequests([]);
     } else {
       setContactRequests((contactResult.data || []) as ContactRequest[]);
     }
@@ -144,22 +132,23 @@ export default function AdminPage() {
     setLoading(false);
   }
 
-  async function updateUserStatus(profile: Profile, status: "active" | "suspended") {
-    const userId = profile.id || profile.uid;
-
-    if (!userId) {
+  async function updateUserStatus(
+    profile: Profile,
+    status: "active" | "suspended"
+  ) {
+    if (!profile.id) {
       setErrorMessage("User ID not found.");
       return;
     }
 
-    setUpdating(userId);
+    setUpdating(profile.id);
     setMessage("");
     setErrorMessage("");
 
     const { error } = await supabase
       .from("profiles")
       .update({ account_status: status })
-      .or(`id.eq.${userId},uid.eq.${userId}`);
+      .eq("id", profile.id);
 
     setUpdating(null);
 
@@ -171,9 +160,7 @@ export default function AdminPage() {
 
     setProfiles((prev) =>
       prev.map((item) =>
-        item.id === profile.id || item.uid === profile.uid
-          ? { ...item, account_status: status }
-          : item
+        item.id === profile.id ? { ...item, account_status: status } : item
       )
     );
 
@@ -356,7 +343,7 @@ export default function AdminPage() {
                     </thead>
                     <tbody>
                       {profiles.map((profile) => {
-                        const userId = profile.id || profile.uid || profile.email || "";
+                        const userId = profile.id || profile.email || "";
                         const isSuspended =
                           profile.account_status === "suspended";
 
@@ -387,7 +374,7 @@ export default function AdminPage() {
                               ) : (
                                 <button
                                   type="button"
-                                  disabled={updating === userId}
+                                  disabled={updating === profile.id}
                                   onClick={() =>
                                     updateUserStatus(
                                       profile,
@@ -529,7 +516,13 @@ function StatCard({ title, value }: { title: string; value: number }) {
   );
 }
 
-function Badge({ label, tone }: { label: string; tone: "green" | "red" | "blue" }) {
+function Badge({
+  label,
+  tone,
+}: {
+  label: string;
+  tone: "green" | "red" | "blue";
+}) {
   const styles =
     tone === "green"
       ? "border-emerald-200 bg-emerald-50 text-emerald-700"
