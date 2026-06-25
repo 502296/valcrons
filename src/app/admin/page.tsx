@@ -117,7 +117,12 @@ export default function AdminPage() {
     setMessage("");
     setErrorMessage("");
 
-    const [profilesResult, requestsResult, contactResult] = await Promise.all([
+    const [
+  profilesResult,
+  requestsResult,
+  contactResult,
+  activityResult,
+] = await Promise.all([
       supabase
         .from("profiles")
         .select(
