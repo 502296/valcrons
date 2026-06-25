@@ -520,25 +520,44 @@ export default function AdminPage() {
                                   View
                                 </button>
 
-                                {profile.is_admin ? (
-                                  <span className="rounded-xl border border-[#9a7a3f]/30 bg-[#f8f1df] px-4 py-2 text-xs font-semibold text-[#7a5c1f]">
-                                    Protected
-                                  </span>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    disabled={updating === profile.id}
-                                    onClick={() =>
-                                      updateUserStatus(
-                                        profile,
-                                        isSuspended ? "active" : "suspended"
-                                      )
-                                    }
-                                    className="rounded-xl border border-black/10 bg-[#f8f6f1] px-4 py-2 text-xs font-semibold transition hover:bg-white disabled:opacity-50"
-                                  >
-                                    {isSuspended ? "Reactivate" : "Suspend"}
-                                  </button>
-                                )}
+                               {profile.is_admin ? (
+  <span className="text-xs font-semibold text-[#6b7280]">
+    Protected
+  </span>
+) : (
+  <div className="flex gap-2">
+    <button
+      type="button"
+      onClick={() => setSelectedProfile(profile)}
+      className="rounded-xl border border-black/10 bg-white px-4 py-2 text-xs font-semibold transition hover:bg-[#f4f1ea]"
+    >
+      View
+    </button>
+
+    <button
+      type="button"
+      disabled={updating === profile.id}
+      onClick={() =>
+        updateUserStatus(
+          profile,
+          isSuspended ? "active" : "suspended"
+        )
+      }
+      className="rounded-xl border border-black/10 bg-[#f8f6f1] px-4 py-2 text-xs font-semibold transition hover:bg-white disabled:opacity-50"
+    >
+      {isSuspended ? "Reactivate" : "Suspend"}
+    </button>
+
+    <button
+      type="button"
+      disabled={deletingUserId === profile.id}
+      onClick={() => deleteUser(profile)}
+      className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:opacity-50"
+    >
+      Delete
+    </button>
+  </div>
+)}
                               </div>
                             </td>
                           </tr>
