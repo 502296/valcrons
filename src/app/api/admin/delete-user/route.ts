@@ -1,13 +1,36 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const ADMIN_EMAIL = "ali.kathem.edu@gmail.com";
 
 export async function POST(request: Request) {
   try {
+    const authHeader = request.headers.get("authorization");
+
+    if (!authHeader) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
+
+    const supabaseUser = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: authHeader,
+          },
+        },
+      }
+    );
+
+    const {
+      data: { user },
+    } = await supabaseUser.auth.getUser();
+
+    if (!user || user.email !== ADMIN_EMAIL) {
+      return NextResponse.json({ error: "Admin only." }, { status: 403 });
+    }
+
     const { userId } = await request.json();
 
     if (!userId) {
@@ -17,30 +40,29 @@ export async function POST(request: Request) {
       );
     }
 
-    // حذف من جدول profiles
-    const { error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .delete()
-      .eq("id", userId);
-
-    if (profileError) {
-      console.error(profileError);
-
+    if (user.id === userId) {
       return NextResponse.json(
-        { error: "Could not delete profile." },
-        { status: 500 }
+        { error: "You cannot delete the protected admin account." },
+        { status: 400 }
       );
     }
 
-    // حذف من Authentication
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    await supabaseAdmin
+      .from("profiles")
+      .update({ account_status: "deleted" })
+      .eq("id", userId);
+
     const { error: authError } =
       await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (authError) {
-      console.error(authError);
-
       return NextResponse.json(
-        { error: "Could not delete auth user." },
+        { error: authError.message },
         { status: 500 }
       );
     }
@@ -50,7 +72,7 @@ export async function POST(request: Request) {
       message: "User deleted successfully.",
     });
   } catch (error) {
-    console.error(error);
+    console.error("Delete user API error:", error);
 
     return NextResponse.json(
       { error: "Unexpected server error." },
