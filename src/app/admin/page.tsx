@@ -64,6 +64,7 @@ export default function AdminPage() {
   const [userFilter, setUserFilter] = useState<UserFilter>("all");
   const [requestFilter, setRequestFilter] = useState<RequestFilter>("all");
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [adminActivity, setAdminActivity] = useState<string[]>([]);
 
   useEffect(() => {
