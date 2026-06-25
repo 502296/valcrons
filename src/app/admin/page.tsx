@@ -210,6 +210,7 @@ export default function AdminPage() {
         ? "User suspended successfully."
         : "User reactivated successfully."
     );
+    
     await addActivity(
   status === "suspended"
     ? "User Suspended"
