@@ -67,6 +67,22 @@ export default function AdminPage() {
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [adminActivity, setAdminActivity] = useState<string[]>([]);
 
+  async function addActivity(action: string, target: string) {
+  const { error } = await supabase
+    .from("admin_activity_logs")
+    .insert({
+      admin_email: ADMIN_EMAIL,
+      action,
+      target,
+    });
+
+  if (!error) {
+    setAdminActivity((prev) => [
+      `${action} → ${target}`,
+      ...prev,
+    ]);
+  }
+}
   useEffect(() => {
     async function init() {
       const {
