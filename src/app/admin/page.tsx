@@ -195,6 +195,47 @@ export default function AdminPage() {
         : "User reactivated successfully."
     );
   }
+  async function deleteUser(profile: Profile) {
+  if (!profile.id || profile.is_admin) {
+    setErrorMessage("This user is protected.");
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `Delete ${profile.email || profile.full_name || "this user"} permanently? This action cannot be undone.`
+  );
+
+  if (!confirmed) return;
+
+  setDeletingUserId(profile.id);
+  setMessage("");
+  setErrorMessage("");
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const response = await fetch("/api/admin/delete-user", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session?.access_token}`,
+    },
+    body: JSON.stringify({ userId: profile.id }),
+  });
+
+  const result = await response.json();
+  setDeletingUserId(null);
+
+  if (!response.ok) {
+    setErrorMessage(result.error || "User could not be deleted.");
+    return;
+  }
+
+  setProfiles((prev) => prev.filter((item) => item.id !== profile.id));
+  addActivity(`Deleted user ${profile.email || profile.full_name || profile.id}`);
+  setMessage("User deleted successfully.");
+}
 
   async function updateRequestStatus(requestId: number, status: RequestStatus) {
     setUpdating(`request-${requestId}`);
