@@ -210,6 +210,12 @@ export default function AdminPage() {
         ? "User suspended successfully."
         : "User reactivated successfully."
     );
+    await addActivity(
+  status === "suspended"
+    ? "User Suspended"
+    : "User Reactivated",
+  profile.email || "Unknown user"
+);
   }
   async function deleteUser(profile: Profile) {
   if (!profile.id || profile.is_admin) {
