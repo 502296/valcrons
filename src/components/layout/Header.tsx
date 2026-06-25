@@ -7,6 +7,11 @@ import { supabase } from "@/lib/supabase";
 
 type UserRole = "expert" | "company" | "facility" | null;
 
+type UserProfile = {
+  role: UserRole;
+  is_admin?: boolean | null;
+};
+
 const PUBLIC_NAV_LINKS = [
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Experts", href: "/experts" },
@@ -16,6 +21,7 @@ const PUBLIC_NAV_LINKS = [
 
 export default function Header() {
   const [role, setRole] = useState<UserRole>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -25,43 +31,46 @@ export default function Header() {
     if (!data.user) {
       setLoggedIn(false);
       setRole(null);
+      setIsAdmin(false);
       setUnreadCount(0);
       return;
     }
 
     setLoggedIn(true);
 
-    let profile = null;
+    let profile: UserProfile | null = null;
 
     const byId = await supabase
       .from("profiles")
-      .select("role")
+      .select("role, is_admin")
       .eq("id", data.user.id)
       .maybeSingle();
 
-    profile = byId.data;
+    profile = byId.data as UserProfile | null;
 
     if (!profile) {
       const byUid = await supabase
         .from("profiles")
-        .select("role")
+        .select("role, is_admin")
         .eq("uid", data.user.id)
         .maybeSingle();
 
-      profile = byUid.data;
+      profile = byUid.data as UserProfile | null;
     }
 
     if (!profile && data.user.email) {
       const byEmail = await supabase
         .from("profiles")
-        .select("role")
+        .select("role, is_admin")
         .eq("email", data.user.email)
         .maybeSingle();
 
-      profile = byEmail.data;
+      profile = byEmail.data as UserProfile | null;
     }
 
     setRole((profile?.role as UserRole) || null);
+    setIsAdmin(profile?.is_admin === true);
+
     await loadUnreadNotifications(data.user.id);
   }
 
@@ -166,9 +175,21 @@ export default function Header() {
             </>
           )}
 
+          {loggedIn && isAdmin && (
+            <Link
+              href="/admin"
+              className="rounded-xl border border-[#9a7a3f]/30 bg-[#f8f1df] px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-[#7a5c1f] shadow-sm transition hover:bg-[#ead9aa] hover:text-black"
+            >
+              Admin
+            </Link>
+          )}
+
           {loggedIn && role === "expert" && (
             <>
-              <Link href="/requests" className="font-semibold text-[#111827] hover:text-black">
+              <Link
+                href="/requests"
+                className="font-semibold text-[#111827] hover:text-black"
+              >
                 Browse Requests
               </Link>
 
@@ -184,7 +205,10 @@ export default function Header() {
 
           {loggedIn && (role === "company" || role === "facility") && (
             <>
-              <Link href="/request-support" className="font-semibold text-[#111827] hover:text-black">
+              <Link
+                href="/request-support"
+                className="font-semibold text-[#111827] hover:text-black"
+              >
                 Post Request
               </Link>
 
@@ -200,6 +224,16 @@ export default function Header() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-4">
+          {loggedIn && isAdmin && (
+            <Link
+              href="/admin"
+              aria-label="Admin Dashboard"
+              className="rounded-xl border border-[#9a7a3f]/30 bg-[#f8f1df] px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#7a5c1f] shadow-sm transition hover:bg-[#ead9aa] hover:text-black md:hidden"
+            >
+              Admin
+            </Link>
+          )}
+
           {loggedIn && (
             <Link
               href="/notifications"
