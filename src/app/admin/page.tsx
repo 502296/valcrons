@@ -175,6 +175,17 @@ export default function AdminPage() {
       setContactRequests((contactResult.data || []) as ContactRequest[]);
     }
 
+    if (activityResult.error) {
+  console.error("Activity load error:", activityResult.error);
+} else {
+  setAdminActivity(
+    activityResult.data?.map(
+      (item) =>
+        `${item.created_at} | ${item.action} | ${item.target}`
+    ) || []
+  );
+}
+
     setLoading(false);
   }
 
