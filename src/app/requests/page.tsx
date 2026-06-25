@@ -534,10 +534,9 @@ export default function RequestsPage() {
                 <h1 className="mt-5 text-5xl font-semibold tracking-[-0.05em] text-[#111827] md:text-7xl">
                   Active industrial support requests.
                 </h1>
-
                 <p className="mt-6 max-w-2xl text-lg leading-8 text-[#374151]">
-                  Review verified operational requests, save opportunities,
-                  accept projects, and request facility contact through
+               Review verified operational requests, save opportunities, and connect with industrial facilities through VALCRONS.
+                </p>
                   VALCRONS.
                 </p>
               </div>
@@ -555,7 +554,6 @@ export default function RequestsPage() {
               <StatCard title="Available Requests" value={requests.length} />
               <StatCard title="Urgent Requests" value={urgentCount} />
               <StatCard title="Saved Projects" value={actions.saved.length} />
-              <StatCard title="Accepted Projects" value={actions.accepted.length} />
               <StatCard title="Contact Requests" value={actions.contacted.length} />
             </div>
           </div>
@@ -681,20 +679,7 @@ export default function RequestsPage() {
                         className="rounded-2xl bg-[#2563eb] px-5 py-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {contactRequested ? "Contact Requested ✓" : "Request Contact →"}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => addExpertAction(request.id, "accepted")}
-                        disabled={accepted || updatingAction === `${request.id}-accepted`}
-                        className="rounded-2xl border border-black/10 bg-white px-5 py-4 text-sm font-semibold text-[#111827] transition hover:bg-[#f8f6f1] disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {accepted
-                          ? "Accepted ✓"
-                          : updatingAction === `${request.id}-accepted`
-                          ? "Accepting..."
-                          : "Accept Project"}
-                      </button>
+                      </button
 
                       <button
                         type="button"
