@@ -531,10 +531,8 @@ export default function RequestsPage() {
                   Active industrial support requests.
                 </h1>
                 <p className="mt-6 max-w-2xl text-lg leading-8 text-[#374151]">
-               Review verified operational requests, save opportunities, and connect with industrial facilities through VALCRONS.
-                </p>
-                  VALCRONS.
-                </p>
+                 Review verified operational requests, save opportunities, and connect with industrial facilities through VALCRONS.
+               </p>
               </div>
 
               <button
