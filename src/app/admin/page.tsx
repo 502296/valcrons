@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import BackButton from "@/components/layout/BackButton";
@@ -42,6 +43,10 @@ type ContactRequest = {
   status: string | null;
 };
 
+type UserFilter = "all" | "experts" | "companies" | "suspended" | "admins";
+type RequestFilter = "all" | "active" | "closed" | "urgent";
+type RequestStatus = "pending" | "saved" | "accepted" | "closed";
+
 export default function AdminPage() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [authorized, setAuthorized] = useState(false);
@@ -54,6 +59,12 @@ export default function AdminPage() {
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [updating, setUpdating] = useState<string | null>(null);
+
+  const [userSearch, setUserSearch] = useState("");
+  const [userFilter, setUserFilter] = useState<UserFilter>("all");
+  const [requestFilter, setRequestFilter] = useState<RequestFilter>("all");
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [adminActivity, setAdminActivity] = useState<string[]>([]);
 
   useEffect(() => {
     async function init() {
@@ -78,6 +89,11 @@ export default function AdminPage() {
 
     init();
   }, []);
+
+  function addActivity(text: string) {
+    const time = new Date().toLocaleString();
+    setAdminActivity((prev) => [`${time} — ${text}`, ...prev].slice(0, 10));
+  }
 
   async function loadAdminData() {
     setLoading(true);
@@ -106,20 +122,16 @@ export default function AdminPage() {
     ]);
 
     if (profilesResult.error) {
-  console.error("Profiles load error:", profilesResult.error);
-
-  setErrorMessage(
-    `Users could not be loaded: ${profilesResult.error.message}`
-  );
-
-  setProfiles([]);
-} else {
-  setProfiles((profilesResult.data || []) as Profile[]);
-}
+      console.error("Profiles load error:", profilesResult.error);
+      setErrorMessage(`Users could not be loaded: ${profilesResult.error.message}`);
+      setProfiles([]);
+    } else {
+      setProfiles((profilesResult.data || []) as Profile[]);
+    }
 
     if (requestsResult.error) {
       console.error("Requests load error:", requestsResult.error);
-      setErrorMessage("Requests could not be loaded.");
+      setErrorMessage(`Requests could not be loaded: ${requestsResult.error.message}`);
       setRequests([]);
     } else {
       setRequests((requestsResult.data || []) as FacilityRequest[]);
@@ -127,7 +139,9 @@ export default function AdminPage() {
 
     if (contactResult.error) {
       console.error("Contact requests load error:", contactResult.error);
-      setErrorMessage("Contact requests could not be loaded.");
+      setErrorMessage(
+        `Contact requests could not be loaded: ${contactResult.error.message}`
+      );
       setContactRequests([]);
     } else {
       setContactRequests((contactResult.data || []) as ContactRequest[]);
@@ -140,8 +154,8 @@ export default function AdminPage() {
     profile: Profile,
     status: "active" | "suspended"
   ) {
-    if (!profile.id) {
-      setErrorMessage("User ID not found.");
+    if (!profile.id || profile.is_admin) {
+      setErrorMessage("This user is protected.");
       return;
     }
 
@@ -168,6 +182,12 @@ export default function AdminPage() {
       )
     );
 
+    addActivity(
+      `${status === "suspended" ? "Suspended" : "Reactivated"} user ${
+        profile.email || profile.full_name || profile.id
+      }`
+    );
+
     setMessage(
       status === "suspended"
         ? "User suspended successfully."
@@ -175,10 +195,7 @@ export default function AdminPage() {
     );
   }
 
-  async function updateRequestStatus(
-    requestId: number,
-    status: "pending" | "closed"
-  ) {
+  async function updateRequestStatus(requestId: number, status: RequestStatus) {
     setUpdating(`request-${requestId}`);
     setMessage("");
     setErrorMessage("");
@@ -202,19 +219,60 @@ export default function AdminPage() {
       )
     );
 
-    setMessage(status === "closed" ? "Request closed." : "Request reopened.");
+    addActivity(`Changed Request #${requestId} status to ${status}`);
+    setMessage(`Request #${requestId} updated to ${status}.`);
   }
+
+  const filteredProfiles = useMemo(() => {
+    const search = userSearch.trim().toLowerCase();
+
+    return profiles.filter((profile) => {
+      const matchesSearch =
+        !search ||
+        profile.full_name?.toLowerCase().includes(search) ||
+        profile.email?.toLowerCase().includes(search) ||
+        profile.company_name?.toLowerCase().includes(search) ||
+        profile.location?.toLowerCase().includes(search) ||
+        profile.specialty?.toLowerCase().includes(search);
+
+      const matchesFilter =
+        userFilter === "all" ||
+        (userFilter === "experts" && profile.role === "expert") ||
+        (userFilter === "companies" &&
+          (profile.role === "company" || profile.role === "facility")) ||
+        (userFilter === "suspended" &&
+          profile.account_status === "suspended") ||
+        (userFilter === "admins" && profile.is_admin === true);
+
+      return matchesSearch && matchesFilter;
+    });
+  }, [profiles, userSearch, userFilter]);
+
+  const filteredRequests = useMemo(() => {
+    return requests.filter((request) => {
+      if (requestFilter === "active") return request.status !== "closed";
+      if (requestFilter === "closed") return request.status === "closed";
+      if (requestFilter === "urgent") {
+        return (request.urgency || "").toLowerCase().includes("urgent");
+      }
+      return true;
+    });
+  }, [requests, requestFilter]);
 
   const stats = useMemo(() => {
     const experts = profiles.filter((p) => p.role === "expert").length;
     const companies = profiles.filter(
       (p) => p.role === "company" || p.role === "facility"
     ).length;
+    const admins = profiles.filter((p) => p.is_admin === true).length;
     const suspended = profiles.filter(
       (p) => p.account_status === "suspended"
     ).length;
     const activeRequests = requests.filter((r) => r.status !== "closed").length;
     const closedRequests = requests.filter((r) => r.status === "closed").length;
+    const urgentRequests = requests.filter((r) =>
+      (r.urgency || "").toLowerCase().includes("urgent")
+    ).length;
     const pendingContacts = contactRequests.filter(
       (r) => r.status === "pending"
     ).length;
@@ -223,10 +281,13 @@ export default function AdminPage() {
       users: profiles.length,
       experts,
       companies,
+      admins,
       suspended,
       activeRequests,
       closedRequests,
+      urgentRequests,
       pendingContacts,
+      allContacts: contactRequests.length,
     };
   }, [profiles, requests, contactRequests]);
 
@@ -298,15 +359,17 @@ export default function AdminPage() {
               </button>
             </div>
 
-            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <StatCard title="Total Users" value={stats.users} />
               <StatCard title="Experts" value={stats.experts} />
               <StatCard title="Companies" value={stats.companies} />
+              <StatCard title="Admins" value={stats.admins} />
               <StatCard title="Suspended" value={stats.suspended} />
               <StatCard title="Active Requests" value={stats.activeRequests} />
+              <StatCard title="Urgent Requests" value={stats.urgentRequests} />
               <StatCard title="Closed Requests" value={stats.closedRequests} />
               <StatCard title="Pending Contacts" value={stats.pendingContacts} />
-              <StatCard title="All Contacts" value={contactRequests.length} />
+              <StatCard title="All Contacts" value={stats.allContacts} />
             </div>
           </div>
 
@@ -330,9 +393,44 @@ export default function AdminPage() {
             </div>
           ) : (
             <>
-              <AdminSection title="Users Management">
+              <AdminSection
+                title="Users Management"
+                subtitle="Search, filter, view, suspend, and reactivate VALCRONS users."
+              >
+                <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <input
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    placeholder="Search by name, email, company, location, or specialty..."
+                    className="w-full rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm outline-none transition focus:border-[#9a7a3f] focus:ring-4 focus:ring-[#9a7a3f]/10 lg:max-w-xl"
+                  />
+
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      ["all", "All"],
+                      ["experts", "Experts"],
+                      ["companies", "Companies"],
+                      ["suspended", "Suspended"],
+                      ["admins", "Admins"],
+                    ].map(([value, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setUserFilter(value as UserFilter)}
+                        className={`rounded-xl border px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] transition ${
+                          userFilter === value
+                            ? "border-[#111827] bg-[#111827] text-white"
+                            : "border-black/10 bg-white text-[#374151] hover:bg-[#f4f1ea]"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[900px] text-left text-sm">
+                  <table className="w-full min-w-[980px] text-left text-sm">
                     <thead>
                       <tr className="border-b border-black/10 text-xs uppercase tracking-[0.18em] text-[#6b7280]">
                         <th className="py-4">Name</th>
@@ -346,7 +444,7 @@ export default function AdminPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {profiles.map((profile) => {
+                      {filteredProfiles.map((profile) => {
                         const userId = profile.id || profile.email || "";
                         const isSuspended =
                           profile.account_status === "suspended";
@@ -371,37 +469,83 @@ export default function AdminPage() {
                             </td>
                             <td>{profile.is_admin ? "Yes" : "No"}</td>
                             <td>
-                              {profile.is_admin ? (
-                                <span className="text-xs font-semibold text-[#6b7280]">
-                                  Protected
-                                </span>
-                              ) : (
+                              <div className="flex flex-wrap gap-2">
                                 <button
                                   type="button"
-                                  disabled={updating === profile.id}
-                                  onClick={() =>
-                                    updateUserStatus(
-                                      profile,
-                                      isSuspended ? "active" : "suspended"
-                                    )
-                                  }
-                                  className="rounded-xl border border-black/10 bg-[#f8f6f1] px-4 py-2 text-xs font-semibold transition hover:bg-white disabled:opacity-50"
+                                  onClick={() => setSelectedProfile(profile)}
+                                  className="rounded-xl border border-black/10 bg-white px-4 py-2 text-xs font-semibold transition hover:bg-[#f4f1ea]"
                                 >
-                                  {isSuspended ? "Reactivate" : "Suspend"}
+                                  View
                                 </button>
-                              )}
+
+                                {profile.is_admin ? (
+                                  <span className="rounded-xl border border-[#9a7a3f]/30 bg-[#f8f1df] px-4 py-2 text-xs font-semibold text-[#7a5c1f]">
+                                    Protected
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    disabled={updating === profile.id}
+                                    onClick={() =>
+                                      updateUserStatus(
+                                        profile,
+                                        isSuspended ? "active" : "suspended"
+                                      )
+                                    }
+                                    className="rounded-xl border border-black/10 bg-[#f8f6f1] px-4 py-2 text-xs font-semibold transition hover:bg-white disabled:opacity-50"
+                                  >
+                                    {isSuspended ? "Reactivate" : "Suspend"}
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         );
                       })}
+
+                      {filteredProfiles.length === 0 && (
+                        <tr>
+                          <td
+                            colSpan={8}
+                            className="py-8 text-center text-sm font-semibold text-[#6b7280]"
+                          >
+                            No users match this search.
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
               </AdminSection>
 
-              <AdminSection title="Facility Requests">
+              <AdminSection
+                title="Facility Requests"
+                subtitle="Review facility requests and change request status directly."
+              >
+                <div className="mb-6 flex flex-wrap gap-2">
+                  {[
+                    ["all", "All"],
+                    ["active", "Active"],
+                    ["urgent", "Urgent"],
+                    ["closed", "Closed"],
+                  ].map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setRequestFilter(value as RequestFilter)}
+                      className={`rounded-xl border px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] transition ${
+                        requestFilter === value
+                          ? "border-[#111827] bg-[#111827] text-white"
+                          : "border-black/10 bg-white text-[#374151] hover:bg-[#f4f1ea]"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
                 <div className="grid gap-4">
-                  {requests.map((request) => {
+                  {filteredRequests.map((request) => {
                     const isClosed = request.status === "closed";
 
                     return (
@@ -429,25 +573,28 @@ export default function AdminPage() {
                             </p>
                           </div>
 
-                          <div className="flex flex-col gap-3 sm:flex-row">
+                          <div className="flex flex-col gap-3 sm:min-w-[220px]">
                             <Badge
                               label={request.status || "pending"}
                               tone={isClosed ? "red" : "green"}
                             />
 
-                            <button
-                              type="button"
+                            <select
+                              value={(request.status || "pending") as RequestStatus}
                               disabled={updating === `request-${request.id}`}
-                              onClick={() =>
+                              onChange={(e) =>
                                 updateRequestStatus(
                                   request.id,
-                                  isClosed ? "pending" : "closed"
+                                  e.target.value as RequestStatus
                                 )
                               }
-                              className="rounded-xl border border-black/10 bg-white px-4 py-2 text-xs font-semibold transition hover:bg-[#f4f1ea] disabled:opacity-50"
+                              className="rounded-xl border border-black/10 bg-white px-4 py-3 text-xs font-semibold outline-none transition focus:border-[#9a7a3f] focus:ring-4 focus:ring-[#9a7a3f]/10 disabled:opacity-50"
                             >
-                              {isClosed ? "Reopen" : "Close"}
-                            </button>
+                              <option value="pending">Pending</option>
+                              <option value="saved">Saved</option>
+                              <option value="accepted">Accepted</option>
+                              <option value="closed">Closed</option>
+                            </select>
                           </div>
                         </div>
                       </div>
@@ -456,8 +603,11 @@ export default function AdminPage() {
                 </div>
               </AdminSection>
 
-              <AdminSection title="Expert Contact Requests">
-                <div className="grid gap-4">
+              <AdminSection
+                title="Expert Contact Requests"
+                subtitle="Monitor expert interest and pending facility contact requests."
+              >
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {contactRequests.map((item) => (
                     <div
                       key={item.id}
@@ -469,7 +619,7 @@ export default function AdminPage() {
                       <p className="mt-2 text-sm text-[#374151]">
                         Related request: {item.request_id || "Unknown"}
                       </p>
-                      <p className="mt-1 text-sm text-[#374151]">
+                      <p className="mt-1 break-all text-sm text-[#374151]">
                         Expert ID: {item.expert_id || "Unknown"}
                       </p>
                       <div className="mt-3">
@@ -479,10 +629,94 @@ export default function AdminPage() {
                   ))}
                 </div>
               </AdminSection>
+
+              <AdminSection
+                title="Reports"
+                subtitle="Future moderation center for user reports, abuse, spam, and disputes."
+              >
+                <div className="rounded-2xl border border-dashed border-black/15 bg-[#f8f6f1] p-6">
+                  <p className="text-sm font-semibold text-[#111827]">
+                    Reports system placeholder
+                  </p>
+                  <p className="mt-2 text-sm leading-7 text-[#6b7280]">
+                    This section is ready for the next database table:
+                    platform_reports. After we create it, reports will appear
+                    here with Review, Dismiss, Suspend User, and Close Report
+                    actions.
+                  </p>
+                </div>
+              </AdminSection>
+
+              <AdminSection
+                title="Recent Admin Activity"
+                subtitle="Session activity log for actions taken during this admin visit."
+              >
+                {adminActivity.length === 0 ? (
+                  <p className="text-sm font-semibold text-[#6b7280]">
+                    No admin actions recorded in this session yet.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {adminActivity.map((item) => (
+                      <div
+                        key={item}
+                        className="rounded-2xl border border-black/10 bg-[#f8f6f1] px-5 py-4 text-sm font-semibold text-[#374151]"
+                      >
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </AdminSection>
             </>
           )}
         </div>
       </section>
+
+      {selectedProfile && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-6 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-[2rem] border border-black/10 bg-white p-8 shadow-2xl">
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a7a3f]">
+                  User Profile
+                </p>
+                <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-[#111827]">
+                  {selectedProfile.full_name || "No name"}
+                </h2>
+                <p className="mt-2 text-sm text-[#6b7280]">
+                  {selectedProfile.email || "No email"}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedProfile(null)}
+                className="rounded-xl border border-black/10 bg-[#f8f6f1] px-4 py-2 text-xs font-semibold transition hover:bg-white"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+              <Info label="Role" value={selectedProfile.role} />
+              <Info label="Company" value={selectedProfile.company_name} />
+              <Info label="Location" value={selectedProfile.location} />
+              <Info label="Phone" value={selectedProfile.phone} />
+              <Info label="Specialty" value={selectedProfile.specialty} />
+              <Info
+                label="Account Status"
+                value={selectedProfile.account_status || "active"}
+              />
+              <Info
+                label="Admin"
+                value={selectedProfile.is_admin ? "Yes" : "No"}
+              />
+              <Info label="User ID" value={selectedProfile.id} />
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </main>
@@ -491,14 +725,23 @@ export default function AdminPage() {
 
 function AdminSection({
   title,
+  subtitle,
   children,
 }: {
   title: string;
-  children: React.ReactNode;
+  subtitle?: string;
+  children: ReactNode;
 }) {
   return (
     <section className="mt-8 rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm md:p-8">
-      <h2 className="text-2xl font-semibold tracking-[-0.03em]">{title}</h2>
+      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-[-0.03em]">{title}</h2>
+          {subtitle && (
+            <p className="mt-2 text-sm leading-6 text-[#6b7280]">{subtitle}</p>
+          )}
+        </div>
+      </div>
       <div className="mt-6">{children}</div>
     </section>
   );
@@ -515,6 +758,25 @@ function StatCard({ title, value }: { title: string; value: number }) {
       </p>
       <p className="mt-3 text-xs font-medium text-[#6b7280]">
         Admin control metric
+      </p>
+    </div>
+  );
+}
+
+function Info({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number | null | undefined;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-[#f8f6f1] p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
+        {label}
+      </p>
+      <p className="mt-2 break-words text-sm font-semibold text-[#111827]">
+        {value || "Not provided"}
       </p>
     </div>
   );
