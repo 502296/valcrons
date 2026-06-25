@@ -744,6 +744,25 @@ export default function AdminPage() {
                 </div>
               </AdminSection>
 
+              <AdminSection title="Admin Activity Log">
+  <div className="grid gap-3">
+    {adminActivity.length === 0 ? (
+      <p className="text-sm font-semibold text-[#6b7280]">
+        No admin activity recorded yet.
+      </p>
+    ) : (
+      adminActivity.map((item, index) => (
+        <div
+          key={`${item}-${index}`}
+          className="rounded-2xl border border-black/10 bg-[#f8f6f1] p-4 text-sm font-medium text-[#374151]"
+        >
+          {item}
+        </div>
+      ))
+    )}
+  </div>
+</AdminSection>
+
               <AdminSection
                 title="Reports"
                 subtitle="Future moderation center for user reports, abuse, spam, and disputes."
