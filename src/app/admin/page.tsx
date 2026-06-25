@@ -287,7 +287,12 @@ export default function AdminPage() {
       )
     );
 
-    addActivity(`Changed Request #${requestId} status to ${status}`);
+    await addActivity(
+  status === "closed"
+    ? "Request Closed"
+    : "Request Reopened",
+  `Request #${requestId}`
+);
     setMessage(`Request #${requestId} updated to ${status}.`);
   }
 
