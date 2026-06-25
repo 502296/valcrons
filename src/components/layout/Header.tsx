@@ -12,6 +12,8 @@ type UserProfile = {
   is_admin?: boolean | null;
 };
 
+const ADMIN_EMAIL = "ali.kathem.edu@gmail.com";
+
 const PUBLIC_NAV_LINKS = [
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Experts", href: "/experts" },
@@ -38,6 +40,7 @@ export default function Header() {
 
     setLoggedIn(true);
 
+    const isAdminByEmail = data.user.email === ADMIN_EMAIL;
     let profile: UserProfile | null = null;
 
     const byId = await supabase
@@ -46,16 +49,8 @@ export default function Header() {
       .eq("id", data.user.id)
       .maybeSingle();
 
-    profile = byId.data as UserProfile | null;
-
-    if (!profile) {
-      const byUid = await supabase
-        .from("profiles")
-        .select("role, is_admin")
-        .eq("uid", data.user.id)
-        .maybeSingle();
-
-      profile = byUid.data as UserProfile | null;
+    if (!byId.error && byId.data) {
+      profile = byId.data as UserProfile;
     }
 
     if (!profile && data.user.email) {
@@ -65,11 +60,13 @@ export default function Header() {
         .eq("email", data.user.email)
         .maybeSingle();
 
-      profile = byEmail.data as UserProfile | null;
+      if (!byEmail.error && byEmail.data) {
+        profile = byEmail.data as UserProfile;
+      }
     }
 
-    setRole((profile?.role as UserRole) || null);
-    setIsAdmin(profile?.is_admin === true);
+    setRole((profile?.role as UserRole) || (isAdminByEmail ? "company" : null));
+    setIsAdmin(profile?.is_admin === true || isAdminByEmail);
 
     await loadUnreadNotifications(data.user.id);
   }
