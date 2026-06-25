@@ -138,6 +138,12 @@ export default function AdminPage() {
         .order("created_at", { ascending: false }),
 
       supabase
+  .from("admin_activity_logs")
+  .select("*")
+  .order("created_at", { ascending: false })
+  .limit(25),
+
+      supabase
         .from("expert_contact_requests")
         .select("id, created_at, request_id, expert_id, status")
         .order("created_at", { ascending: false }),
