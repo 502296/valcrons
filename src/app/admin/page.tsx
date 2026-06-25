@@ -107,11 +107,6 @@ export default function AdminPage() {
     init();
   }, []);
 
-  function addActivity(text: string) {
-    const time = new Date().toLocaleString();
-    setAdminActivity((prev) => [`${time} — ${text}`, ...prev].slice(0, 10));
-  }
-
   async function loadAdminData() {
     setLoading(true);
     setMessage("");
