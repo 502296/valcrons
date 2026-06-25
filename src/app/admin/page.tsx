@@ -106,12 +106,16 @@ export default function AdminPage() {
     ]);
 
     if (profilesResult.error) {
-      console.error("Profiles load error:", profilesResult.error);
-      setErrorMessage("Users could not be loaded.");
-      setProfiles([]);
-    } else {
-      setProfiles((profilesResult.data || []) as Profile[]);
-    }
+  console.error("Profiles load error:", profilesResult.error);
+
+  setErrorMessage(
+    `Users could not be loaded: ${profilesResult.error.message}`
+  );
+
+  setProfiles([]);
+} else {
+  setProfiles((profilesResult.data || []) as Profile[]);
+}
 
     if (requestsResult.error) {
       console.error("Requests load error:", requestsResult.error);
