@@ -21,11 +21,10 @@ type FacilityRequest = {
   status: string | null;
 };
 
-type ActionType = "saved" | "accepted" | "contacted";
+type ActionType = "saved" | "contacted";
 
 type ExpertActions = {
   saved: number[];
-  accepted: number[];
   contacted: number[];
 };
 
@@ -142,7 +141,6 @@ export default function RequestsPage() {
 
     const nextActions: ExpertActions = {
       saved: [],
-      accepted: [],
       contacted: [],
     };
 
@@ -152,7 +150,6 @@ export default function RequestsPage() {
 
       if (
         actionType === "saved" ||
-        actionType === "accepted" ||
         actionType === "contacted"
       ) {
         nextActions[actionType].push(projectId);
@@ -198,7 +195,6 @@ export default function RequestsPage() {
     }));
 
     if (actionType === "saved") setMessage("Project saved successfully.");
-    if (actionType === "accepted") setMessage("Project accepted successfully.");
   }
 
   function openContactModal(request: FacilityRequest) {
@@ -588,7 +584,6 @@ export default function RequestsPage() {
             {visibleRequests.map((request) => {
               const isExpanded = expandedId === request.id;
               const saved = hasAction(request.id, "saved");
-              const accepted = hasAction(request.id, "accepted");
               const contactRequested = hasAction(request.id, "contacted");
 
               return (
