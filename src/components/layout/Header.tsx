@@ -10,6 +10,8 @@ type UserRole = "expert" | "company" | "facility" | null;
 type UserProfile = {
   role: UserRole;
   is_admin?: boolean | null;
+  full_name?: string | null;
+  company_name?: string | null;
 };
 
 const ADMIN_EMAIL = "ali.kathem.edu@gmail.com";
@@ -26,6 +28,8 @@ export default function Header() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [displayName, setDisplayName] = useState("User");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   async function loadUser() {
     const { data } = await supabase.auth.getUser();
@@ -35,6 +39,7 @@ export default function Header() {
       setRole(null);
       setIsAdmin(false);
       setUnreadCount(0);
+      setDisplayName("User");
       return;
     }
 
@@ -45,7 +50,7 @@ export default function Header() {
 
     const byId = await supabase
       .from("profiles")
-      .select("role, is_admin")
+      .select("role, is_admin, full_name, company_name")
       .eq("id", data.user.id)
       .maybeSingle();
 
@@ -56,7 +61,7 @@ export default function Header() {
     if (!profile && data.user.email) {
       const byEmail = await supabase
         .from("profiles")
-        .select("role, is_admin")
+        .select("role, is_admin, full_name, company_name")
         .eq("email", data.user.email)
         .maybeSingle();
 
@@ -65,8 +70,17 @@ export default function Header() {
       }
     }
 
-    setRole((profile?.role as UserRole) || (isAdminByEmail ? "company" : null));
+    const userRole = (profile?.role as UserRole) || (isAdminByEmail ? "company" : null);
+
+    setRole(userRole);
     setIsAdmin(profile?.is_admin === true || isAdminByEmail);
+
+    const name =
+      userRole === "expert"
+        ? profile?.full_name || data.user.email || "Expert"
+        : profile?.company_name || profile?.full_name || data.user.email || "Company";
+
+    setDisplayName(name);
 
     await loadUnreadNotifications(data.user.id);
   }
@@ -129,6 +143,9 @@ export default function Header() {
     await supabase.auth.signOut();
     window.location.href = "/";
   }
+
+  const shortName = displayName.split(" ").slice(0, 2).join(" ");
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <header className="fixed left-0 top-0 z-50 w-full border-b border-black/5 bg-white/85 backdrop-blur-xl">
@@ -193,10 +210,6 @@ export default function Header() {
               <Link href="/my-projects" className="hover:text-black">
                 My Projects
               </Link>
-
-              <Link href="/profile" className="hover:text-black">
-                Profile
-              </Link>
             </>
           )}
 
@@ -212,25 +225,11 @@ export default function Header() {
               <Link href="/my-requests" className="hover:text-black">
                 My Requests
               </Link>
-
-              <Link href="/profile" className="hover:text-black">
-                Profile
-              </Link>
             </>
           )}
         </nav>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-4">
-          {loggedIn && isAdmin && (
-            <Link
-              href="/admin"
-              aria-label="Admin Dashboard"
-              className="rounded-xl border border-[#9a7a3f]/30 bg-[#f8f1df] px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#7a5c1f] shadow-sm transition hover:bg-[#ead9aa] hover:text-black md:hidden"
-            >
-              Admin
-            </Link>
-          )}
-
           {loggedIn && (
             <Link
               href="/notifications"
@@ -264,12 +263,60 @@ export default function Header() {
               </Link>
             </>
           ) : (
-            <button
-              onClick={handleLogout}
-              className="rounded-xl bg-[#111827] px-3 py-2 text-xs font-semibold text-white hover:bg-black sm:px-5 sm:py-3 sm:text-sm"
-            >
-              Logout
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setMenuOpen((prev) => !prev)}
+                className="flex items-center gap-2 rounded-2xl border border-black/10 bg-white px-2 py-2 shadow-sm transition hover:bg-[#f4f1ea] sm:px-3"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#9a7a3f] text-sm font-black text-white shadow-sm">
+                  {initial}
+                </span>
+
+                <span className="hidden max-w-[130px] truncate text-sm font-semibold text-[#111827] sm:block">
+                  {shortName}
+                </span>
+
+                <span className="text-xs text-[#6b7280]">⌄</span>
+              </button>
+
+              {menuOpen && (
+                <div className="absolute right-0 mt-3 w-56 rounded-2xl border border-black/10 bg-white p-2 shadow-xl">
+                  <div className="border-b border-black/5 px-3 py-3">
+                    <p className="truncate text-sm font-bold text-[#111827]">
+                      {displayName}
+                    </p>
+                    <p className="mt-1 text-xs font-medium uppercase tracking-[0.14em] text-[#9a7a3f]">
+                      {role || "Account"}
+                    </p>
+                  </div>
+
+                  <Link
+                    href="/profile"
+                    onClick={() => setMenuOpen(false)}
+                    className="mt-2 block rounded-xl px-3 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                  >
+                    My Profile
+                  </Link>
+
+                  <Link
+                    href="/settings"
+                    onClick={() => setMenuOpen(false)}
+                    className="block rounded-xl px-3 py-2 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
+                  >
+                    Settings
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="mt-1 w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-red-600 hover:bg-red-50"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
