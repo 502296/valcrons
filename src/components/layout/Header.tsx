@@ -12,6 +12,10 @@ type UserProfile = {
   is_admin?: boolean | null;
   full_name?: string | null;
   company_name?: string | null;
+  avatar_url?: string | null;
+  logo_url?: string | null;
+  photo_url?: string | null;
+  profile_image_url?: string | null;
 };
 
 const ADMIN_EMAIL = "ali.kathem.edu@gmail.com";
@@ -29,6 +33,7 @@ export default function Header() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [displayName, setDisplayName] = useState("User");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
   async function loadUser() {
@@ -40,6 +45,7 @@ export default function Header() {
       setIsAdmin(false);
       setUnreadCount(0);
       setDisplayName("User");
+      setAvatarUrl(null);
       return;
     }
 
@@ -50,7 +56,7 @@ export default function Header() {
 
     const byId = await supabase
       .from("profiles")
-      .select("role, is_admin, full_name, company_name")
+      .select("*")
       .eq("id", data.user.id)
       .maybeSingle();
 
@@ -61,7 +67,7 @@ export default function Header() {
     if (!profile && data.user.email) {
       const byEmail = await supabase
         .from("profiles")
-        .select("role, is_admin, full_name, company_name")
+        .select("*")
         .eq("email", data.user.email)
         .maybeSingle();
 
@@ -70,7 +76,8 @@ export default function Header() {
       }
     }
 
-    const userRole = (profile?.role as UserRole) || (isAdminByEmail ? "company" : null);
+    const userRole =
+      (profile?.role as UserRole) || (isAdminByEmail ? "company" : null);
 
     setRole(userRole);
     setIsAdmin(profile?.is_admin === true || isAdminByEmail);
@@ -80,7 +87,15 @@ export default function Header() {
         ? profile?.full_name || data.user.email || "Expert"
         : profile?.company_name || profile?.full_name || data.user.email || "Company";
 
+    const imageUrl =
+      profile?.avatar_url ||
+      profile?.logo_url ||
+      profile?.photo_url ||
+      profile?.profile_image_url ||
+      null;
+
     setDisplayName(name);
+    setAvatarUrl(imageUrl);
 
     await loadUnreadNotifications(data.user.id);
   }
@@ -90,12 +105,10 @@ export default function Header() {
 
     if (!activeUserId) {
       const { data } = await supabase.auth.getUser();
-
       if (!data.user) {
         setUnreadCount(0);
         return;
       }
-
       activeUserId = data.user.id;
     }
 
@@ -180,10 +193,7 @@ export default function Header() {
                 </Link>
               ))}
 
-              <Link
-                href="/requests"
-                className="font-semibold text-[#111827] hover:text-black"
-              >
+              <Link href="/requests" className="font-semibold text-[#111827] hover:text-black">
                 Browse Requests
               </Link>
             </>
@@ -215,10 +225,7 @@ export default function Header() {
 
           {loggedIn && (role === "company" || role === "facility") && (
             <>
-              <Link
-                href="/request-support"
-                className="font-semibold text-[#111827] hover:text-black"
-              >
+              <Link href="/request-support" className="font-semibold text-[#111827] hover:text-black">
                 Post Request
               </Link>
 
@@ -269,8 +276,16 @@ export default function Header() {
                 onClick={() => setMenuOpen((prev) => !prev)}
                 className="flex items-center gap-2 rounded-2xl border border-black/10 bg-white px-2 py-2 shadow-sm transition hover:bg-[#f4f1ea] sm:px-3"
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#9a7a3f] text-sm font-black text-white shadow-sm">
-                  {initial}
+                <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#9a7a3f] text-sm font-black text-white shadow-sm">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={displayName}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    initial
+                  )}
                 </span>
 
                 <span className="hidden max-w-[130px] truncate text-sm font-semibold text-[#111827] sm:block">
