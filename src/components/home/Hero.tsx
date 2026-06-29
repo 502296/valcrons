@@ -1,4 +1,53 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+
+type UserRole = "expert" | "company" | "facility" | null;
+
 export default function Hero() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [role, setRole] = useState<UserRole>(null);
+
+  useEffect(() => {
+    async function loadUserRole() {
+      const { data } = await supabase.auth.getUser();
+
+      if (!data.user) {
+        setLoggedIn(false);
+        setRole(null);
+        return;
+      }
+
+      setLoggedIn(true);
+
+      const byId = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .maybeSingle();
+
+      if (!byId.error && byId.data?.role) {
+        setRole(byId.data.role as UserRole);
+        return;
+      }
+
+      if (data.user.email) {
+        const byEmail = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("email", data.user.email)
+          .maybeSingle();
+
+        if (!byEmail.error && byEmail.data?.role) {
+          setRole(byEmail.data.role as UserRole);
+        }
+      }
+    }
+
+    loadUserRole();
+  }, []);
+
   return (
     <section className="relative min-h-[88vh] overflow-hidden bg-[#f7f7f4] pt-24 md:min-h-screen md:pt-28">
       <div className="absolute inset-x-0 top-20 h-[76vh] overflow-hidden md:h-[78vh]">
@@ -29,19 +78,59 @@ export default function Hero() {
           </p>
 
           <div className="flex flex-col gap-3 sm:flex-row md:gap-4">
-            <a
-              href="/request-support"
-              className="rounded-xl bg-[#111827] px-7 py-4 text-center text-sm font-semibold text-white transition hover:bg-black"
-            >
-              Request Expert Support →
-            </a>
+            {loggedIn && role === "expert" && (
+              <>
+                <a
+                  href="/requests"
+                  className="rounded-xl bg-[#9a7a3f] px-7 py-4 text-center text-sm font-semibold text-white shadow-md shadow-[#9a7a3f]/25 transition hover:bg-[#806431]"
+                >
+                  Browse Requests
+                </a>
 
-            <a
-              href="/signup?role=expert"
-              className="rounded-xl border border-[#9a7a3f]/40 bg-[#9a7a3f] px-7 py-4 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-[#806431]"
-            >
-              Join as an Expert
-            </a>
+                <a
+                  href="/my-projects"
+                  className="rounded-xl border border-black/10 bg-white/85 px-7 py-4 text-center text-sm font-semibold text-[#111827] backdrop-blur transition hover:bg-white"
+                >
+                  My Projects
+                </a>
+              </>
+            )}
+
+            {loggedIn && (role === "company" || role === "facility") && (
+              <>
+                <a
+                  href="/request-support"
+                  className="rounded-xl bg-[#111827] px-7 py-4 text-center text-sm font-semibold text-white transition hover:bg-black"
+                >
+                  Request Expert Support →
+                </a>
+
+                <a
+                  href="/my-requests"
+                  className="rounded-xl border border-[#9a7a3f]/40 bg-[#9a7a3f] px-7 py-4 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-[#806431]"
+                >
+                  My Requests
+                </a>
+              </>
+            )}
+
+            {!loggedIn && (
+              <>
+                <a
+                  href="/request-support"
+                  className="rounded-xl bg-[#111827] px-7 py-4 text-center text-sm font-semibold text-white transition hover:bg-black"
+                >
+                  Request Expert Support →
+                </a>
+
+                <a
+                  href="/signup?role=expert"
+                  className="rounded-xl border border-[#9a7a3f]/40 bg-[#9a7a3f] px-7 py-4 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-[#806431]"
+                >
+                  Join as an Expert
+                </a>
+              </>
+            )}
 
             <a
               href="#how-it-works"
