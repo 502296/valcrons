@@ -185,7 +185,7 @@ export default function Header() {
             <>
               <Link
                 href="/requests"
-                className="font-semibold text-[#111827] hover:text-black"
+                className="rounded-xl bg-[#9a7a3f] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-[#9a7a3f]/25 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#85652f] hover:shadow-lg hover:shadow-[#9a7a3f]/40"
               >
                 Browse Requests
               </Link>
