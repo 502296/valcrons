@@ -141,7 +141,7 @@ export default function RequestSupportPage() {
         <main className="min-h-screen bg-[#f4f1ea]">
           <Header />
 
-          <section className="px-6 py-32">
+          <section className="px-4 pb-12 pt-24 sm:px-6 sm:pt-32">
             <div className="mx-auto max-w-3xl rounded-3xl border border-black/10 bg-white p-10 text-center text-[#111827] shadow-sm">
               Checking secure access...
             </div>
@@ -159,7 +159,7 @@ export default function RequestSupportPage() {
         <main className="min-h-screen bg-[#f4f1ea]">
           <Header />
 
-          <section className="px-6 py-32">
+          <section className="px-4 pb-12 pt-24 sm:px-6 sm:pt-32">
             <div className="mx-auto mb-8 max-w-3xl">
               <Link
                 href="/"
@@ -169,12 +169,12 @@ export default function RequestSupportPage() {
               </Link>
             </div>
 
-            <div className="mx-auto max-w-3xl rounded-[2rem] border border-black/10 bg-white p-10 text-center shadow-sm">
+            <div className="mx-auto max-w-3xl rounded-[2rem] border border-black/10 bg-white p-5 text-center shadow-sm sm:p-10">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a7a3f]">
                 Company Access Required
               </p>
 
-              <h1 className="mt-4 text-4xl font-bold text-[#111827]">
+              <h1 className="mt-4 text-2xl font-bold text-[#111827] sm:text-4xl">
                 Create an Account to Post a Request
               </h1>
 
@@ -194,10 +194,10 @@ export default function RequestSupportPage() {
                 </Link>
 
                 <Link
-                  href="/signup"
+                  href="/signup/company"
                   className="rounded-xl bg-[#111827] px-6 py-3 font-semibold text-white hover:bg-black"
                 >
-                  Create Account
+                  Create Company Account
                 </Link>
               </div>
             </div>

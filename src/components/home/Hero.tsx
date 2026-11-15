@@ -60,7 +60,7 @@ export default function Hero() {
     ? { href: "/my-projects", label: "My projects" }
     : isCompany
       ? { href: "/my-requests", label: "My requests" }
-      : { href: "/signup?role=expert", label: "Join as an expert" };
+      : { href: "/signup/expert", label: "Join as an expert" };
 
   return (
     <section className="mx-auto grid max-w-7xl items-center gap-10 px-5 pb-12 pt-28 sm:px-8 lg:grid-cols-2 lg:gap-14 lg:pb-20 lg:pt-36">

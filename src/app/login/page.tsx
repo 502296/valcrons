@@ -1,155 +1,105 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import AccountLayout, { accountAction, accountLink } from "@/components/account/AccountLayout";
+import AccountForm, { type Field } from "@/components/account/AccountForm";
+import { accountDestination } from "@/lib/account-onboarding";
 import { supabase } from "@/lib/supabase";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+
+const fields: Field[] = [
+  { name: "email", label: "Email address", type: "email", autoComplete: "username" },
+  { name: "password", label: "Password", type: "password", autoComplete: "current-password" },
+];
+
+const savedEmailKey = "valcrons_login_email";
 
 export default function LoginPage() {
   const router = useRouter();
-
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [signedIn, setSignedIn] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let active = true;
+
     async function prepareLogin() {
-      const savedEmail = localStorage.getItem("valcrons_login_email");
+      try {
+        setEmail(localStorage.getItem(savedEmailKey) ?? "");
+        const fragment = new URLSearchParams(window.location.hash.slice(1));
+        const query = new URLSearchParams(window.location.search);
+        if (fragment.has("error") || query.has("error")) {
+          setError("This verification link could not be used. Log in if you already verified your email, or request help from support.");
+        }
 
-      if (savedEmail) {
-        setEmail(savedEmail);
+        const { data } = await supabase.auth.getUser();
+        if (!active || !data.user) return;
+        setSignedIn(true);
+        const destination = await accountDestination(data.user);
+        if (active) router.replace(destination);
+      } catch (failure) {
+        if (active) setError(failure instanceof Error ? failure.message : "Account access could not be checked.");
+      } finally {
+        if (active) setChecking(false);
       }
-
-      const { data } = await supabase.auth.getUser();
-
-      if (data.user) {
-        router.push("/");
-        return;
-      }
-
-      setChecking(false);
     }
 
-    prepareLogin();
+    void prepareLogin();
+    return () => { active = false; };
   }, [router]);
 
-  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    setLoading(true);
+  async function login(values: FormData) {
+    const cleanEmail = String(values.get("email")).trim().toLowerCase();
+    setBusy(true);
     setError("");
 
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanPassword = password.trim();
+    try {
+      const { data, error: loginError } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: String(values.get("password")),
+      });
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: cleanEmail,
-      password: cleanPassword,
-    });
+      if (loginError?.code === "email_not_confirmed") {
+        setError("Verify your email before logging in. Open the verification link sent when you registered.");
+        return;
+      }
+      if (loginError) throw loginError;
 
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-      return;
+      setSignedIn(true);
+      localStorage.setItem(savedEmailKey, cleanEmail);
+      router.replace(await accountDestination(data.user));
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Login failed. Try again.");
+    } finally {
+      setBusy(false);
     }
-
-    localStorage.setItem("valcrons_login_email", cleanEmail);
-
-    router.push("/");
-    router.refresh();
-  }
-
-  if (checking) {
-    return (
-      <>
-        <Header />
-
-        <main className="min-h-screen bg-[#f4f1eb] px-6 pt-32 pb-20">
-          <section className="mx-auto max-w-md rounded-3xl border border-black/10 bg-white p-8 shadow-sm">
-            <p className="text-sm font-semibold text-[#111827]">
-              Checking secure access...
-            </p>
-          </section>
-        </main>
-
-        <Footer />
-      </>
-    );
   }
 
   return (
-    <>
-      <Header />
-
-      <main className="min-h-screen bg-[#f4f1eb] px-6 pt-32 pb-20">
-        <section className="mx-auto max-w-md rounded-3xl border border-black/10 bg-white p-8 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#111827]">
-            Secure Access
+    <AccountLayout>
+      <section className="rounded-2xl border border-[#dfddd5] bg-white p-4 shadow-sm sm:p-7">
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Log in to VALCRONS</h1>
+        <p className="mt-2 text-sm text-[#485364]">Continue to your company or expert account.</p>
+        {checking || (signedIn && !error) ? (
+          <p role="status" className="mt-5 text-sm font-semibold">
+            {signedIn ? "Opening your account…" : "Checking your session…"}
           </p>
-
-          <h1 className="mt-4 text-3xl font-bold text-[#111827]">
-            Log in to VALCRONS
-          </h1>
-
-          <p className="mt-3 text-sm leading-6 text-[#4b5563]">
-            Access your industrial dashboard as a facility or verified expert.
-          </p>
-
-          <form onSubmit={handleLogin} className="mt-8 space-y-5">
-            <div>
-              <label className="text-sm font-semibold text-[#111827]">
-                Email
-              </label>
-
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-black/10 px-4 py-3 text-[#111827] outline-none focus:border-[#111827]"
-                placeholder="you@example.com"
-                autoComplete="email"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-semibold text-[#111827]">
-                Password
-              </label>
-
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-black/10 px-4 py-3 text-[#111827] outline-none focus:border-[#111827]"
-                placeholder="••••••••"
-                autoComplete="current-password"
-              />
-            </div>
-
-            {error && (
-              <div className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-[#111827] px-5 py-3 text-sm font-semibold text-white hover:bg-black disabled:opacity-60"
-            >
-              {loading ? "Logging in..." : "Log In"}
-            </button>
-          </form>
-        </section>
-      </main>
-
-      <Footer />
-    </>
+        ) : signedIn ? (
+          <div className="mt-5 space-y-3">
+            <p role="alert" className="text-sm text-red-800">{error}</p>
+            <button type="button" className={accountAction} onClick={() => window.location.reload()}>Continue to Your Account</button>
+          </div>
+        ) : (
+          <>
+            <AccountForm fields={fields} action="Log In" busyLabel="Logging in…" busy={busy}
+              error={error} defaultEmail={email} onSubmit={login} />
+            <Link href="/signup" className={`mt-2 ${accountLink}`}>Choose an Account Type</Link>
+          </>
+        )}
+      </section>
+    </AccountLayout>
   );
 }
