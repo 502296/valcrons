@@ -19,7 +19,7 @@ export default function Footer() {
             </div>
 
             <p className="mt-6 max-w-sm text-sm leading-7 text-white/60">
-              Connecting industrial facilities with verified experts for critical operational support.
+              Connecting industrial facilities with independent experts for technical support.
             </p>
           </div>
 
@@ -32,7 +32,7 @@ export default function Footer() {
               <li><Link href="/experts" className="hover:text-white">Experts</Link></li>
               <li><Link href="/#industries" className="hover:text-white">Industries</Link></li>
               <li><Link href="/safety" className="hover:text-white">Safety</Link></li>
-              <li><Link href="/request-support" className="hover:text-white">Request Access</Link></li>
+              <li><Link href="/request-support" className="hover:text-white">Request Support</Link></li>
             </ul>
           </div>
 
@@ -47,7 +47,6 @@ export default function Footer() {
                 </a>
               </li>
               <li>United States</li>
-              <li>Critical requests reviewed promptly</li>
             </ul>
           </div>
 
