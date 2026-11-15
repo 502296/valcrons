@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import AlertRequestHeading, { BackToNotifications, contactDecision, requestTitle } from "@/components/requests/AlertRequestHeading";
 import BackButton from "@/components/layout/BackButton";
 import { supabase } from "@/lib/supabase";
 
@@ -46,6 +47,9 @@ export default function RequestsPage() {
   const [requests, setRequests] = useState<FacilityRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [alertRequestId, setAlertRequestId] = useState<number | null>(null);
+  const [alertContact, setAlertContact] = useState<{ status: string | null } | null>(null);
+  const [contactStatusError, setContactStatusError] = useState(false);
 
   const [loggedIn, setLoggedIn] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -79,11 +83,27 @@ export default function RequestsPage() {
 
       setLoggedIn(true);
       setExpertId(session.user.id);
-      setCheckingAuth(false);
 
       const params = new URLSearchParams(window.location.search);
       const requestFromUrl = params.get("request");
       const requestId = requestFromUrl ? Number(requestFromUrl) : null;
+
+      const fromAlert = params.get("from") === "notifications" && requestId !== null && Number.isSafeInteger(requestId) && requestId > 0;
+      const actionsReady = loadExpertActions(session.user.id);
+      if (fromAlert && requestId) {
+        setAlertRequestId(requestId);
+        const { data, error } = await supabase.from("expert_contact_requests")
+          .select("status")
+          .eq("request_id", requestId)
+          .eq("expert_id", session.user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        setAlertContact(data);
+        setContactStatusError(!!error);
+        await actionsReady;
+      }
+      setCheckingAuth(false);
 
       if (requestId && !Number.isNaN(requestId)) {
         setExpandedId(requestId);
@@ -92,7 +112,7 @@ export default function RequestsPage() {
         await loadRequests();
       }
 
-      await loadExpertActions(session.user.id);
+      await actionsReady;
     }
 
     init();
@@ -377,6 +397,7 @@ export default function RequestsPage() {
         });
       }
 
+      if (alertRequestId === requestId) setAlertContact({ status: "pending" });
       setActions((prev) => ({
         ...prev,
         contacted: prev.contacted.includes(requestId)
@@ -392,18 +413,6 @@ export default function RequestsPage() {
       setUpdatingAction(null);
       setErrorMessage("Contact request could not be sent. Please try again.");
     }
-  }
-
-  function getRequestTitle(request: FacilityRequest) {
-    const description = request.problem_description || "";
-
-    if (description.length > 8) {
-      return description.length > 72
-        ? `${description.slice(0, 72)}...`
-        : description;
-    }
-
-    return request.issue_type || "Industrial support request";
   }
 
   function priorityLabel(value: string | null) {
@@ -501,11 +510,11 @@ export default function RequestsPage() {
     <main className="min-h-screen bg-[#f8f6f1] text-[#111827]">
       <Header />
 
-      <section className="px-6 pb-28 pt-36">
-        <div className="mx-auto max-w-7xl">
-          <BackButton />
+      <section className={alertRequestId ? "px-4 pb-16 pt-24 sm:px-6 sm:pt-28" : "px-6 pb-28 pt-36"}>
+        <div className={alertRequestId ? "mx-auto max-w-3xl" : "mx-auto max-w-7xl"}>
+          {alertRequestId ? <BackToNotifications /> : <BackButton />}
 
-          <div className="mt-8 rounded-[2.5rem] border border-black/10 bg-white p-8 shadow-sm md:p-12">
+          {!alertRequestId && <div className="mt-8 rounded-[2.5rem] border border-black/10 bg-white p-8 shadow-sm md:p-12">
             <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-4xl">
                 <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a7a3f]">
@@ -537,7 +546,7 @@ export default function RequestsPage() {
               <StatCard title="Saved Projects" value={actions.saved.length} />
               <StatCard title="Contact Requests" value={actions.contacted.length} />
             </div>
-          </div>
+          </div>}
 
           {(message || errorMessage) && (
             <div
@@ -551,7 +560,7 @@ export default function RequestsPage() {
             </div>
           )}
 
-          <div className="mt-8 grid gap-6">
+          <div className={alertRequestId ? "grid gap-3" : "mt-8 grid gap-6"}>
             {loading && (
               <div className="rounded-[2rem] border border-black/10 bg-white p-10 shadow-sm">
                 <p className="text-sm font-medium text-[#6b7280]">
@@ -562,7 +571,7 @@ export default function RequestsPage() {
 
             {!loading && requests.length === 0 && (
               <div className="rounded-[2rem] border border-black/10 bg-white p-10 shadow-sm">
-                <p className="text-[#374151]">No requests available yet.</p>
+                <p className="text-[#374151]">{alertRequestId ? "This request is no longer available." : "No requests available yet."}</p>
               </div>
             )}
 
@@ -570,6 +579,57 @@ export default function RequestsPage() {
               const isExpanded = expandedId === request.id;
               const saved = hasAction(request.id, "saved");
               const contactRequested = hasAction(request.id, "contacted");
+
+              if (alertRequestId) {
+                const approved = alertContact?.status === "approved";
+                const canRequestContact = !alertContact && !contactStatusError && !contactRequested && request.status !== "closed";
+
+                return (
+                  <article key={request.id} className="min-w-0 rounded-2xl border border-[#dfddd5] bg-white p-4 sm:p-6">
+                    <AlertRequestHeading title={requestTitle(request.problem_description, request.issue_type)} priority={request.urgency} status={request.status} />
+                    <section aria-label="Your contact status" className="mt-5 rounded-xl border border-[#dfddd5] p-4">
+                      <h2 className="text-sm font-semibold text-[#485364]">Your contact status</h2>
+                      <p className="mt-1 font-semibold">
+                        {contactStatusError ? "Contact status could not be loaded." : alertContact ? contactDecision(alertContact.status) : "No contact request on file"}
+                      </p>
+                      {alertContact?.status === "pending" && <p className="mt-1 text-sm text-[#485364]">The company is reviewing your message.</p>}
+                      {approved && (
+                        <div className="mt-2 space-y-1 text-sm text-[#485364]">
+                          {request.company_name && <p className="break-words">{request.company_name}</p>}
+                          {request.contact_person && <p className="break-words">{request.contact_person}</p>}
+                          {request.work_email && (
+                            <a href={`mailto:${request.work_email}`} className="mt-2 inline-flex min-h-11 items-center rounded-lg bg-[#234fb8] px-4 font-semibold text-white hover:bg-[#1b3e92]">
+                              Email company
+                            </a>
+                          )}
+                          {!request.work_email && <p>No company email is available.</p>}
+                        </div>
+                      )}
+                      {canRequestContact && (
+                        <button type="button" onClick={() => openContactModal(request)} className="mt-2 min-h-11 rounded-lg bg-[#234fb8] px-4 text-sm font-semibold text-white">
+                          Request contact
+                        </button>
+                      )}
+                    </section>
+                    <section aria-labelledby="alert-request-details" className="mt-5 border-t border-[#dfddd5] pt-4">
+                      <h2 id="alert-request-details" className="font-semibold">Request details</h2>
+                      <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-[#485364]">
+                        {request.problem_description || "No additional details provided."}
+                      </p>
+                      <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+                        <Info label="Industry" value={request.facility_type} />
+                        <Info label="Location" value={request.location} />
+                        <Info label="Support type" value={request.issue_type} />
+                      </div>
+                    </section>
+                    <button type="button" onClick={() => addExpertAction(request.id, "saved")}
+                      disabled={saved || updatingAction === `${request.id}-saved`}
+                      className="mt-3 min-h-11 text-sm font-semibold text-[#234fb8] hover:underline disabled:text-[#485364]">
+                      {saved ? "Project saved" : updatingAction ? "Saving…" : "Save project"}
+                    </button>
+                  </article>
+                );
+              }
 
               return (
                 <article
@@ -588,7 +648,7 @@ export default function RequestsPage() {
                       </div>
 
                       <h2 className="mt-5 text-3xl font-semibold tracking-[-0.03em] text-[#111827]">
-                        {getRequestTitle(request)}
+                        {requestTitle(request.problem_description, request.issue_type)}
                       </h2>
 
                       <p className="mt-4 text-sm leading-7 text-[#374151]">

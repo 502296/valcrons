@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
@@ -26,12 +26,9 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [userRole, setUserRole] = useState<UserRole>(null);
   const [loading, setLoading] = useState(true);
+  const [markingAll, setMarkingAll] = useState(false);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-
-  useEffect(() => {
-    loadNotifications();
-  }, []);
 
   function notifyHeaderBadgeUpdate() {
     window.dispatchEvent(new Event("valcrons-notifications-updated"));
@@ -64,67 +61,57 @@ export default function NotificationsPage() {
     return `/my-requests?request=${item.related_request_id}&from=notifications`;
   }
 
-  async function loadNotifications() {
-    setLoading(true);
-    setMessage("");
-    setErrorMessage("");
-
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session?.user) {
-      window.location.href = "/login";
-      return;
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", session.user.id)
-      .single();
-
-    setUserRole((profile?.role as UserRole) || null);
-
-    const { data, error } = await supabase
-      .from("notifications")
-      .select("*")
-      .eq("user_id", session.user.id)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      setErrorMessage("Notifications could not be loaded.");
-      setLoading(false);
-      return;
-    }
-
-    setNotifications((data || []) as NotificationItem[]);
-    setLoading(false);
-  }
-
-  async function openNotification(item: NotificationItem) {
-    setErrorMessage("");
-    setMessage("");
-
-    if (item.is_read !== true) {
-      const { error } = await supabase
-        .from("notifications")
-        .update({ is_read: true })
-        .eq("id", item.id);
-
-      if (error) {
-        setErrorMessage("Notification could not be marked as read.");
+  useEffect(() => {
+    async function loadNotifications() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        router.replace("/login");
         return;
       }
 
-      setNotifications((prev) =>
-        prev.map((notification) =>
-          notification.id === item.id ? { ...notification, is_read: true } : notification
-        )
-      );
+      const [{ data: profile }, { data, error }] = await Promise.all([
+        supabase.from("profiles").select("role").eq("id", session.user.id).single(),
+        supabase.from("notifications").select("*").eq("user_id", session.user.id)
+          .order("created_at", { ascending: false }),
+      ]);
 
-      notifyHeaderBadgeUpdate();
+      setUserRole((profile?.role as UserRole) || null);
+      if (error) {
+        setErrorMessage("Notifications could not be loaded.");
+      } else {
+        setNotifications((data || []) as NotificationItem[]);
+      }
+      setLoading(false);
     }
+
+    void loadNotifications();
+  }, [router]);
+
+  async function openNotification(event: MouseEvent<HTMLAnchorElement>, item: NotificationItem) {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || item.is_read === true) return;
+    event.preventDefault();
+    setErrorMessage("");
+    setMessage("");
+
+    const { error } = await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", item.id)
+      .eq("user_id", item.user_id);
+
+    if (error) {
+      setErrorMessage("Notification could not be marked as read.");
+      router.push(getNotificationTargetPath(item));
+      return;
+    }
+
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === item.id ? { ...notification, is_read: true } : notification
+      )
+    );
+
+    notifyHeaderBadgeUpdate();
 
     router.push(getNotificationTargetPath(item));
   }
@@ -139,12 +126,14 @@ export default function NotificationsPage() {
 
     if (!session?.user) return;
 
+    setMarkingAll(true);
     const { error } = await supabase
       .from("notifications")
       .update({ is_read: true })
       .eq("user_id", session.user.id)
       .or("is_read.eq.false,is_read.is.null");
 
+    setMarkingAll(false);
     if (error) {
       setErrorMessage("Notifications could not be updated.");
       return;
@@ -166,150 +155,74 @@ export default function NotificationsPage() {
   return (
     <>
       <Header />
-
-      <main className="min-h-screen bg-[#f4f1ea] px-6 pb-24 pt-32">
-        <div className="mx-auto max-w-5xl">
-          <Link
-            href="/"
-            className="mb-8 inline-flex text-sm font-semibold text-[#374151] hover:text-black"
-          >
-            ← Back
-          </Link>
-
-          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#111827]">
-                VALCRONS Notifications
-              </p>
-
-              <h1 className="mt-4 text-5xl font-semibold tracking-[-0.04em] text-[#111827]">
-                Notifications
-              </h1>
-
-              <p className="mt-4 max-w-2xl text-lg leading-8 text-[#374151]">
-                Track important updates about expert contact requests, approvals,
-                project activity, and facility responses.
-              </p>
-            </div>
-
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className="rounded-2xl bg-[#2563eb] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#1d4ed8]"
-              >
-                Mark All As Read
-              </button>
-            )}
+      <main className="min-h-screen bg-[#f7f6f2] px-4 pb-16 pt-24 text-[#111a29] sm:px-6 sm:pt-28">
+        <div className="mx-auto max-w-3xl">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Notifications</h1>
+            <button type="button" onClick={markAllAsRead}
+              disabled={loading || markingAll || unreadCount === 0}
+              className="min-h-11 rounded px-2 text-sm font-semibold text-[#234fb8] hover:underline focus-visible:outline-2 disabled:text-[#576170] disabled:no-underline">
+              {markingAll ? "Marking as read…" : "Mark all as read"}
+            </button>
+            <p aria-live="polite" className="w-full text-sm font-medium text-[#485364]">
+              {loading ? "Loading notifications…" : `${unreadCount} unread`}
+            </p>
           </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            <StatCard title="Total" value={notifications.length} />
-            <StatCard title="Unread" value={unreadCount} />
-            <StatCard title="Read" value={notifications.length - unreadCount} />
-          </div>
+          {errorMessage && <p role="alert" className="mb-3 text-sm text-red-800">{errorMessage}</p>}
+          {message && <p role="status" className="sr-only">{message}</p>}
 
-          {(message || errorMessage) && (
-            <div
-              className={`mt-8 rounded-2xl border px-5 py-4 text-sm font-semibold ${
-                errorMessage
-                  ? "border-red-200 bg-red-50 text-red-700"
-                  : "border-blue-100 bg-blue-50 text-blue-800"
-              }`}
-            >
-              {errorMessage || message}
-            </div>
+          {!loading && !errorMessage && notifications.length === 0 && (
+            <p className="rounded-xl border border-[#dfddd5] bg-white p-4 text-sm">No notifications yet.</p>
           )}
-
-          {loading ? (
-            <div className="mt-10 rounded-3xl border border-black/10 bg-white p-8 text-[#111827] shadow-sm">
-              Loading notifications...
-            </div>
-          ) : notifications.length === 0 ? (
-            <div className="mt-10 rounded-3xl border border-black/10 bg-white p-10 text-[#111827] shadow-sm">
-              <h2 className="text-2xl font-semibold">No notifications yet.</h2>
-              <p className="mt-3 max-w-xl text-sm leading-7 text-[#374151]">
-                When companies or experts take action, important updates will appear here.
-              </p>
-            </div>
-          ) : (
-            <div className="mt-10 grid gap-4">
-              {notifications.map((item) => (
-                <div
-                  key={item.id}
-                  className={`rounded-[2rem] border p-6 shadow-sm transition ${
-                    item.is_read ? "border-black/10 bg-white/80" : "border-blue-200 bg-blue-50"
-                  }`}
-                >
-                  <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-3">
-                        {!item.is_read && (
-                          <span className="h-3 w-3 rounded-full bg-[#2563eb]" />
+          {notifications.length > 0 && (
+            <ul className="divide-y divide-[#dfddd5] overflow-hidden rounded-xl border border-[#dfddd5] bg-white">
+              {notifications.map(item => {
+                const copy = notificationCopy(item);
+                return (
+                  <li key={item.id} className={`relative p-4 sm:flex sm:items-center sm:justify-between sm:gap-4 ${item.is_read !== true ? "bg-[#f1f5ff]" : ""}`}>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-base font-semibold">{copy.title}</h2>
+                        {item.is_read !== true && (
+                          <span className="rounded-full bg-[#dce7ff] px-2 py-0.5 text-xs font-semibold text-[#173875]">Unread</span>
                         )}
-
-                        <h3
-                          className={`text-xl text-[#111827] ${
-                            item.is_read ? "font-semibold" : "font-bold"
-                          }`}
-                        >
-                          {item.title || "Notification"}
-                        </h3>
-
-                        {!item.is_read && (
-                          <span className="rounded-full bg-[#2563eb] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
-                            New
-                          </span>
-                        )}
-
-                        <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#111827]">
-                          {item.type || "general"}
-                        </span>
                       </div>
-
-                      <p className="mt-3 max-w-2xl text-sm leading-7 text-[#374151]">
-                        {item.message || "No message provided."}
-                      </p>
-
-                      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
-                        {new Date(item.created_at).toLocaleString()}
-                      </p>
+                      {copy.message && <p className="mt-1 break-words text-sm text-[#485364]">{copy.message}</p>}
+                      <time dateTime={item.created_at} className="mt-1 block text-xs text-[#485364]">
+                        {new Date(item.created_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                      </time>
                     </div>
-
-                    <div className="flex min-w-[170px] flex-col gap-3">
-                      {item.related_request_id && (
-                        <button
-                          onClick={() => openNotification(item)}
-                          className="rounded-xl bg-[#2563eb] px-4 py-3 text-center text-sm font-semibold text-white hover:bg-[#1d4ed8]"
-                        >
-                          View Request
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                    {item.related_request_id && (
+                      <Link href={getNotificationTargetPath(item)} onClick={event => openNotification(event, item)}
+                        aria-label={`Open request: ${copy.title}`}
+                        className="inline-flex min-h-11 shrink-0 items-center rounded text-sm font-semibold text-[#234fb8] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2">
+                        Open request <span aria-hidden="true" className="ml-1">→</span>
+                      </Link>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
       </main>
-
       <Footer />
     </>
   );
 }
 
-function StatCard({ title, value }: { title: string; value: number }) {
-  return (
-    <div className="rounded-[1.6rem] border border-white/50 bg-white/45 p-6 shadow-[0_20px_60px_rgba(17,24,39,0.08)] backdrop-blur-xl">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6b7280]">
-        {title}
-      </p>
-
-      <p className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-[#111827]">
-        {value}
-      </p>
-
-      <p className="mt-3 text-xs font-medium text-[#6b7280]">Notification metric</p>
-    </div>
-  );
+function notificationCopy(item: NotificationItem) {
+  switch (item.type?.toLowerCase()) {
+    case "contact_approved":
+      return { title: "Contact approved", message: "The company approved your contact request. Open the request to follow up." };
+    case "contact_declined":
+      return { title: "Contact declined", message: "The company declined your contact request." };
+    case "contact_request":
+    case "expert_contact_request":
+    case "new_contact_request":
+      return { title: "New expert contact request", message: "An expert sent you a message about your support request." };
+    default:
+      return { title: item.title || "Request update", message: item.message };
+  }
 }
