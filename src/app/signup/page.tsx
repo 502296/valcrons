@@ -1,93 +1,35 @@
 import Link from "next/link";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import { Building2, HardHat } from "lucide-react";
+import AccountLayout, { accountAction, accountLink } from "@/components/account/AccountLayout";
+
+const choices = [
+  {
+    role: "Company", icon: Building2, href: "/signup/company",
+    description: "Post support requests and connect with industrial experts.",
+  },
+  {
+    role: "Expert", icon: HardHat, href: "/signup/expert",
+    description: "Build your profile and browse industrial support requests.",
+  },
+];
 
 export default function SignupPage() {
   return (
-    <>
-      <Header />
-
-      <main className="min-h-screen bg-[#f4f1eb] px-6 pt-32 pb-24">
-        <div className="mx-auto max-w-6xl">
-
-          <Link
-      href="/"
-      className="mb-8 inline-flex text-sm font-semibold text-[#374151] hover:text-black"
->
-      ← Back
-    </Link>
-
-          <div className="mb-12 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a7a3f]">
-              VALCRONS ACCESS
-            </p>
-
-            <h1 className="mt-4 text-5xl font-bold text-[#111827]">
-              Choose Your Account Type
-            </h1>
-
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-[#4b5563]">
-              VALCRONS is a professional industrial network.
-              All facilities and experts must maintain verified accounts
-              before accessing projects and operational information.
-            </p>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-2">
-
-            <div className="rounded-3xl border border-black/10 bg-white p-10 shadow-sm">
-              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#9a7a3f]">
-                Facilities & Companies
-              </p>
-
-              <h2 className="mt-4 text-3xl font-bold text-[#111827]">
-                Company Account
-              </h2>
-
-              <ul className="mt-6 space-y-3 text-[#4b5563]">
-                <li>• Post industrial support requests</li>
-                <li>• Manage facility projects</li>
-                <li>• Connect with verified experts</li>
-                <li>• Maintain secure communications</li>
-              </ul>
-
-              <Link
-                href="/signup/company"
-                className="mt-8 inline-block rounded-xl bg-[#111827] px-6 py-3 font-semibold text-white"
-              >
-                Create Company Account
-              </Link>
-            </div>
-
-            <div className="rounded-3xl border border-black/10 bg-white p-10 shadow-sm">
-              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#9a7a3f]">
-                Experts & Technicians
-              </p>
-
-              <h2 className="mt-4 text-3xl font-bold text-[#111827]">
-                Expert Account
-              </h2>
-
-              <ul className="mt-6 space-y-3 text-[#4b5563]">
-                <li>• Browse industrial requests</li>
-                <li>• Save opportunities</li>
-                <li>• Build professional profile</li>
-                <li>• Connect with facilities securely</li>
-              </ul>
-
-              <Link
-                href="/signup/expert"
-                className="mt-8 inline-block rounded-xl bg-[#111827] px-6 py-3 font-semibold text-white"
-              >
-                Create Expert Account
-              </Link>
-            </div>
-
-          </div>
-        </div>
-      </main>
-
-      <Footer />
-    </>
+    <AccountLayout wide>
+      <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">Choose your account type</h1>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 sm:gap-4">
+        {choices.map(({ role, icon: Icon, href, description }) => (
+          <section key={role} className="grid content-start gap-2 rounded-2xl border border-[#dfddd5] bg-white p-4 shadow-sm sm:p-5">
+            <h2 className="flex items-center gap-2 text-lg font-bold">
+              <Icon aria-hidden="true" className="size-5 text-[#234fb8]" />
+              {role}
+            </h2>
+            <p className="text-sm text-[#485364]">{description}</p>
+            <Link href={href} className={accountAction}>Create {role} Account</Link>
+          </section>
+        ))}
+      </div>
+      <Link href="/login" className={`mt-2 ${accountLink}`}>Log In to an Existing Account</Link>
+    </AccountLayout>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import AlertRequestHeading, { BackToNotifications, contactDecision, requestTitle } from "@/components/requests/AlertRequestHeading";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { supabase } from "@/lib/supabase";
@@ -70,6 +71,9 @@ export default function MyRequestsPage() {
   const [targetRequestId, setTargetRequestId] = useState<number | null>(null);
   const [backHref, setBackHref] = useState("/");
 
+  const fromAlert = backHref === "/notifications" && targetRequestId !== null;
+  const visibleRequests = targetRequestId ? requests.filter(request => request.id === targetRequestId) : requests;
+
   const activeRequests = requests.filter((r) => r.status !== "closed").length;
   const closedRequests = requests.filter((r) => r.status === "closed").length;
   const awaitingReview = requests.filter((r) => r.status === "pending" || !r.status).length;
@@ -84,54 +88,7 @@ export default function MyRequestsPage() {
     problem_description: "",
   });
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const requestId = Number(params.get("request"));
-    const from = params.get("from");
-
-    setBackHref(from === "notifications" ? "/notifications" : "/");
-
-    if (requestId) {
-      setTargetRequestId(requestId);
-      setExpandedId(requestId);
-    }
-
-    loadRequests();
-  }, []);
-
-  async function loadRequests() {
-    setLoading(true);
-
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session?.user) {
-      setLoading(false);
-      window.location.href = "/login";
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("facility_requests")
-      .select("*")
-      .eq("work_email", session.user.email)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      setErrorMessage("Requests could not be loaded. Please try again.");
-      setLoading(false);
-      return;
-    }
-
-    const companyRequests = data || [];
-    setRequests(companyRequests);
-
-    await loadContactRequests(companyRequests);
-    setLoading(false);
-  }
-
-  async function loadContactRequests(companyRequests: Request[]) {
+  const loadContactRequests = useCallback(async (companyRequests: Request[]) => {
     const requestIds = companyRequests.map((request) => Number(request.id));
 
     if (requestIds.length === 0) {
@@ -185,7 +142,41 @@ export default function MyRequestsPage() {
     });
 
     setExpertProfiles(profileMap);
-  }
+  }, []);
+
+  useEffect(() => {
+    async function loadRequests() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        window.location.assign("/login");
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const requestId = Number(params.get("request"));
+      const validId = Number.isSafeInteger(requestId) && requestId > 0;
+      const fromAlert = params.get("from") === "notifications";
+      setBackHref(fromAlert ? "/notifications" : "/");
+      if (validId) {
+        setTargetRequestId(requestId);
+        setExpandedId(requestId);
+      }
+
+      const query = supabase.from("facility_requests").select("*")
+        .eq("work_email", session.user.email).order("created_at", { ascending: false });
+      const { data, error } = await (fromAlert && validId ? query.eq("id", requestId) : query);
+      if (error) {
+        setErrorMessage("Requests could not be loaded. Please try again.");
+      } else {
+        const companyRequests = data || [];
+        setRequests(companyRequests);
+        await loadContactRequests(companyRequests);
+      }
+      setLoading(false);
+    }
+
+    void loadRequests();
+  }, [loadContactRequests]);
 
   function clearMessages() {
     setMessage("");
@@ -381,13 +372,13 @@ export default function MyRequestsPage() {
     <>
       <Header />
 
-      <main className="min-h-screen bg-[#f4f1ea] px-6 pb-24 pt-32 text-[#111827]">
-        <div className="mx-auto max-w-7xl">
-          <Link href={backHref} className="mb-8 inline-flex text-sm font-semibold text-[#374151] hover:text-black">
+      <main className={`min-h-screen bg-[#f4f1ea] text-[#111827] ${fromAlert ? "px-4 pb-16 pt-24 sm:px-6 sm:pt-28" : "px-6 pb-24 pt-32"}`}>
+        <div className={fromAlert ? "mx-auto max-w-3xl" : "mx-auto max-w-7xl"}>
+          {fromAlert ? <BackToNotifications /> : !loading && <Link href={backHref} className="mb-8 inline-flex text-sm font-semibold text-[#374151] hover:text-black">
             ← Back
-          </Link>
+          </Link>}
 
-          <section className="rounded-[2.5rem] border border-white/60 bg-white/55 p-8 shadow-[0_30px_90px_rgba(17,24,39,0.10)] backdrop-blur-xl md:p-10">
+          {!fromAlert && !loading && <section className="rounded-[2.5rem] border border-white/60 bg-white/55 p-8 shadow-[0_30px_90px_rgba(17,24,39,0.10)] backdrop-blur-xl md:p-10">
             <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#9a7a3f]">
@@ -419,7 +410,7 @@ export default function MyRequestsPage() {
               <StatCard title="Expert Interest" value={expertInterest} />
               <StatCard title="Total Requests" value={totalRequests} />
             </div>
-          </section>
+          </section>}
 
           {(message || errorMessage) && (
             <div
@@ -437,15 +428,15 @@ export default function MyRequestsPage() {
             <div className="mt-10 rounded-3xl border border-black/10 bg-white p-8 shadow-sm">
               Loading requests...
             </div>
-          ) : requests.length === 0 ? (
+          ) : visibleRequests.length === 0 ? (
             <div className="mt-10 rounded-3xl border border-black/10 bg-white p-8 shadow-sm">
-              No requests have been submitted yet.
+              {fromAlert ? "This request is no longer available." : "No requests have been submitted yet."}
             </div>
           ) : (
-            <div className="mt-10 grid gap-6">
-              {(targetRequestId ? requests.filter((request) => request.id === targetRequestId) : requests).map(
+            <div className={fromAlert ? "grid gap-3" : "mt-10 grid gap-6"}>
+              {visibleRequests.map(
                 (request) => {
-                  const isExpanded = expandedId === request.id;
+                  const isExpanded = fromAlert || expandedId === request.id;
                   const isEditing = editingId === request.id;
                   const status = request.status || "pending";
                   const isClosed = status === "closed";
@@ -454,12 +445,15 @@ export default function MyRequestsPage() {
                   return (
                     <article
                       key={request.id}
-                      className={`rounded-[2rem] border p-6 shadow-sm ${
+                      className={`rounded-[2rem] border shadow-sm ${fromAlert ? "p-4 sm:p-6" : "p-6"} ${
                         isClosed ? "border-black/10 bg-white/70" : "border-black/10 bg-white"
                       }`}
                     >
-                      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                        <div className="flex-1">
+                      <div className={fromAlert ? "flex flex-col gap-4" : "flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between"}>
+                        <div className="min-w-0 flex-1">
+                          {fromAlert ? (
+                            <AlertRequestHeading title={requestTitle(request.problem_description, request.issue_type ?? null)} priority={request.urgency} status={request.status} />
+                          ) : <>
                           <div className="flex flex-wrap items-center gap-3">
                             <h3 className="text-2xl font-bold text-[#111827]">
                               {request.facility_type || "Industrial Request"}
@@ -483,16 +477,10 @@ export default function MyRequestsPage() {
                           <p className="mt-4 max-w-4xl leading-relaxed text-[#374151]">
                             {request.problem_description || "No problem description provided."}
                           </p>
+                          </>}
 
                           {isExpanded && !isEditing && (
                             <>
-                              <div className="mt-6 grid gap-4 rounded-2xl border border-black/10 bg-[#f8f6f1] p-5 text-sm md:grid-cols-2">
-                                <Detail label="Support Type" value={request.issue_type || "Not specified"} />
-                                <Detail label="Priority Details" value={request.urgency || "Pending"} />
-                                <Detail label="Request ID" value={String(request.id)} />
-                                <Detail label="Created" value={new Date(request.created_at).toLocaleString()} />
-                              </div>
-
                               <ContactRequestsPanel
                                 contacts={requestContacts}
                                 expertProfiles={expertProfiles}
@@ -500,6 +488,20 @@ export default function MyRequestsPage() {
                                 onApprove={(id) => updateContactRequestStatus(id, "approved")}
                                 onDecline={(id) => updateContactRequestStatus(id, "declined")}
                               />
+                              <section aria-label="Request details" className="mt-5">
+                                {fromAlert && <>
+                                  <h2 className="font-semibold">Request details</h2>
+                                  <p className="mt-2 whitespace-pre-wrap break-words text-sm text-[#485364]">{request.problem_description || "No problem description provided."}</p>
+                                </>}
+                              <div className="mt-6 grid gap-4 rounded-2xl border border-black/10 bg-[#f8f6f1] p-5 text-sm md:grid-cols-2">
+                                <Detail label="Support Type" value={request.issue_type || "Not specified"} />
+                                {fromAlert && <Detail label="Location" value={request.location || "Not specified"} />}
+                                <Detail label="Priority Details" value={request.urgency || "Pending"} />
+                                <Detail label="Request ID" value={String(request.id)} />
+                                <Detail label="Created" value={new Date(request.created_at).toLocaleString()} />
+                              </div>
+
+                              </section>
                             </>
                           )}
 
@@ -526,19 +528,19 @@ export default function MyRequestsPage() {
                           )}
                         </div>
 
-                        <div className="flex min-w-[180px] flex-col gap-3">
-                          <span className="rounded-full border border-black/10 bg-[#111827] px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.14em] text-white">
+                        <div className={fromAlert ? "flex flex-wrap gap-2" : "flex min-w-[180px] flex-col gap-3"}>
+                          {!fromAlert && <span className="rounded-full border border-black/10 bg-[#111827] px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.14em] text-white">
                             {priorityLabel(request.urgency)}
-                          </span>
+                          </span>}
 
                           {!isEditing && (
                             <>
-                              <button
+                              {!fromAlert && <button
                                 onClick={() => setExpandedId(isExpanded ? null : request.id)}
                                 className="rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
                               >
                                 {isExpanded ? "Hide Details" : "View Details"}
-                              </button>
+                              </button>}
 
                               {!isClosed && (
                                 <button
@@ -627,12 +629,10 @@ function ContactRequestsPanel({
   }
 
   return (
-    <div className="mt-6 rounded-[1.7rem] border border-black/10 bg-white p-5">
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#111827]">
-        Expert Contact Requests
-      </p>
+    <div className="mt-5">
+      <h2 className="font-semibold">Expert contact requests</h2>
 
-      <div className="mt-5 grid gap-5">
+      <div className="mt-2 grid gap-3">
         {contacts.map((contact) => {
           const expert = expertProfiles[contact.expert_id];
           const files = parseAttachments(contact.attachment_names);
@@ -643,62 +643,25 @@ function ContactRequestsPanel({
             <div
               key={contact.id}
               id={`expert-contact-${contact.id}`}
-              className="rounded-[1.5rem] border border-black/10 bg-[#f8f6f1] p-5"
+              className="min-w-0 rounded-xl border border-black/10 bg-[#f8f6f1] p-4"
             >
-              <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-                <div className="flex-1">
+              <div className="flex flex-col gap-3">
+                <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-3">
-                    <h4 className="text-2xl font-bold tracking-[-0.03em] text-[#111827]">
+                    <h4 className="break-words text-lg font-bold text-[#111827]">
                       {expert?.full_name || "Industrial Expert"}
                     </h4>
 
                     <span className="rounded-full bg-[#111827] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
-                      {contactStatusLabel(contact.status)}
+                      {contactDecision(contact.status ?? "pending")}
                     </span>
-                  </div>
-
-                  <div className="mt-4 grid gap-3 rounded-2xl border border-black/10 bg-white p-4 text-sm md:grid-cols-2">
-                    <ContactInfo label="Specialty" value={expert?.specialty || "Not provided"} />
-                    <ContactInfo label="Location" value={expert?.location || "Not provided"} />
-
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
-                        Email
-                      </p>
-                      {expert?.email ? (
-                        <a
-                          href={`mailto:${expert.email}`}
-                          className="mt-1 inline-flex font-semibold text-[#2563eb] hover:underline"
-                        >
-                          {expert.email}
-                        </a>
-                      ) : (
-                        <p className="mt-1 font-semibold text-[#111827]">Not provided</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
-                        Phone
-                      </p>
-                      {expert?.phone ? (
-                        <a
-                          href={`tel:${expert.phone}`}
-                          className="mt-1 inline-flex font-semibold text-[#2563eb] hover:underline"
-                        >
-                          {expert.phone}
-                        </a>
-                      ) : (
-                        <p className="mt-1 font-semibold text-[#111827]">Not provided</p>
-                      )}
-                    </div>
                   </div>
 
                   <div className="mt-4 rounded-2xl border border-black/10 bg-white p-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b7280]">
                       Expert Message
                     </p>
-                    <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[#374151]">
+                    <p className="mt-3 whitespace-pre-line break-words text-sm leading-7 text-[#374151]">
                       {contact.expert_message || "No message provided."}
                     </p>
                   </div>
@@ -741,53 +704,43 @@ function ContactRequestsPanel({
                   )}
                 </div>
 
-                <div className="flex min-w-[190px] flex-col gap-3">
-                  <button
-                    onClick={() => onApprove(contact.id)}
-                    disabled={isApproved || isDeclined || updatingContactId === contact.id}
-                    className="rounded-xl bg-[#111827] px-4 py-3 text-sm font-semibold text-white hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {isApproved
-                      ? "Approved ✓"
-                      : updatingContactId === contact.id
-                      ? "Updating..."
-                      : "Approve Contact"}
-                  </button>
-
-                  {expert?.email && (
-                    <a
-                      href={`mailto:${expert.email}`}
-                      className="rounded-xl border border-[#2563eb]/20 bg-[#eff6ff] px-4 py-3 text-center text-sm font-semibold text-[#2563eb] hover:bg-[#dbeafe]"
-                    >
-                      Email Expert
+                <div className="flex flex-wrap items-center gap-2">
+                  {!isApproved && !isDeclined && <>
+                    <button type="button" onClick={() => onApprove(contact.id)}
+                      disabled={updatingContactId === contact.id}
+                      className="min-h-11 rounded-lg bg-[#234fb8] px-4 text-sm font-semibold text-white hover:bg-[#1b3e92] disabled:opacity-60">
+                      {updatingContactId === contact.id ? "Updating…" : "Approve contact"}
+                    </button>
+                    <button type="button" onClick={() => onDecline(contact.id)}
+                      disabled={updatingContactId === contact.id}
+                      className="min-h-11 rounded-lg border border-red-200 px-4 text-sm font-semibold text-red-800 hover:bg-red-50 disabled:opacity-60">
+                      Decline
+                    </button>
+                  </>}
+                  {isApproved && expert?.email && (
+                    <a href={`mailto:${expert.email}`} className="inline-flex min-h-11 items-center rounded-lg bg-[#234fb8] px-4 text-sm font-semibold text-white hover:bg-[#1b3e92]">
+                      Email expert
                     </a>
                   )}
-
-                  {expert?.phone && (
-                    <a
-                      href={`tel:${expert.phone}`}
-                      className="rounded-xl border border-[#2563eb]/20 bg-white px-4 py-3 text-center text-sm font-semibold text-[#2563eb] hover:bg-[#eff6ff]"
-                    >
-                      Call Expert
+                  {isApproved && expert?.phone && (
+                    <a href={`tel:${expert.phone}`} className="inline-flex min-h-11 items-center rounded-lg border border-[#234fb8] px-4 text-sm font-semibold text-[#234fb8] hover:bg-white">
+                      Call expert
                     </a>
                   )}
-
-                 <Link
-  href={`/expert-summary/${contact.id}`}
-  target="_blank"
-  className="rounded-xl border border-black/10 bg-white px-4 py-3 text-center text-sm font-semibold text-[#111827] hover:bg-[#f4f1ea]"
->
-  Print Expert Summary
-</Link>
-
-                  <button
-                    onClick={() => onDecline(contact.id)}
-                    disabled={isApproved || isDeclined || updatingContactId === contact.id}
-                    className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {isDeclined ? "Declined" : "Decline"}
-                  </button>
+                  <Link href={`/expert-summary/${contact.id}`} target="_blank"
+                    className="inline-flex min-h-11 items-center px-2 text-sm font-semibold text-[#485364] hover:underline">
+                    Print expert summary
+                  </Link>
                 </div>
+                <details className="border-t border-black/10 pt-2 text-sm">
+                  <summary className="min-h-9 cursor-pointer py-2 font-semibold">Expert details</summary>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <ContactInfo label="Specialty" value={expert?.specialty || "Not provided"} />
+                    <ContactInfo label="Location" value={expert?.location || "Not provided"} />
+                    {expert?.email && <a href={`mailto:${expert.email}`} className="break-all text-[#234fb8] underline">{expert.email}</a>}
+                    {expert?.phone && <a href={`tel:${expert.phone}`} className="break-all text-[#234fb8] underline">{expert.phone}</a>}
+                  </div>
+                </details>
               </div>
             </div>
           );
@@ -795,12 +748,6 @@ function ContactRequestsPanel({
       </div>
     </div>
   );
-}
-
-function contactStatusLabel(value: string | null) {
-  if (value === "approved") return "APPROVED";
-  if (value === "declined") return "DECLINED";
-  return "PENDING REVIEW";
 }
 
 function ContactInfo({ label, value }: { label: string; value: string }) {
